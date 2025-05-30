@@ -1,21 +1,18 @@
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, User, Clock, Edit } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StepStatusManager from '@/components/workflows/StepStatusManager';
-import WorkflowEditor from '@/components/workflows/WorkflowEditor';
 
 export default function WorkflowDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [isEditing, setIsEditing] = useState(false);
 
   const { data: workflow, isLoading, error } = useQuery({
     queryKey: ['workflow', id],
@@ -67,28 +64,6 @@ export default function WorkflowDetail() {
     navigate('/#workflows');
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setSearchParams({ edit: 'true' });
-  };
-
-  const handleSaveEdit = () => {
-    setIsEditing(false);
-    setSearchParams({});
-    navigate(`/workflow/${id}`, { replace: true });
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setSearchParams({});
-  };
-
-  useEffect(() => {
-    if (searchParams.get('edit') === 'true' && workflow && !isEditing) {
-      setIsEditing(true);
-    }
-  }, [searchParams, workflow, isEditing]);
-
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -105,19 +80,6 @@ export default function WorkflowDetail() {
         <div className="flex items-center justify-center h-64">
           <div className="text-red-500">Failed to load workflow</div>
         </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (isEditing) {
-    return (
-      <DashboardLayout>
-        <WorkflowEditor
-          workflow={workflow}
-          profiles={profiles}
-          onSave={handleSaveEdit}
-          onCancel={handleCancelEdit}
-        />
       </DashboardLayout>
     );
   }
@@ -166,10 +128,6 @@ export default function WorkflowDetail() {
             </Button>
             <h1 className="text-3xl font-bold">{workflow?.name}</h1>
           </div>
-          <Button onClick={handleEdit} className="flex items-center gap-2">
-            <Edit className="h-4 w-4" />
-            Edit Workflow
-          </Button>
         </div>
 
         {/* Workflow Overview */}

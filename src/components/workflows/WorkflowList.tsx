@@ -1,10 +1,11 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Calendar, User, Eye, Edit, Trash2 } from 'lucide-react';
+import { Calendar, User, Eye, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -154,11 +155,6 @@ export default function WorkflowList() {
     navigate(`/workflow/${workflowId}`);
   };
 
-  const handleEdit = (workflowId: string) => {
-    console.log('Editing workflow:', workflowId);
-    navigate(`/workflow/${workflowId}?edit=true`);
-  };
-
   const handleDelete = (workflowId: string) => {
     console.log('Delete button clicked for workflow:', workflowId);
     deleteWorkflowMutation.mutate(workflowId);
@@ -174,7 +170,7 @@ export default function WorkflowList() {
           {!workflows || workflows.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-500 mb-4">No workflows found</p>
-              <p className="text-sm text-gray-400">Create your first workflow to get started</p>
+              <p className="text-sm text-gray-400">No workflow creation available</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -231,19 +227,6 @@ export default function WorkflowList() {
                         >
                           <Eye className="h-4 w-4" />
                           View Details
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEdit(workflow.id);
-                          }}
-                          className="flex items-center gap-1"
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
