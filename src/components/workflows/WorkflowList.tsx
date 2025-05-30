@@ -14,26 +14,30 @@ import {
   Pause,
   CheckCircle
 } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Workflow {
+type WorkflowStatus = Database['public']['Enums']['workflow_status'];
+type TaskPriority = Database['public']['Enums']['task_priority'];
+
+interface WorkflowData {
   id: string;
   name: string;
-  description: string;
-  status: 'draft' | 'active' | 'completed' | 'paused';
-  priority: 'low' | 'medium' | 'high';
-  due_date: string;
+  description: string | null;
+  status: WorkflowStatus;
+  priority: TaskPriority;
+  due_date: string | null;
   created_at: string;
-  assigned_to: string;
-  tags: string[];
+  assigned_to: string | null;
+  tags: string[] | null;
   created_by: string;
   creator: {
-    first_name: string;
-    last_name: string;
-  };
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
   assignee: {
-    first_name: string;
-    last_name: string;
-  };
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
   workflow_steps: {
     id: string;
     status: string;
@@ -57,7 +61,7 @@ export default function WorkflowList() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Workflow[];
+      return data as WorkflowData[];
     },
   });
 
@@ -196,7 +200,7 @@ export default function WorkflowList() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <User className="h-4 w-4" />
                       <span>
-                        Created by {workflow.creator?.first_name} {workflow.creator?.last_name}
+                        Created by {workflow.creator?.first_name || 'Unknown'} {workflow.creator?.last_name || ''}
                       </span>
                     </div>
                     
@@ -204,7 +208,7 @@ export default function WorkflowList() {
                       <div className="flex items-center gap-2 text-gray-600">
                         <User className="h-4 w-4" />
                         <span>
-                          Assigned to {workflow.assignee.first_name} {workflow.assignee.last_name}
+                          Assigned to {workflow.assignee.first_name || 'Unknown'} {workflow.assignee.last_name || ''}
                         </span>
                       </div>
                     )}

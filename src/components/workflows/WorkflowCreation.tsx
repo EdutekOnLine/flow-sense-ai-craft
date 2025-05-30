@@ -11,6 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, X, ArrowUp, ArrowDown, Save, Users } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
+
+type TaskStatus = Database['public']['Enums']['task_status'];
+type TaskPriority = Database['public']['Enums']['task_priority'];
 
 interface WorkflowStep {
   id: string;
@@ -24,7 +28,7 @@ interface WorkflowStep {
 interface WorkflowForm {
   name: string;
   description: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: TaskPriority;
   due_date: string;
   assigned_to?: string;
   tags: string[];
@@ -83,7 +87,7 @@ export default function WorkflowCreation() {
           assigned_to: workflowData.assigned_to || null,
           created_by: profile?.id,
           tags: workflowData.tags,
-          status: 'draft'
+          status: 'draft' as const
         }])
         .select()
         .single();
@@ -100,7 +104,7 @@ export default function WorkflowCreation() {
           assigned_to: step.assigned_to || null,
           estimated_hours: step.estimated_hours || null,
           dependencies: step.dependencies,
-          status: 'pending'
+          status: 'pending' as TaskStatus
         }));
 
         const { error: stepsError } = await supabase
@@ -273,7 +277,7 @@ export default function WorkflowCreation() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={form.priority} onValueChange={(value: any) => setForm(prev => ({ ...prev, priority: value }))}>
+                <Select value={form.priority} onValueChange={(value: TaskPriority) => setForm(prev => ({ ...prev, priority: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
