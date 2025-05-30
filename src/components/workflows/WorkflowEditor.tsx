@@ -98,7 +98,10 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         console.log('=== UPDATING EXISTING WORKFLOW ===');
         console.log('Workflow ID:', workflow.id);
         
-        // Update existing workflow
+        // Use a transaction-like approach to ensure data consistency
+        const workflowId = workflow.id;
+        
+        // STEP 1: Update workflow details first
         const { error: workflowError } = await supabase
           .from('workflows')
           .update({
@@ -110,7 +113,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             tags: data.tags.length > 0 ? data.tags : null,
             updated_at: new Date().toISOString()
           })
-          .eq('id', workflow.id);
+          .eq('id', workflowId);
 
         if (workflowError) {
           console.error('Workflow update error:', workflowError);
@@ -118,46 +121,55 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         }
         console.log('✅ Workflow updated successfully');
 
-        // STEP 1: Delete ALL existing steps for this workflow
+        // STEP 2: Delete ALL existing steps for this workflow (with explicit filter)
         console.log('=== CLEARING ALL EXISTING STEPS ===');
-        const { error: deleteError } = await supabase
+        const { error: deleteError, count: deletedCount } = await supabase
           .from('workflow_steps')
-          .delete()
-          .eq('workflow_id', workflow.id);
+          .delete({ count: 'exact' })
+          .eq('workflow_id', workflowId);
 
         if (deleteError) {
           console.error('❌ Step deletion error:', deleteError);
           throw deleteError;
         }
-        console.log('✅ Successfully deleted all existing steps');
+        console.log('✅ Successfully deleted', deletedCount, 'existing steps');
 
-        // STEP 2: Insert ONLY the current form steps as completely new entries
+        // STEP 3: Insert ONLY the current form steps as completely new entries
         if (data.steps && data.steps.length > 0) {
           console.log('=== INSERTING NEW STEPS ===');
           console.log('Steps to insert count:', data.steps.length);
           
-          const newStepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
-            workflow_id: workflow.id,
-            name: step.name,
-            description: step.description || null,
-            step_order: index + 1,
-            status: step.status,
-            estimated_hours: step.estimated_hours,
-            assigned_to: step.assigned_to || null
-          }));
-
-          console.log('New steps to insert:', newStepsToInsert);
-
-          const { error: stepsError } = await supabase
-            .from('workflow_steps')
-            .insert(newStepsToInsert);
-
-          if (stepsError) {
-            console.error('❌ Steps insertion error:', stepsError);
-            throw stepsError;
-          }
+          // Filter out any steps with empty names to prevent inserting invalid data
+          const validSteps = data.steps.filter((step: WorkflowStep) => step.name.trim() !== '');
+          console.log('Valid steps to insert:', validSteps.length);
           
-          console.log('✅ Successfully inserted', newStepsToInsert.length, 'new steps');
+          if (validSteps.length > 0) {
+            const newStepsToInsert = validSteps.map((step: WorkflowStep, index: number) => ({
+              workflow_id: workflowId,
+              name: step.name.trim(),
+              description: step.description?.trim() || null,
+              step_order: index + 1,
+              status: step.status,
+              estimated_hours: step.estimated_hours,
+              assigned_to: step.assigned_to || null
+            }));
+
+            console.log('New steps to insert:', newStepsToInsert);
+
+            const { error: stepsError, count: insertedCount } = await supabase
+              .from('workflow_steps')
+              .insert(newStepsToInsert)
+              .select('id', { count: 'exact' });
+
+            if (stepsError) {
+              console.error('❌ Steps insertion error:', stepsError);
+              throw stepsError;
+            }
+            
+            console.log('✅ Successfully inserted', insertedCount, 'new steps');
+          } else {
+            console.log('ℹ️ No valid steps to insert - all steps had empty names');
+          }
         } else {
           console.log('ℹ️ No steps to insert - workflow will have 0 steps');
         }
@@ -188,13 +200,14 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         console.log('✅ New workflow created:', newWorkflow);
 
         // Insert steps for new workflow
-        if (data.steps.length > 0) {
+        const validSteps = data.steps.filter((step: WorkflowStep) => step.name.trim() !== '');
+        if (validSteps.length > 0) {
           console.log('=== INSERTING STEPS FOR NEW WORKFLOW ===');
-          console.log('Steps to insert:', data.steps);
-          const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
+          console.log('Valid steps to insert:', validSteps);
+          const stepsToInsert = validSteps.map((step: WorkflowStep, index: number) => ({
             workflow_id: newWorkflow.id,
-            name: step.name,
-            description: step.description || null,
+            name: step.name.trim(),
+            description: step.description?.trim() || null,
             step_order: index + 1,
             status: step.status,
             estimated_hours: step.estimated_hours,
