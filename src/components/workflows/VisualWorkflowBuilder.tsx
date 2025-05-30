@@ -35,11 +35,8 @@ interface StepNodeData extends Record<string, unknown> {
     last_name: string;
     role: string;
   }>;
+  onDataChange?: (nodeId: string, newData: Partial<StepNodeData>) => void;
 }
-
-const nodeTypes: NodeTypes = {
-  workflowStep: WorkflowStepNode,
-};
 
 interface WorkflowBuilderProps {
   onSave?: (workflowData: any) => void;
@@ -69,6 +66,31 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
     },
   });
 
+  // Handle node data updates
+  const handleNodeDataChange = useCallback((nodeId: string, newData: Partial<StepNodeData>) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...newData,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
+  // Create node types with callback
+  const nodeTypes: NodeTypes = {
+    workflowStep: (props) => (
+      <WorkflowStepNode {...props} onDataChange={handleNodeDataChange} />
+    ),
+  };
+
   // Load editing workflow data
   useEffect(() => {
     if (editingWorkflow && teamMembers.length > 0) {
@@ -87,6 +109,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
             estimatedHours: step.estimated_hours || 0,
             assignedTo: step.assigned_to || 'unassigned',
             teamMembers: teamMembers,
+            onDataChange: handleNodeDataChange,
           } as StepNodeData,
         }));
         
@@ -100,7 +123,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       setNodes([]);
       setEdges([]);
     }
-  }, [editingWorkflow, teamMembers, setNodes, setEdges]);
+  }, [editingWorkflow, teamMembers, setNodes, setEdges, handleNodeDataChange]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -139,6 +162,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
         estimatedHours: 0,
         assignedTo: 'unassigned',
         teamMembers,
+        onDataChange: handleNodeDataChange,
       };
 
       const newNode: Node = {
@@ -150,7 +174,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes, teamMembers],
+    [reactFlowInstance, setNodes, teamMembers, handleNodeDataChange],
   );
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -165,6 +189,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       estimatedHours: 0,
       assignedTo: 'unassigned',
       teamMembers,
+      onDataChange: handleNodeDataChange,
     };
 
     const newNode: Node = {

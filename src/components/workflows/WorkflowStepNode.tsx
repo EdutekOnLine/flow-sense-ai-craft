@@ -1,5 +1,5 @@
 
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,12 +28,22 @@ interface StepNodeData extends Record<string, unknown> {
     last_name: string;
     role: string;
   }>;
+  onDataChange?: (nodeId: string, newData: Partial<StepNodeData>) => void;
 }
 
-function WorkflowStepNode({ id, data, selected }: NodeProps) {
+interface WorkflowStepNodeProps extends NodeProps {
+  onDataChange?: (nodeId: string, newData: Partial<StepNodeData>) => void;
+}
+
+function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const stepData = data as StepNodeData;
   const [localStepData, setLocalStepData] = useState<StepNodeData>(stepData);
+
+  // Sync local data with props when data changes
+  useEffect(() => {
+    setLocalStepData(stepData);
+  }, [stepData]);
 
   const getTeamMemberName = (userId: string) => {
     if (userId === 'unassigned') return 'Unassigned';
@@ -44,7 +54,12 @@ function WorkflowStepNode({ id, data, selected }: NodeProps) {
   const updateNodeData = (updates: Partial<StepNodeData>) => {
     const newData = { ...localStepData, ...updates };
     setLocalStepData(newData);
-    // In a real implementation, you'd update the node data in the parent component
+    
+    // Use the callback from props or the one in stepData
+    const callback = onDataChange || stepData.onDataChange;
+    if (callback) {
+      callback(id, updates);
+    }
   };
 
   return (
