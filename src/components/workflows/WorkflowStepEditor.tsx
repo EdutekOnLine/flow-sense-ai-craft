@@ -46,7 +46,11 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       dependencies: null
     };
 
-    onStepsChange([...steps, step]);
+    console.log('Adding new step:', step);
+    const updatedSteps = [...steps, step];
+    console.log('Updated steps after add:', updatedSteps);
+    onStepsChange(updatedSteps);
+    
     setNewStep({
       name: '',
       description: '',
@@ -57,21 +61,32 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
   };
 
   const removeStep = (index: number) => {
+    console.log('Removing step at index:', index);
     const updatedSteps = steps.filter((_, i) => i !== index);
     // Reorder steps
     const reorderedSteps = updatedSteps.map((step, i) => ({
       ...step,
       step_order: i + 1
     }));
+    console.log('Updated steps after remove:', reorderedSteps);
     onStepsChange(reorderedSteps);
   };
 
   const updateStep = (index: number, field: keyof WorkflowStep, value: any) => {
-    const updatedSteps = [...steps];
-    updatedSteps[index] = {
-      ...updatedSteps[index],
-      [field]: field === 'assigned_to' && value === 'unassigned' ? null : value
-    };
+    console.log('Updating step at index:', index, 'field:', field, 'value:', value);
+    
+    // Create a clean copy of the steps array
+    const updatedSteps = steps.map((step, i) => {
+      if (i === index) {
+        return {
+          ...step,
+          [field]: field === 'assigned_to' && value === 'unassigned' ? null : value
+        };
+      }
+      return step;
+    });
+    
+    console.log('Updated steps after field update:', updatedSteps);
     onStepsChange(updatedSteps);
   };
 
@@ -80,6 +95,9 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       return;
     }
 
+    console.log('Moving step at index:', index, 'direction:', direction);
+    
+    // Create a clean copy of the steps array
     const updatedSteps = [...steps];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
@@ -90,6 +108,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       step.step_order = i + 1;
     });
     
+    console.log('Updated steps after move:', updatedSteps);
     onStepsChange(updatedSteps);
   };
 
@@ -120,7 +139,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       {/* Existing Steps */}
       <div className="space-y-3">
         {steps.map((step, index) => (
-          <Card key={index} className="border">
+          <Card key={`step-${index}-${step.name}`} className="border">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-1 mt-1">
