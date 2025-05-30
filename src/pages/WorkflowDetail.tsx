@@ -32,6 +32,46 @@ export default function WorkflowDetail() {
     steps: [] as any[]
   });
 
+  // Add a deduplication utility function specifically for saving
+  const deduplicateStepsForSaving = (steps: any[]) => {
+    console.log('Deduplicating steps for saving. Input:', steps.length);
+    
+    if (!steps || steps.length === 0) {
+      return [];
+    }
+    
+    // Filter out invalid steps and create unique steps
+    const seen = new Set<string>();
+    const uniqueSteps: any[] = [];
+    
+    steps.forEach(step => {
+      if (!step || !step.name || typeof step.name !== 'string' || !step.name.trim()) {
+        return; // Skip invalid steps
+      }
+      
+      // Create a unique key based on step content
+      const stepKey = JSON.stringify({
+        name: step.name.trim(),
+        description: (step.description || '').trim(),
+        status: step.status || 'pending',
+        assigned_to: step.assigned_to || null,
+        estimated_hours: step.estimated_hours || null
+      });
+      
+      if (!seen.has(stepKey)) {
+        seen.add(stepKey);
+        uniqueSteps.push({
+          ...step,
+          name: step.name.trim(),
+          description: (step.description || '').trim()
+        });
+      }
+    });
+    
+    console.log('Deduplicated steps for saving. Output:', uniqueSteps.length);
+    return uniqueSteps;
+  };
+
   const { data: workflow, isLoading, error } = useQuery({
     queryKey: ['workflow', id],
     queryFn: async () => {
@@ -75,7 +115,7 @@ export default function WorkflowDetail() {
     mutationFn: async (updatedData: any) => {
       const { steps, ...workflowData } = updatedData;
       
-      console.log('Updating workflow with steps:', steps);
+      console.log('Updating workflow. Original steps count:', steps?.length || 0);
       
       // Update workflow
       const { error: workflowError } = await supabase
@@ -98,23 +138,23 @@ export default function WorkflowDetail() {
           throw deleteError;
         }
 
+        // Deduplicate steps before inserting
+        const deduplicatedSteps = deduplicateStepsForSaving(steps);
+        
         // Insert new steps (only if we have steps to insert)
-        if (steps.length > 0) {
-          // Clean the steps data to ensure no duplicate or invalid data
-          const stepsToInsert = steps
-            .filter((step: any) => step.name && step.name.trim()) // Only include steps with valid names
-            .map((step: any, index: number) => ({
-              workflow_id: id,
-              name: step.name.trim(),
-              description: step.description || null,
-              step_order: index + 1,
-              status: step.status || 'pending',
-              estimated_hours: step.estimated_hours || null,
-              assigned_to: step.assigned_to === 'unassigned' || !step.assigned_to ? null : step.assigned_to,
-              dependencies: step.dependencies || null
-            }));
+        if (deduplicatedSteps.length > 0) {
+          const stepsToInsert = deduplicatedSteps.map((step: any, index: number) => ({
+            workflow_id: id,
+            name: step.name.trim(),
+            description: step.description || null,
+            step_order: index + 1,
+            status: step.status || 'pending',
+            estimated_hours: step.estimated_hours || null,
+            assigned_to: step.assigned_to === 'unassigned' || !step.assigned_to ? null : step.assigned_to,
+            dependencies: step.dependencies || null
+          }));
 
-          console.log('Inserting steps:', stepsToInsert);
+          console.log('Final steps to insert:', stepsToInsert.length, stepsToInsert);
 
           const { error: insertError } = await supabase
             .from('workflow_steps')
