@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
@@ -149,15 +150,16 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
       edges,
       steps: nodes.map((node, index) => {
         const nodeData = node.data as StepNodeData;
+        // Don't include dependencies in the initial step creation
+        // Dependencies will need to be handled after steps are created with proper UUIDs
         return {
           id: node.id,
           name: nodeData.label,
           description: nodeData.description,
           estimated_hours: nodeData.estimatedHours,
           assigned_to: nodeData.assignedTo === 'unassigned' ? null : nodeData.assignedTo,
-          dependencies: edges
-            .filter(edge => edge.target === node.id)
-            .map(edge => edge.source),
+          // Remove dependencies for now to avoid UUID format errors
+          dependencies: [],
         };
       }),
     };
