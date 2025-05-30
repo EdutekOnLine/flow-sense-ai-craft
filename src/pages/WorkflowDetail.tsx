@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +13,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StepStatusManager from '@/components/workflows/StepStatusManager';
+import WorkflowStepEditor from '@/components/workflows/WorkflowStepEditor';
 
 export default function WorkflowDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,8 @@ export default function WorkflowDetail() {
     priority: '',
     due_date: '',
     assigned_to: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    steps: [] as any[]
   });
 
   const { data: workflow, isLoading, error } = useQuery({
@@ -71,12 +72,46 @@ export default function WorkflowDetail() {
 
   const updateWorkflowMutation = useMutation({
     mutationFn: async (updatedData: any) => {
-      const { error } = await supabase
+      const { steps, ...workflowData } = updatedData;
+      
+      // Update workflow
+      const { error: workflowError } = await supabase
         .from('workflows')
-        .update(updatedData)
+        .update(workflowData)
         .eq('id', id);
       
-      if (error) throw error;
+      if (workflowError) throw workflowError;
+
+      // Handle steps - delete existing and insert new ones
+      if (steps) {
+        // Delete existing steps
+        const { error: deleteError } = await supabase
+          .from('workflow_steps')
+          .delete()
+          .eq('workflow_id', id);
+        
+        if (deleteError) throw deleteError;
+
+        // Insert new steps
+        if (steps.length > 0) {
+          const stepsToInsert = steps.map((step: any) => ({
+            workflow_id: id,
+            name: step.name,
+            description: step.description || null,
+            step_order: step.step_order,
+            status: step.status,
+            estimated_hours: step.estimated_hours,
+            assigned_to: step.assigned_to,
+            dependencies: step.dependencies
+          }));
+
+          const { error: insertError } = await supabase
+            .from('workflow_steps')
+            .insert(stepsToInsert);
+          
+          if (insertError) throw insertError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflow', id] });
@@ -103,7 +138,8 @@ export default function WorkflowDetail() {
         priority: workflow.priority,
         due_date: workflow.due_date ? format(new Date(workflow.due_date), 'yyyy-MM-dd') : '',
         assigned_to: workflow.assigned_to || 'unassigned',
-        tags: workflow.tags || []
+        tags: workflow.tags || [],
+        steps: workflow.workflow_steps || []
       });
       setIsEditing(true);
     }
@@ -116,7 +152,8 @@ export default function WorkflowDetail() {
       priority: editForm.priority,
       assigned_to: editForm.assigned_to === 'unassigned' ? null : editForm.assigned_to,
       tags: editForm.tags.length > 0 ? editForm.tags : null,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      steps: editForm.steps
     };
 
     if (editForm.due_date) {
@@ -136,7 +173,8 @@ export default function WorkflowDetail() {
       priority: '',
       due_date: '',
       assigned_to: '',
-      tags: []
+      tags: [],
+      steps: []
     });
   };
 
@@ -259,7 +297,7 @@ export default function WorkflowDetail() {
           </CardHeader>
           <CardContent className="space-y-4">
             {isEditing ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium">Name</label>
                   <Input
@@ -337,6 +375,13 @@ export default function WorkflowDetail() {
                     }}
                   />
                 </div>
+
+                {/* Workflow Steps Editor */}
+                <WorkflowStepEditor
+                  steps={editForm.steps}
+                  onStepsChange={(steps) => setEditForm(prev => ({ ...prev, steps }))}
+                  profiles={profiles}
+                />
               </div>
             ) : (
               <>
