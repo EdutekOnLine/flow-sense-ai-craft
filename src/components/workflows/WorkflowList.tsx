@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,13 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { 
   Clock, 
   User, 
   Calendar, 
   MoreHorizontal,
   Play,
   Pause,
-  CheckCircle
+  CheckCircle,
+  Edit,
+  Trash2,
+  Copy,
+  Eye
 } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -32,10 +44,12 @@ interface WorkflowData {
   creator: {
     first_name: string | null;
     last_name: string | null;
+    email: string;
   } | null;
   assignee: {
     first_name: string | null;
     last_name: string | null;
+    email: string;
   } | null;
   workflow_steps: {
     id: string;
@@ -72,7 +86,7 @@ export default function WorkflowList() {
       // Fetch profiles for these users
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name')
+        .select('id, first_name, last_name, email')
         .in('id', Array.from(userIds));
 
       if (profilesError) throw profilesError;
@@ -126,6 +140,46 @@ export default function WorkflowList() {
     const completed = steps.filter(step => step.status === 'completed').length;
     const total = steps.length;
     return { completed, total };
+  };
+
+  const getDisplayName = (profile: { first_name: string | null; last_name: string | null; email: string } | null) => {
+    if (!profile) return 'Unknown User';
+    
+    const firstName = profile.first_name?.trim();
+    const lastName = profile.last_name?.trim();
+    
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    } else if (firstName) {
+      return firstName;
+    } else if (lastName) {
+      return lastName;
+    } else {
+      // Extract name from email if no first/last name
+      const emailName = profile.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+  };
+
+  const handleWorkflowAction = (action: string, workflowId: string) => {
+    console.log(`${action} workflow:`, workflowId);
+    // TODO: Implement workflow actions
+    switch (action) {
+      case 'view':
+        // Navigate to workflow detail view
+        break;
+      case 'edit':
+        // Navigate to workflow edit view
+        break;
+      case 'duplicate':
+        // Duplicate workflow
+        break;
+      case 'delete':
+        // Delete workflow with confirmation
+        break;
+      default:
+        break;
+    }
   };
 
   if (isLoading) {
@@ -187,9 +241,35 @@ export default function WorkflowList() {
                         {workflow.description || 'No description provided'}
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleWorkflowAction('view', workflow.id)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleWorkflowAction('edit', workflow.id)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Workflow
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleWorkflowAction('duplicate', workflow.id)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => handleWorkflowAction('delete', workflow.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -229,7 +309,7 @@ export default function WorkflowList() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <User className="h-4 w-4" />
                       <span>
-                        Created by {workflow.creator?.first_name || 'Unknown'} {workflow.creator?.last_name || ''}
+                        Created by {getDisplayName(workflow.creator)}
                       </span>
                     </div>
                     
@@ -237,7 +317,7 @@ export default function WorkflowList() {
                       <div className="flex items-center gap-2 text-gray-600">
                         <User className="h-4 w-4" />
                         <span>
-                          Assigned to {workflow.assignee.first_name || 'Unknown'} {workflow.assignee.last_name || ''}
+                          Assigned to {getDisplayName(workflow.assignee)}
                         </span>
                       </div>
                     )}
