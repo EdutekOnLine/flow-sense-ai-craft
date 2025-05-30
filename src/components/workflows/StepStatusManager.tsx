@@ -3,6 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type TaskStatus = Database['public']['Enums']['task_status'];
 
 interface StepStatusManagerProps {
   stepId: string;
@@ -15,7 +18,7 @@ export default function StepStatusManager({ stepId, currentStatus, workflowId }:
   const queryClient = useQueryClient();
 
   const updateStepStatusMutation = useMutation({
-    mutationFn: async (newStatus: string) => {
+    mutationFn: async (newStatus: TaskStatus) => {
       const { error } = await supabase
         .from('workflow_steps')
         .update({ 
@@ -44,7 +47,7 @@ export default function StepStatusManager({ stepId, currentStatus, workflowId }:
 
   const handleStatusChange = (newStatus: string) => {
     if (newStatus !== currentStatus) {
-      updateStepStatusMutation.mutate(newStatus);
+      updateStepStatusMutation.mutate(newStatus as TaskStatus);
     }
   };
 
