@@ -44,8 +44,19 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
   // Initialize form data when workflow prop changes
   useEffect(() => {
+    console.log('useEffect triggered with workflow:', workflow);
     if (workflow) {
-      console.log('Initializing form with workflow:', workflow);
+      console.log('Initializing form with workflow steps:', workflow.workflow_steps);
+      const initialSteps = workflow.workflow_steps?.map((step: any) => ({
+        name: step.name,
+        description: step.description || '',
+        status: step.status,
+        estimated_hours: step.estimated_hours,
+        assigned_to: step.assigned_to
+      })) || [];
+      
+      console.log('Processed initial steps:', initialSteps);
+      
       setFormData({
         name: workflow.name || '',
         description: workflow.description || '',
@@ -53,16 +64,11 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         due_date: workflow.due_date ? new Date(workflow.due_date).toISOString().split('T')[0] : '',
         assigned_to: workflow.assigned_to || '',
         tags: workflow.tags || [],
-        steps: workflow.workflow_steps?.map((step: any) => ({
-          name: step.name,
-          description: step.description || '',
-          status: step.status,
-          estimated_hours: step.estimated_hours,
-          assigned_to: step.assigned_to
-        })) || []
+        steps: initialSteps
       });
     } else {
       // Reset form for new workflow
+      console.log('Resetting form for new workflow');
       setFormData({
         name: '',
         description: '',
@@ -77,7 +83,9 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
   const saveWorkflowMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('=== SAVE MUTATION START ===');
       console.log('Saving workflow with data:', data);
+      console.log('Current form steps:', data.steps);
       
       // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -108,7 +116,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         }
 
         // Delete existing steps first
-        console.log('Deleting existing steps for workflow:', workflow.id);
+        console.log('Deleting ALL existing steps for workflow:', workflow.id);
         const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
@@ -118,10 +126,12 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           console.error('Step deletion error:', deleteError);
           throw deleteError;
         }
+        
+        console.log('Successfully deleted all existing steps');
 
-        // Insert new steps if any
-        if (data.steps.length > 0) {
-          console.log('Inserting new steps:', data.steps);
+        // Insert new steps if any - ONLY the ones currently in the form
+        if (data.steps && data.steps.length > 0) {
+          console.log('Preparing to insert steps from form data:', data.steps);
           const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
             workflow_id: workflow.id,
             name: step.name,
@@ -142,6 +152,10 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             console.error('Steps insertion error:', stepsError);
             throw stepsError;
           }
+          
+          console.log('Successfully inserted', stepsToInsert.length, 'steps');
+        } else {
+          console.log('No steps to insert');
         }
       } else {
         console.log('Creating new workflow');
@@ -192,6 +206,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           }
         }
       }
+      
+      console.log('=== SAVE MUTATION END ===');
     },
     onSuccess: () => {
       console.log('Workflow saved successfully');
@@ -222,40 +238,61 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       });
       return;
     }
-    console.log('Saving workflow with form data:', formData);
+    console.log('=== HANDLE SAVE START ===');
+    console.log('Current form data before save:', formData);
+    console.log('Current steps count:', formData.steps.length);
     saveWorkflowMutation.mutate(formData);
   };
 
   const addStep = () => {
-    console.log('Adding new step');
-    setFormData(prev => ({
-      ...prev,
-      steps: [...prev.steps, {
-        name: '',
-        description: '',
-        status: 'pending',
-        estimated_hours: null,
-        assigned_to: null
-      }]
-    }));
+    console.log('=== ADD STEP ===');
+    console.log('Current steps before add:', formData.steps);
+    const newStep = {
+      name: '',
+      description: '',
+      status: 'pending',
+      estimated_hours: null,
+      assigned_to: null
+    };
+    console.log('Adding new step:', newStep);
+    setFormData(prev => {
+      const newSteps = [...prev.steps, newStep];
+      console.log('New steps array:', newSteps);
+      return {
+        ...prev,
+        steps: newSteps
+      };
+    });
   };
 
   const removeStep = (index: number) => {
+    console.log('=== REMOVE STEP ===');
     console.log('Removing step at index:', index);
-    setFormData(prev => ({
-      ...prev,
-      steps: prev.steps.filter((_, i) => i !== index)
-    }));
+    console.log('Current steps before remove:', formData.steps);
+    setFormData(prev => {
+      const newSteps = prev.steps.filter((_, i) => i !== index);
+      console.log('New steps after remove:', newSteps);
+      return {
+        ...prev,
+        steps: newSteps
+      };
+    });
   };
 
   const updateStep = (index: number, field: keyof WorkflowStep, value: any) => {
-    console.log('Updating step', index, field, value);
-    setFormData(prev => ({
-      ...prev,
-      steps: prev.steps.map((step, i) => 
+    console.log('=== UPDATE STEP ===');
+    console.log('Updating step', index, 'field:', field, 'value:', value);
+    console.log('Current steps before update:', formData.steps);
+    setFormData(prev => {
+      const newSteps = prev.steps.map((step, i) => 
         i === index ? { ...step, [field]: value } : step
-      )
-    }));
+      );
+      console.log('New steps after update:', newSteps);
+      return {
+        ...prev,
+        steps: newSteps
+      };
+    });
   };
 
   const moveStep = (index: number, direction: 'up' | 'down') => {
@@ -286,6 +323,10 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
   };
+
+  console.log('=== RENDER ===');
+  console.log('Current form data in render:', formData);
+  console.log('Current steps count in render:', formData.steps.length);
 
   return (
     <div className="space-y-6">
