@@ -51,21 +51,50 @@ export default function WorkflowDetail() {
       console.log('Workflow steps count:', data.workflow_steps?.length || 0);
       console.log('All workflow steps:', data.workflow_steps);
       
-      // Check for duplicates
+      // Enhanced duplicate detection
       if (data.workflow_steps) {
+        console.log('=== DETAILED STEP ANALYSIS ===');
+        
+        // Check for duplicate step names
         const stepNames = data.workflow_steps.map(step => step.name);
         const duplicateNames = stepNames.filter((name, index) => stepNames.indexOf(name) !== index);
         if (duplicateNames.length > 0) {
           console.warn('⚠️ DUPLICATE STEP NAMES FOUND:', duplicateNames);
         }
         
+        // Check for duplicate step IDs
         const stepIds = data.workflow_steps.map(step => step.id);
         const uniqueIds = [...new Set(stepIds)];
         if (stepIds.length !== uniqueIds.length) {
           console.warn('⚠️ DUPLICATE STEP IDs FOUND');
+          console.log('Total step IDs:', stepIds.length);
+          console.log('Unique step IDs:', uniqueIds.length);
+          console.log('All step IDs:', stepIds);
         }
         
-        console.log('Step order distribution:', data.workflow_steps.map(s => s.step_order).sort());
+        // Check step order distribution
+        const stepOrders = data.workflow_steps.map(s => s.step_order).sort();
+        console.log('Step order distribution:', stepOrders);
+        
+        // Check for duplicate step orders
+        const uniqueOrders = [...new Set(stepOrders)];
+        if (stepOrders.length !== uniqueOrders.length) {
+          console.warn('⚠️ DUPLICATE STEP ORDERS FOUND');
+          console.log('Total step orders:', stepOrders.length);
+          console.log('Unique step orders:', uniqueOrders.length);
+        }
+        
+        // Sample of first few steps for inspection
+        console.log('First 5 steps details:', data.workflow_steps.slice(0, 5));
+        
+        // Check if there are steps with identical content
+        const stepSignatures = data.workflow_steps.map(step => 
+          `${step.name}-${step.description}-${step.step_order}`
+        );
+        const uniqueSignatures = [...new Set(stepSignatures)];
+        if (stepSignatures.length !== uniqueSignatures.length) {
+          console.warn('⚠️ STEPS WITH IDENTICAL CONTENT FOUND');
+        }
       }
       
       return data;
@@ -172,6 +201,7 @@ export default function WorkflowDetail() {
 
   const sortedSteps = workflow.workflow_steps?.sort((a, b) => a.step_order - b.step_order) || [];
   console.log('Sorted steps for display:', sortedSteps.length);
+  console.log('Raw step count from DB:', workflow.workflow_steps?.length || 0);
 
   return (
     <DashboardLayout>
@@ -258,8 +288,13 @@ export default function WorkflowDetail() {
               Steps ({sortedSteps.length})
               {sortedSteps.length > 20 && (
                 <span className="text-red-500 font-normal ml-2">
-                  ⚠️ High step count detected
+                  ⚠️ High step count detected - Check console for details
                 </span>
+              )}
+              {sortedSteps.length > 50 && (
+                <div className="text-orange-500 font-normal text-sm mt-1">
+                  This is unusually high. There may be duplicate entries in the database.
+                </div>
               )}
             </CardTitle>
           </CardHeader>
@@ -273,10 +308,13 @@ export default function WorkflowDetail() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium">
-                          {index + 1}
+                          {step.step_order || index + 1}
                         </div>
                         <div>
-                          <h4 className="font-medium">{step.name}</h4>
+                          <h4 className="font-medium">
+                            {step.name}
+                            <span className="text-xs text-gray-400 ml-2">(ID: {step.id.slice(0, 8)}...)</span>
+                          </h4>
                           {step.description && (
                             <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                           )}
