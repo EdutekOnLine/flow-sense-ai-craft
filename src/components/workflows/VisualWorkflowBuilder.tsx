@@ -1,5 +1,4 @@
-
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -20,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Save, Download, Upload } from 'lucide-react';
+import { Plus, Save, Download, Upload, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import WorkflowStepNode from './WorkflowStepNode';
@@ -44,9 +43,11 @@ const nodeTypes: NodeTypes = {
 
 interface WorkflowBuilderProps {
   onSave?: (workflowData: any) => void;
+  editingWorkflow?: any;
+  onCancel?: () => void;
 }
 
-export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) {
+export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCancel }: WorkflowBuilderProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [workflowName, setWorkflowName] = useState('');
@@ -67,6 +68,39 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
       return data;
     },
   });
+
+  // Load editing workflow data
+  useEffect(() => {
+    if (editingWorkflow) {
+      setWorkflowName(editingWorkflow.name || '');
+      setWorkflowDescription(editingWorkflow.description || '');
+      
+      if (editingWorkflow.workflow_steps) {
+        // Convert workflow steps to nodes
+        const workflowNodes = editingWorkflow.workflow_steps.map((step: any, index: number) => ({
+          id: `step-${step.id}`,
+          type: 'workflowStep',
+          position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 200 },
+          data: {
+            label: step.name,
+            description: step.description || '',
+            estimatedHours: step.estimated_hours || 0,
+            assignedTo: step.assigned_to || 'unassigned',
+            teamMembers: [],
+          },
+        }));
+        
+        setNodes(workflowNodes);
+        setEdges([]); // Reset edges for now
+      }
+    } else {
+      // Reset form for new workflow
+      setWorkflowName('');
+      setWorkflowDescription('');
+      setNodes([]);
+      setEdges([]);
+    }
+  }, [editingWorkflow, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -150,15 +184,12 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
       edges,
       steps: nodes.map((node, index) => {
         const nodeData = node.data as StepNodeData;
-        // Don't include dependencies in the initial step creation
-        // Dependencies will need to be handled after steps are created with proper UUIDs
         return {
           id: node.id,
           name: nodeData.label,
           description: nodeData.description,
           estimated_hours: nodeData.estimatedHours,
           assigned_to: nodeData.assignedTo === 'unassigned' ? null : nodeData.assignedTo,
-          // Remove dependencies for now to avoid UUID format errors
           dependencies: [],
         };
       }),
@@ -207,12 +238,28 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
     }
   };
 
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
       <div className="bg-white border-b p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Visual Workflow Builder</h2>
+          <div className="flex items-center gap-4">
+            {editingWorkflow && (
+              <Button onClick={handleCancel} variant="ghost" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to List
+              </Button>
+            )}
+            <h2 className="text-2xl font-bold">
+              {editingWorkflow ? 'Edit Workflow' : 'Visual Workflow Builder'}
+            </h2>
+          </div>
           <div className="flex gap-2">
             <Button onClick={addStep} size="sm">
               <Plus className="h-4 w-4 mr-2" />
@@ -238,7 +285,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
             </label>
             <Button onClick={saveWorkflow} disabled={!workflowName.trim()}>
               <Save className="h-4 w-4 mr-2" />
-              Save Workflow
+              {editingWorkflow ? 'Update Workflow' : 'Save Workflow'}
             </Button>
           </div>
         </div>

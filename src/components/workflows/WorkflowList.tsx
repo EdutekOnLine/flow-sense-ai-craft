@@ -69,7 +69,11 @@ interface WorkflowData {
   }[];
 }
 
-export default function WorkflowList() {
+interface WorkflowListProps {
+  onEditWorkflow?: (workflowId: string) => void;
+}
+
+export default function WorkflowList({ onEditWorkflow }: WorkflowListProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -276,7 +280,7 @@ export default function WorkflowList() {
 
   const handleWorkflowAction = (action: string, workflowId: string) => {
     console.log(`${action} workflow:`, workflowId);
-    // TODO: Implement workflow actions
+    
     switch (action) {
       case 'view':
         toast({
@@ -285,10 +289,14 @@ export default function WorkflowList() {
         });
         break;
       case 'edit':
-        toast({
-          title: 'Edit Workflow',
-          description: 'Workflow edit functionality will be implemented soon.',
-        });
+        if (onEditWorkflow) {
+          onEditWorkflow(workflowId);
+        } else {
+          toast({
+            title: 'Edit Workflow',
+            description: 'Workflow edit functionality will be implemented soon.',
+          });
+        }
         break;
       case 'duplicate':
         duplicateWorkflow.mutate(workflowId);
