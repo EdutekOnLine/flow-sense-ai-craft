@@ -75,6 +75,8 @@ export default function WorkflowDetail() {
     mutationFn: async (updatedData: any) => {
       const { steps, ...workflowData } = updatedData;
       
+      console.log('Updating workflow with steps:', steps);
+      
       // Update workflow
       const { error: workflowError } = await supabase
         .from('workflows')
@@ -84,33 +86,44 @@ export default function WorkflowDetail() {
       if (workflowError) throw workflowError;
 
       // Handle steps - delete existing and insert new ones
-      if (steps) {
-        // Delete existing steps
+      if (steps && Array.isArray(steps)) {
+        // Delete existing steps first
         const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
           .eq('workflow_id', id);
         
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting existing steps:', deleteError);
+          throw deleteError;
+        }
 
         // Insert new steps (only if we have steps to insert)
         if (steps.length > 0) {
-          const stepsToInsert = steps.map((step: any, index: number) => ({
-            workflow_id: id,
-            name: step.name,
-            description: step.description || null,
-            step_order: index + 1, // Use index + 1 to ensure proper ordering
-            status: step.status,
-            estimated_hours: step.estimated_hours,
-            assigned_to: step.assigned_to,
-            dependencies: step.dependencies
-          }));
+          // Clean the steps data to ensure no duplicate or invalid data
+          const stepsToInsert = steps
+            .filter((step: any) => step.name && step.name.trim()) // Only include steps with valid names
+            .map((step: any, index: number) => ({
+              workflow_id: id,
+              name: step.name.trim(),
+              description: step.description || null,
+              step_order: index + 1,
+              status: step.status || 'pending',
+              estimated_hours: step.estimated_hours || null,
+              assigned_to: step.assigned_to === 'unassigned' || !step.assigned_to ? null : step.assigned_to,
+              dependencies: step.dependencies || null
+            }));
+
+          console.log('Inserting steps:', stepsToInsert);
 
           const { error: insertError } = await supabase
             .from('workflow_steps')
             .insert(stepsToInsert);
           
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error('Error inserting steps:', insertError);
+            throw insertError;
+          }
         }
       }
     },
@@ -172,6 +185,8 @@ export default function WorkflowDetail() {
   }, [searchParams, workflow, isEditing]);
 
   const handleSave = () => {
+    console.log('Saving workflow with form data:', editForm);
+    
     const updateData: any = {
       name: editForm.name,
       description: editForm.description || null,
@@ -179,7 +194,7 @@ export default function WorkflowDetail() {
       assigned_to: editForm.assigned_to === 'unassigned' ? null : editForm.assigned_to,
       tags: editForm.tags.length > 0 ? editForm.tags : null,
       updated_at: new Date().toISOString(),
-      steps: editForm.steps
+      steps: editForm.steps // Pass the steps as they are in the form
     };
 
     if (editForm.due_date) {
