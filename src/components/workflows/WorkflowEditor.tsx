@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +49,12 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
   const saveWorkflowMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       if (workflow?.id) {
         // Update existing workflow
         const { error: workflowError } = await supabase
@@ -102,7 +107,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             assigned_to: data.assigned_to || null,
             due_date: data.due_date || null,
             tags: data.tags.length > 0 ? data.tags : null,
-            created_by: 'temp-user-id', // Replace with actual user ID
+            created_by: user.id, // Use actual user ID
             status: 'draft'
           })
           .select()
