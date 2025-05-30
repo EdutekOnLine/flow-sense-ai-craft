@@ -94,13 +94,15 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
   // Load editing workflow data
   useEffect(() => {
     if (editingWorkflow && teamMembers.length > 0) {
+      console.log('Loading editing workflow:', editingWorkflow);
       setWorkflowName(editingWorkflow.name || '');
       setWorkflowDescription(editingWorkflow.description || '');
       
       if (editingWorkflow.workflow_steps) {
         // Convert workflow steps to nodes with proper data structure
+        // Use the existing step ID to maintain consistency
         const workflowNodes = editingWorkflow.workflow_steps.map((step: any, index: number) => ({
-          id: `step-${step.id}`,
+          id: `step-${step.id}`, // Use the actual step ID from database
           type: 'workflowStep',
           position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 200 },
           data: {
@@ -113,6 +115,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
           } as StepNodeData,
         }));
         
+        console.log('Setting nodes:', workflowNodes);
         setNodes(workflowNodes);
         setEdges([]); // Reset edges for now - we can enhance this later to support connections
       }
@@ -219,6 +222,8 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
         };
       }),
     };
+
+    console.log('Saving workflow data:', workflowData);
 
     if (onSave) {
       onSave(workflowData);

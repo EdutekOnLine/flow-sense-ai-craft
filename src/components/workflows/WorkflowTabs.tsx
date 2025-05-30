@@ -115,15 +115,25 @@ export default function WorkflowTabs() {
       
       if (workflowError) throw workflowError;
 
-      // Delete existing steps
-      const { error: deleteStepsError } = await supabase
+      // Get existing steps to handle updates vs new steps
+      const { data: existingSteps, error: existingStepsError } = await supabase
         .from('workflow_steps')
-        .delete()
+        .select('id')
         .eq('workflow_id', editingWorkflowId);
       
-      if (deleteStepsError) throw deleteStepsError;
+      if (existingStepsError) throw existingStepsError;
 
-      // Create new steps
+      // Delete all existing steps
+      if (existingSteps && existingSteps.length > 0) {
+        const { error: deleteStepsError } = await supabase
+          .from('workflow_steps')
+          .delete()
+          .eq('workflow_id', editingWorkflowId);
+        
+        if (deleteStepsError) throw deleteStepsError;
+      }
+
+      // Create new steps from the current nodes
       if (workflowData.steps.length > 0) {
         const stepsData = workflowData.steps.map((step: any, index: number) => ({
           workflow_id: editingWorkflowId,
@@ -132,7 +142,7 @@ export default function WorkflowTabs() {
           step_order: index + 1,
           assigned_to: step.assigned_to,
           estimated_hours: step.estimated_hours || null,
-          dependencies: step.dependencies,
+          dependencies: step.dependencies || [],
           status: 'pending' as const
         }));
 
@@ -151,6 +161,7 @@ export default function WorkflowTabs() {
         description: 'Your visual workflow has been successfully updated.',
       });
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      queryClient.invalidateQueries({ queryKey: ['workflow-edit', editingWorkflowId] });
       setActiveTab('list');
       setEditingWorkflowId(null);
     },
