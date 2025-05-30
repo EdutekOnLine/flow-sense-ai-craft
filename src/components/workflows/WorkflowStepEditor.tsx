@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,11 +33,21 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     status: 'pending'
   });
 
-  const addStep = () => {
+  // Memoized function to ensure clean step ordering
+  const normalizeSteps = useCallback((stepsArray: WorkflowStep[]): WorkflowStep[] => {
+    // Remove any undefined or invalid steps and reorder
+    const validSteps = stepsArray.filter(step => step && step.name && step.name.trim());
+    return validSteps.map((step, index) => ({
+      ...step,
+      step_order: index + 1
+    }));
+  }, []);
+
+  const addStep = useCallback(() => {
     if (!newStep.name?.trim()) return;
 
     const step: WorkflowStep = {
-      name: newStep.name,
+      name: newStep.name.trim(),
       description: newStep.description || '',
       step_order: steps.length + 1,
       status: newStep.status || 'pending',
@@ -47,8 +57,8 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     };
 
     console.log('Adding new step:', step);
-    const updatedSteps = [...steps, step];
-    console.log('Updated steps after add:', updatedSteps);
+    const updatedSteps = normalizeSteps([...steps, step]);
+    console.log('Normalized steps after add:', updatedSteps);
     onStepsChange(updatedSteps);
     
     setNewStep({
@@ -58,24 +68,24 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       assigned_to: 'unassigned',
       status: 'pending'
     });
-  };
+  }, [newStep, steps, normalizeSteps, onStepsChange]);
 
-  const removeStep = (index: number) => {
+  const removeStep = useCallback((index: number) => {
     console.log('Removing step at index:', index);
     const updatedSteps = steps.filter((_, i) => i !== index);
-    // Reorder steps
-    const reorderedSteps = updatedSteps.map((step, i) => ({
-      ...step,
-      step_order: i + 1
-    }));
-    console.log('Updated steps after remove:', reorderedSteps);
-    onStepsChange(reorderedSteps);
-  };
+    const normalizedSteps = normalizeSteps(updatedSteps);
+    console.log('Normalized steps after remove:', normalizedSteps);
+    onStepsChange(normalizedSteps);
+  }, [steps, normalizeSteps, onStepsChange]);
 
-  const updateStep = (index: number, field: keyof WorkflowStep, value: any) => {
+  const updateStep = useCallback((index: number, field: keyof WorkflowStep, value: any) => {
     console.log('Updating step at index:', index, 'field:', field, 'value:', value);
     
-    // Create a clean copy of the steps array
+    if (index < 0 || index >= steps.length) {
+      console.warn('Invalid index for step update:', index);
+      return;
+    }
+    
     const updatedSteps = steps.map((step, i) => {
       if (i === index) {
         return {
@@ -86,31 +96,27 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       return step;
     });
     
-    console.log('Updated steps after field update:', updatedSteps);
-    onStepsChange(updatedSteps);
-  };
+    const normalizedSteps = normalizeSteps(updatedSteps);
+    console.log('Normalized steps after field update:', normalizedSteps);
+    onStepsChange(normalizedSteps);
+  }, [steps, normalizeSteps, onStepsChange]);
 
-  const moveStep = (index: number, direction: 'up' | 'down') => {
+  const moveStep = useCallback((index: number, direction: 'up' | 'down') => {
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === steps.length - 1)) {
       return;
     }
 
     console.log('Moving step at index:', index, 'direction:', direction);
     
-    // Create a clean copy of the steps array
     const updatedSteps = [...steps];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
     [updatedSteps[index], updatedSteps[targetIndex]] = [updatedSteps[targetIndex], updatedSteps[index]];
     
-    // Update step_order
-    updatedSteps.forEach((step, i) => {
-      step.step_order = i + 1;
-    });
-    
-    console.log('Updated steps after move:', updatedSteps);
-    onStepsChange(updatedSteps);
-  };
+    const normalizedSteps = normalizeSteps(updatedSteps);
+    console.log('Normalized steps after move:', normalizedSteps);
+    onStepsChange(normalizedSteps);
+  }, [steps, normalizeSteps, onStepsChange]);
 
   const getAssignedUserName = (userId: string | null) => {
     if (!userId || !profiles) return 'Unassigned';
@@ -139,7 +145,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       {/* Existing Steps */}
       <div className="space-y-3">
         {steps.map((step, index) => (
-          <Card key={`step-${index}-${step.name}`} className="border">
+          <Card key={`step-${index}-${step.name}-${step.step_order}`} className="border">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-1 mt-1">
