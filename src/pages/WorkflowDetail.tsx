@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -131,6 +130,10 @@ export default function WorkflowDetail() {
       });
     },
   });
+
+  const handleBackToDashboard = () => {
+    navigate('/');
+  };
 
   const handleEdit = () => {
     if (workflow) {
@@ -274,13 +277,13 @@ export default function WorkflowDetail() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => navigate(-1)}
+              onClick={handleBackToDashboard}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              Back to Dashboard
             </Button>
-            <h1 className="text-3xl font-bold">{workflow.name}</h1>
+            <h1 className="text-3xl font-bold">{workflow?.name}</h1>
           </div>
           <div className="flex items-center gap-2">
             {!isEditing ? (
