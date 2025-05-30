@@ -1,5 +1,4 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +11,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   Clock, 
   User, 
@@ -25,6 +35,8 @@ import {
   Copy,
   Eye
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 
 type WorkflowStatus = Database['public']['Enums']['workflow_status'];
@@ -59,6 +71,9 @@ interface WorkflowData {
 
 export default function WorkflowList() {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [deleteWorkflowId, setDeleteWorkflowId] = useState<string | null>(null);
 
   const { data: workflows = [], isLoading } = useQuery({
     queryKey: ['workflows'],
@@ -105,6 +120,104 @@ export default function WorkflowList() {
       }));
 
       return enrichedWorkflows as WorkflowData[];
+    },
+  });
+
+  // Duplicate workflow mutation
+  const duplicateWorkflow = useMutation({
+    mutationFn: async (workflowId: string) => {
+      // Get the original workflow with its steps
+      const { data: originalWorkflow, error: workflowError } = await supabase
+        .from('workflows')
+        .select(`
+          *,
+          workflow_steps(*)
+        `)
+        .eq('id', workflowId)
+        .single();
+
+      if (workflowError) throw workflowError;
+
+      // Create new workflow
+      const { data: newWorkflow, error: newWorkflowError } = await supabase
+        .from('workflows')
+        .insert([{
+          name: `${originalWorkflow.name} (Copy)`,
+          description: originalWorkflow.description,
+          priority: originalWorkflow.priority,
+          due_date: null, // Reset due date for copy
+          assigned_to: null, // Reset assignment for copy
+          created_by: profile?.id,
+          tags: originalWorkflow.tags,
+          status: 'draft' as const
+        }])
+        .select()
+        .single();
+
+      if (newWorkflowError) throw newWorkflowError;
+
+      // Duplicate workflow steps if any exist
+      if (originalWorkflow.workflow_steps && originalWorkflow.workflow_steps.length > 0) {
+        const stepsData = originalWorkflow.workflow_steps.map((step: any) => ({
+          workflow_id: newWorkflow.id,
+          name: step.name,
+          description: step.description,
+          step_order: step.step_order,
+          assigned_to: null, // Reset assignment for copy
+          estimated_hours: step.estimated_hours,
+          dependencies: step.dependencies,
+          status: 'pending' as const
+        }));
+
+        const { error: stepsError } = await supabase
+          .from('workflow_steps')
+          .insert(stepsData);
+
+        if (stepsError) throw stepsError;
+      }
+
+      return newWorkflow;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Workflow duplicated!',
+        description: 'The workflow has been successfully duplicated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error duplicating workflow',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Delete workflow mutation
+  const deleteWorkflow = useMutation({
+    mutationFn: async (workflowId: string) => {
+      const { error } = await supabase
+        .from('workflows')
+        .delete()
+        .eq('id', workflowId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Workflow deleted!',
+        description: 'The workflow has been successfully deleted.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setDeleteWorkflowId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error deleting workflow',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -166,16 +279,22 @@ export default function WorkflowList() {
     // TODO: Implement workflow actions
     switch (action) {
       case 'view':
-        // Navigate to workflow detail view
+        toast({
+          title: 'View Workflow',
+          description: 'Workflow detail view will be implemented soon.',
+        });
         break;
       case 'edit':
-        // Navigate to workflow edit view
+        toast({
+          title: 'Edit Workflow',
+          description: 'Workflow edit functionality will be implemented soon.',
+        });
         break;
       case 'duplicate':
-        // Duplicate workflow
+        duplicateWorkflow.mutate(workflowId);
         break;
       case 'delete':
-        // Delete workflow with confirmation
+        setDeleteWorkflowId(workflowId);
         break;
       default:
         break;
@@ -351,6 +470,28 @@ export default function WorkflowList() {
           })}
         </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteWorkflowId !== null} onOpenChange={() => setDeleteWorkflowId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the workflow
+              and all its associated steps and data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteWorkflowId && deleteWorkflow.mutate(deleteWorkflowId)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
