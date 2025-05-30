@@ -1,7 +1,6 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,18 +10,33 @@ import {
   FileText,
   BarChart3
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import UserManagement from '@/components/admin/UserManagement';
+import DashboardContent from '@/components/dashboard/DashboardContent';
 
 interface DashboardLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  useEffect(() => {
+    // Check URL hash for active tab
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      setActiveTab(hash);
+    }
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    window.location.hash = tabId;
   };
 
   const navigationItems = [
@@ -37,6 +51,43 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const visibleNavItems = navigationItems.filter(item => 
     item.roles.includes(profile?.role || 'employee')
   );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'users':
+        return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
+      case 'workflows':
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Workflows</h2>
+            <p className="text-gray-600">Workflow management functionality coming soon...</p>
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Reports</h2>
+            <p className="text-gray-600">Analytics and reporting functionality coming soon...</p>
+          </div>
+        );
+      case 'templates':
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Templates</h2>
+            <p className="text-gray-600">Workflow templates functionality coming soon...</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
+            <p className="text-gray-600">System settings functionality coming soon...</p>
+          </div>
+        );
+      default:
+        return children || <DashboardContent />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,7 +123,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   activeTab === item.id
                     ? 'bg-white text-blue-600 shadow-sm'
@@ -81,13 +132,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               >
                 <Icon className="h-4 w-4 mr-2" />
                 {item.label}
-              </button>
+              </Button>
             );
           })}
         </div>
 
         {/* Content */}
-        {children}
+        {renderContent()}
       </div>
     </div>
   );

@@ -45,6 +45,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          created_at: string
+          department: string | null
+          email: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_by: string
+          role: Database["public"]["Enums"]["user_role"]
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["user_role"]
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       workflow_comments: {
         Row: {
           comment: string
