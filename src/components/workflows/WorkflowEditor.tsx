@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { Save, X, Plus, Trash2, ArrowUp, ArrowDown, ArrowLeft } from 'lucide-react';
 
 interface WorkflowStep {
   name: string;
@@ -227,9 +228,19 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
-          {workflow?.id ? 'Edit Workflow' : 'Create Workflow'}
-        </h2>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={onCancel}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h2 className="text-2xl font-bold">
+            {workflow?.id ? 'Edit Workflow' : 'Create Workflow'}
+          </h2>
+        </div>
         <div className="flex gap-2">
           <Button 
             onClick={handleSave} 
