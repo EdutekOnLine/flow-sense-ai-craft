@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -13,6 +12,7 @@ import {
 import { useState, useEffect } from 'react';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
+import WorkflowTabs from '@/components/workflows/WorkflowTabs';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -57,12 +57,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
       case 'workflows':
-        return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Workflows</h2>
-            <p className="text-gray-600">Workflow management functionality coming soon...</p>
-          </div>
-        );
+        return <WorkflowTabs />;
       case 'reports':
         return (
           <div className="text-center py-8">
