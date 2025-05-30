@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -10,6 +11,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowTabs from '@/components/workflows/WorkflowTabs';
@@ -21,14 +23,20 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+
+  // Check if we're on a workflow detail page
+  const isWorkflowDetailPage = location.pathname.startsWith('/workflow/');
 
   useEffect(() => {
-    // Check URL hash for active tab
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-      setActiveTab(hash);
+    // Only set active tab from hash if we're on the main dashboard
+    if (!isWorkflowDetailPage) {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        setActiveTab(hash);
+      }
     }
-  }, []);
+  }, [isWorkflowDetailPage]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -111,29 +119,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation Tabs */}
-        <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === item.id
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Icon className="h-4 w-4 mr-2" />
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
+        {/* Only show Navigation Tabs if not on a workflow detail page */}
+        {!isWorkflowDetailPage && (
+          <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
+            {visibleNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id)}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === item.id
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Content */}
-        {renderContent()}
+        {isWorkflowDetailPage ? children : renderContent()}
       </div>
     </div>
   );
