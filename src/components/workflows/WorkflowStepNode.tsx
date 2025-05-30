@@ -32,7 +32,7 @@ interface StepNodeData {
 
 function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
   const [isEditing, setIsEditing] = useState(false);
-  const [stepData, setStepData] = useState(data);
+  const [stepData, setStepData] = useState<StepNodeData>(data);
 
   const getTeamMemberName = (userId: string) => {
     if (userId === 'unassigned') return 'Unassigned';

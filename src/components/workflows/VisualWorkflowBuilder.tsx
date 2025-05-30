@@ -13,17 +13,30 @@ import {
   Node,
   NodeTypes,
   Panel,
+  BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Save, Download, Upload } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import WorkflowStepNode from './WorkflowStepNode';
+
+interface StepNodeData {
+  label: string;
+  description: string;
+  estimatedHours: number;
+  assignedTo: string;
+  teamMembers: Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+  }>;
+}
 
 const nodeTypes: NodeTypes = {
   workflowStep: WorkflowStepNode,
@@ -34,7 +47,7 @@ interface WorkflowBuilderProps {
 }
 
 export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<StepNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
@@ -85,7 +98,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         y: event.clientY - reactFlowBounds.top,
       });
 
-      const newNode: Node = {
+      const newNode: Node<StepNodeData> = {
         id: `step-${Date.now()}`,
         type: 'workflowStep',
         position,
@@ -109,7 +122,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
   };
 
   const addStep = () => {
-    const newNode: Node = {
+    const newNode: Node<StepNodeData> = {
       id: `step-${Date.now()}`,
       type: 'workflowStep',
       position: { x: Math.random() * 300, y: Math.random() * 300 },
@@ -292,7 +305,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
           >
             <Controls />
             <MiniMap />
-            <Background variant="dots" gap={12} size={1} />
+            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             <Panel position="top-right">
               <div className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
                 Steps: {nodes.length} | Connections: {edges.length}
