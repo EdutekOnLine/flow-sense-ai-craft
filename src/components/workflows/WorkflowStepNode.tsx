@@ -1,5 +1,5 @@
 
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useCallback } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,8 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
 
-  const updateNodeData = (updates: Partial<StepNodeData>) => {
+  // Debounced update function to prevent too many updates
+  const updateNodeData = useCallback((updates: Partial<StepNodeData>) => {
     const newData = { ...localStepData, ...updates };
     setLocalStepData(newData);
     
@@ -60,6 +61,11 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
     if (callback) {
       callback(id, updates);
     }
+  }, [id, localStepData, onDataChange, stepData.onDataChange]);
+
+  // Handle form submission to prevent dialog from closing on every keystroke
+  const handleSave = () => {
+    setIsEditing(false);
   };
 
   return (
@@ -86,7 +92,10 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Input
                       id="step-name"
                       value={localStepData.label}
-                      onChange={(e) => updateNodeData({ label: e.target.value })}
+                      onChange={(e) => {
+                        setLocalStepData(prev => ({ ...prev, label: e.target.value }));
+                      }}
+                      onBlur={(e) => updateNodeData({ label: e.target.value })}
                       placeholder="Enter step name..."
                     />
                   </div>
@@ -96,7 +105,10 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Textarea
                       id="step-description"
                       value={localStepData.description}
-                      onChange={(e) => updateNodeData({ description: e.target.value })}
+                      onChange={(e) => {
+                        setLocalStepData(prev => ({ ...prev, description: e.target.value }));
+                      }}
+                      onBlur={(e) => updateNodeData({ description: e.target.value })}
                       placeholder="Describe what needs to be done..."
                       rows={3}
                     />
@@ -106,7 +118,10 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Label htmlFor="step-assigned">Assign to</Label>
                     <Select 
                       value={localStepData.assignedTo} 
-                      onValueChange={(value) => updateNodeData({ assignedTo: value })}
+                      onValueChange={(value) => {
+                        setLocalStepData(prev => ({ ...prev, assignedTo: value }));
+                        updateNodeData({ assignedTo: value });
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select team member" />
@@ -130,12 +145,15 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                       min="0"
                       step="0.5"
                       value={localStepData.estimatedHours}
-                      onChange={(e) => updateNodeData({ estimatedHours: Number(e.target.value) })}
+                      onChange={(e) => {
+                        setLocalStepData(prev => ({ ...prev, estimatedHours: Number(e.target.value) }));
+                      }}
+                      onBlur={(e) => updateNodeData({ estimatedHours: Number(e.target.value) })}
                       placeholder="e.g., 8"
                     />
                   </div>
                   
-                  <Button onClick={() => setIsEditing(false)} className="w-full">
+                  <Button onClick={handleSave} className="w-full">
                     Save Changes
                   </Button>
                 </div>

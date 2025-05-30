@@ -115,7 +115,7 @@ export default function WorkflowTabs() {
       
       if (workflowError) throw workflowError;
 
-      // Get existing steps to handle updates vs new steps
+      // Get existing steps
       const { data: existingSteps, error: existingStepsError } = await supabase
         .from('workflow_steps')
         .select('id')
@@ -123,7 +123,7 @@ export default function WorkflowTabs() {
       
       if (existingStepsError) throw existingStepsError;
 
-      // Delete all existing steps
+      // Delete all existing steps first
       if (existingSteps && existingSteps.length > 0) {
         const { error: deleteStepsError } = await supabase
           .from('workflow_steps')
@@ -133,7 +133,7 @@ export default function WorkflowTabs() {
         if (deleteStepsError) throw deleteStepsError;
       }
 
-      // Create new steps from the current nodes
+      // Create new steps from the current nodes (this replaces all existing steps)
       if (workflowData.steps.length > 0) {
         const stepsData = workflowData.steps.map((step: any, index: number) => ({
           workflow_id: editingWorkflowId,
