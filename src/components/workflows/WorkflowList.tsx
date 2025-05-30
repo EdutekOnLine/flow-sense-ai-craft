@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, User, Eye, Edit } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Calendar, User, Eye, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function WorkflowList() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: workflows, isLoading, error } = useQuery({
     queryKey: ['workflows'],
@@ -37,6 +39,41 @@ export default function WorkflowList() {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  const deleteWorkflowMutation = useMutation({
+    mutationFn: async (workflowId: string) => {
+      // First delete workflow steps
+      const { error: stepsError } = await supabase
+        .from('workflow_steps')
+        .delete()
+        .eq('workflow_id', workflowId);
+      
+      if (stepsError) throw stepsError;
+
+      // Then delete the workflow
+      const { error: workflowError } = await supabase
+        .from('workflows')
+        .delete()
+        .eq('id', workflowId);
+      
+      if (workflowError) throw workflowError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      toast({
+        title: "Success",
+        description: "Workflow deleted successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Delete error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete workflow",
+        variant: "destructive",
+      });
     },
   });
 
@@ -95,6 +132,10 @@ export default function WorkflowList() {
   const handleEdit = (workflowId: string) => {
     console.log('Editing workflow:', workflowId);
     navigate(`/workflow/${workflowId}?edit=true`);
+  };
+
+  const handleDelete = (workflowId: string) => {
+    deleteWorkflowMutation.mutate(workflowId);
   };
 
   return (
@@ -174,6 +215,40 @@ export default function WorkflowList() {
                         <Edit className="h-4 w-4" />
                         Edit
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{workflow.name}"? This action cannot be undone and will also delete all associated workflow steps.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(workflow.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteWorkflowMutation.isPending}
+                            >
+                              {deleteWorkflowMutation.isPending ? 'Deleting...' : 'Delete'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
 
