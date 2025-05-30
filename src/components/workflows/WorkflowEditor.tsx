@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +49,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
   const saveWorkflowMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Saving workflow with data:', data);
+      
       // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
@@ -57,6 +58,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       }
 
       if (workflow?.id) {
+        console.log('Updating existing workflow:', workflow.id);
+        
         // Update existing workflow
         const { error: workflowError } = await supabase
           .from('workflows')
@@ -71,16 +74,26 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           })
           .eq('id', workflow.id);
 
-        if (workflowError) throw workflowError;
+        if (workflowError) {
+          console.error('Workflow update error:', workflowError);
+          throw workflowError;
+        }
 
-        // Delete existing steps
-        await supabase
+        // Delete existing steps first
+        console.log('Deleting existing steps for workflow:', workflow.id);
+        const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
           .eq('workflow_id', workflow.id);
 
-        // Insert new steps
+        if (deleteError) {
+          console.error('Step deletion error:', deleteError);
+          throw deleteError;
+        }
+
+        // Insert new steps if any
         if (data.steps.length > 0) {
+          console.log('Inserting new steps:', data.steps);
           const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
             workflow_id: workflow.id,
             name: step.name,
@@ -95,9 +108,14 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             .from('workflow_steps')
             .insert(stepsToInsert);
 
-          if (stepsError) throw stepsError;
+          if (stepsError) {
+            console.error('Steps insertion error:', stepsError);
+            throw stepsError;
+          }
         }
       } else {
+        console.log('Creating new workflow');
+        
         // Create new workflow
         const { data: newWorkflow, error: workflowError } = await supabase
           .from('workflows')
@@ -108,16 +126,22 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             assigned_to: data.assigned_to || null,
             due_date: data.due_date || null,
             tags: data.tags.length > 0 ? data.tags : null,
-            created_by: user.id, // Use actual user ID
+            created_by: user.id,
             status: 'draft'
           })
           .select()
           .single();
 
-        if (workflowError) throw workflowError;
+        if (workflowError) {
+          console.error('New workflow creation error:', workflowError);
+          throw workflowError;
+        }
 
-        // Insert steps
+        console.log('New workflow created:', newWorkflow);
+
+        // Insert steps if any
         if (data.steps.length > 0) {
+          console.log('Inserting steps for new workflow:', data.steps);
           const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
             workflow_id: newWorkflow.id,
             name: step.name,
@@ -132,11 +156,15 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             .from('workflow_steps')
             .insert(stepsToInsert);
 
-          if (stepsError) throw stepsError;
+          if (stepsError) {
+            console.error('New workflow steps insertion error:', stepsError);
+            throw stepsError;
+          }
         }
       }
     },
     onSuccess: () => {
+      console.log('Workflow saved successfully');
       toast({
         title: "Success",
         description: `Workflow ${workflow?.id ? 'updated' : 'created'} successfully`,
@@ -149,7 +177,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       console.error('Save error:', error);
       toast({
         title: "Error",
-        description: `Failed to ${workflow?.id ? 'update' : 'create'} workflow`,
+        description: `Failed to ${workflow?.id ? 'update' : 'create'} workflow: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -164,6 +192,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       });
       return;
     }
+    console.log('Saving workflow with form data:', formData);
     saveWorkflowMutation.mutate(formData);
   };
 

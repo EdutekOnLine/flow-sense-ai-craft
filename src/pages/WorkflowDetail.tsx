@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,7 @@ import WorkflowEditor from '@/components/workflows/WorkflowEditor';
 export default function WorkflowDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: workflow, isLoading, error } = useQuery({
@@ -63,18 +62,20 @@ export default function WorkflowDetail() {
 
   const handleEdit = () => {
     setIsEditing(true);
-    navigate(`/workflow/${id}`, { replace: true });
+    setSearchParams({ edit: 'true' });
   };
 
   const handleSaveEdit = () => {
     setIsEditing(false);
+    setSearchParams({});
+    navigate(`/workflow/${id}`, { replace: true });
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setSearchParams({});
   };
 
-  // Check if we should auto-enter edit mode based on URL parameter
   useEffect(() => {
     if (searchParams.get('edit') === 'true' && workflow && !isEditing) {
       setIsEditing(true);
