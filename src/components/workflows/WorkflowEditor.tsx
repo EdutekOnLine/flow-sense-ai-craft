@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,6 +43,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
   // Initialize form data when workflow prop changes
   useEffect(() => {
+    console.log('=== FORM INITIALIZATION ===');
     console.log('useEffect triggered with workflow:', workflow);
     if (workflow) {
       console.log('Initializing form with workflow steps:', workflow.workflow_steps);
@@ -85,7 +85,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
     mutationFn: async (data: any) => {
       console.log('=== SAVE MUTATION START ===');
       console.log('Saving workflow with data:', data);
-      console.log('Current form steps:', data.steps);
+      console.log('Current form steps count:', data.steps.length);
+      console.log('Form steps:', data.steps);
       
       // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -94,7 +95,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       }
 
       if (workflow?.id) {
-        console.log('Updating existing workflow:', workflow.id);
+        console.log('=== UPDATING EXISTING WORKFLOW ===');
+        console.log('Workflow ID:', workflow.id);
         
         // Update existing workflow
         const { error: workflowError } = await supabase
@@ -114,25 +116,27 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           console.error('Workflow update error:', workflowError);
           throw workflowError;
         }
+        console.log('✅ Workflow updated successfully');
 
-        // Delete existing steps first
-        console.log('Deleting ALL existing steps for workflow:', workflow.id);
+        // STEP 1: Delete ALL existing steps for this workflow
+        console.log('=== CLEARING ALL EXISTING STEPS ===');
         const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
           .eq('workflow_id', workflow.id);
 
         if (deleteError) {
-          console.error('Step deletion error:', deleteError);
+          console.error('❌ Step deletion error:', deleteError);
           throw deleteError;
         }
-        
-        console.log('Successfully deleted all existing steps');
+        console.log('✅ Successfully deleted all existing steps');
 
-        // Insert new steps if any - ONLY the ones currently in the form
+        // STEP 2: Insert ONLY the current form steps as completely new entries
         if (data.steps && data.steps.length > 0) {
-          console.log('Preparing to insert steps from form data:', data.steps);
-          const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
+          console.log('=== INSERTING NEW STEPS ===');
+          console.log('Steps to insert count:', data.steps.length);
+          
+          const newStepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
             workflow_id: workflow.id,
             name: step.name,
             description: step.description || null,
@@ -142,23 +146,23 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             assigned_to: step.assigned_to || null
           }));
 
-          console.log('Final steps to insert:', stepsToInsert);
+          console.log('New steps to insert:', newStepsToInsert);
 
           const { error: stepsError } = await supabase
             .from('workflow_steps')
-            .insert(stepsToInsert);
+            .insert(newStepsToInsert);
 
           if (stepsError) {
-            console.error('Steps insertion error:', stepsError);
+            console.error('❌ Steps insertion error:', stepsError);
             throw stepsError;
           }
           
-          console.log('Successfully inserted', stepsToInsert.length, 'steps');
+          console.log('✅ Successfully inserted', newStepsToInsert.length, 'new steps');
         } else {
-          console.log('No steps to insert');
+          console.log('ℹ️ No steps to insert - workflow will have 0 steps');
         }
       } else {
-        console.log('Creating new workflow');
+        console.log('=== CREATING NEW WORKFLOW ===');
         
         // Create new workflow
         const { data: newWorkflow, error: workflowError } = await supabase
@@ -177,15 +181,16 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           .single();
 
         if (workflowError) {
-          console.error('New workflow creation error:', workflowError);
+          console.error('❌ New workflow creation error:', workflowError);
           throw workflowError;
         }
 
-        console.log('New workflow created:', newWorkflow);
+        console.log('✅ New workflow created:', newWorkflow);
 
-        // Insert steps if any
+        // Insert steps for new workflow
         if (data.steps.length > 0) {
-          console.log('Inserting steps for new workflow:', data.steps);
+          console.log('=== INSERTING STEPS FOR NEW WORKFLOW ===');
+          console.log('Steps to insert:', data.steps);
           const stepsToInsert = data.steps.map((step: WorkflowStep, index: number) => ({
             workflow_id: newWorkflow.id,
             name: step.name,
@@ -201,16 +206,18 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             .insert(stepsToInsert);
 
           if (stepsError) {
-            console.error('New workflow steps insertion error:', stepsError);
+            console.error('❌ New workflow steps insertion error:', stepsError);
             throw stepsError;
           }
+          
+          console.log('✅ Successfully inserted', stepsToInsert.length, 'steps for new workflow');
         }
       }
       
       console.log('=== SAVE MUTATION END ===');
     },
     onSuccess: () => {
-      console.log('Workflow saved successfully');
+      console.log('✅ Workflow saved successfully');
       toast({
         title: "Success",
         description: `Workflow ${workflow?.id ? 'updated' : 'created'} successfully`,
@@ -220,7 +227,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
       onSave();
     },
     onError: (error) => {
-      console.error('Save error:', error);
+      console.error('❌ Save error:', error);
       toast({
         title: "Error",
         description: `Failed to ${workflow?.id ? 'update' : 'create'} workflow: ${error.message}`,
@@ -241,6 +248,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
     console.log('=== HANDLE SAVE START ===');
     console.log('Current form data before save:', formData);
     console.log('Current steps count:', formData.steps.length);
+    console.log('Steps being saved:', formData.steps);
     saveWorkflowMutation.mutate(formData);
   };
 
@@ -257,7 +265,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
     console.log('Adding new step:', newStep);
     setFormData(prev => {
       const newSteps = [...prev.steps, newStep];
-      console.log('New steps array:', newSteps);
+      console.log('New steps array after add:', newSteps);
       return {
         ...prev,
         steps: newSteps
