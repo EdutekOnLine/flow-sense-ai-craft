@@ -102,7 +102,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       if (editingWorkflow.workflow_steps) {
         // Convert workflow steps to nodes with proper data structure
         const workflowNodes = editingWorkflow.workflow_steps.map((step: any, index: number) => ({
-          id: step.id.toString(), // Use the actual step ID from database
+          id: `db-step-${step.id}`, // Use a prefix to identify database steps
           type: 'workflowStep',
           position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 200 },
           data: {
@@ -112,6 +112,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
             assignedTo: step.assigned_to || 'unassigned',
             teamMembers: teamMembers,
             onDataChange: handleNodeDataChange,
+            dbStepId: step.id, // Store the actual database ID
           } as StepNodeData,
         }));
         
@@ -213,7 +214,6 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       steps: nodes.map((node, index) => {
         const nodeData = node.data as StepNodeData;
         return {
-          id: editingWorkflow ? node.id : undefined, // Keep original ID for existing steps
           name: nodeData.label,
           description: nodeData.description,
           estimated_hours: nodeData.estimatedHours,
