@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-interface StepNodeData {
+interface StepNodeData extends Record<string, unknown> {
   label: string;
   description: string;
   estimatedHours: number;
@@ -32,7 +32,7 @@ interface StepNodeData {
 
 function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
   const [isEditing, setIsEditing] = useState(false);
-  const [stepData, setStepData] = useState<StepNodeData>(data);
+  const [stepData, setStepData] = useState<StepNodeData>(data as StepNodeData);
 
   const getTeamMemberName = (userId: string) => {
     if (userId === 'unassigned') return 'Unassigned';

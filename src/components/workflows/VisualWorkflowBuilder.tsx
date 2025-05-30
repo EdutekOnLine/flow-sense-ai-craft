@@ -25,7 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import WorkflowStepNode from './WorkflowStepNode';
 
-interface StepNodeData {
+interface StepNodeData extends Record<string, unknown> {
   label: string;
   description: string;
   estimatedHours: number;
@@ -108,7 +108,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
           estimatedHours: 0,
           assignedTo: 'unassigned',
           teamMembers,
-        },
+        } as StepNodeData,
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -132,7 +132,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         estimatedHours: 0,
         assignedTo: 'unassigned',
         teamMembers,
-      },
+      } as StepNodeData,
     };
     setNodes((nds) => nds.concat(newNode));
   };
@@ -291,9 +291,9 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         {/* Canvas */}
         <div className="flex-1" ref={reactFlowWrapper}>
           <ReactFlow
-            nodes={nodes}
+            nodes={nodes as Node[]}
             edges={edges}
-            onNodesChange={onNodesChange}
+            onNodesChange={onNodesChange as any}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onInit={setReactFlowInstance}
