@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -124,17 +123,16 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
         // STEP 2: Delete ALL existing steps for this workflow (with explicit filter)
         console.log('=== CLEARING ALL EXISTING STEPS ===');
-        const { error: deleteError, count: deletedCount } = await supabase
+        const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
-          .eq('workflow_id', workflowId)
-          .select('id', { count: 'exact' });
+          .eq('workflow_id', workflowId);
 
         if (deleteError) {
           console.error('❌ Step deletion error:', deleteError);
           throw deleteError;
         }
-        console.log('✅ Successfully deleted', deletedCount, 'existing steps');
+        console.log('✅ Successfully deleted existing steps');
 
         // STEP 3: Insert ONLY the current form steps as completely new entries
         if (data.steps && data.steps.length > 0) {
@@ -158,17 +156,16 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
 
             console.log('New steps to insert:', newStepsToInsert);
 
-            const { error: stepsError, count: insertedCount } = await supabase
+            const { error: stepsError } = await supabase
               .from('workflow_steps')
-              .insert(newStepsToInsert)
-              .select('id', { count: 'exact' });
+              .insert(newStepsToInsert);
 
             if (stepsError) {
               console.error('❌ Steps insertion error:', stepsError);
               throw stepsError;
             }
             
-            console.log('✅ Successfully inserted', insertedCount, 'new steps');
+            console.log('✅ Successfully inserted', newStepsToInsert.length, 'new steps');
           } else {
             console.log('ℹ️ No valid steps to insert - all steps had empty names');
           }
