@@ -46,7 +46,7 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
   }, [stepData]);
 
   const getTeamMemberName = (userId: string) => {
-    if (userId === 'unassigned') return 'Unassigned';
+    if (!userId || userId === 'unassigned') return 'Unassigned';
     const member = localStepData.teamMembers.find(m => m.id === userId);
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
@@ -71,6 +71,9 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
   const handleInputBlur = (field: keyof StepNodeData, value: any) => {
     updateNodeData({ [field]: value });
   };
+
+  // Ensure assignedTo is never an empty string
+  const safeAssignedTo = localStepData.assignedTo || 'unassigned';
 
   return (
     <>
@@ -117,7 +120,7 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                   <div>
                     <Label htmlFor="step-assigned">Assign to</Label>
                     <Select 
-                      value={localStepData.assignedTo} 
+                      value={safeAssignedTo} 
                       onValueChange={(value) => {
                         handleInputChange('assignedTo', value);
                         updateNodeData({ assignedTo: value });
@@ -166,10 +169,10 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
           )}
           
           <div className="flex flex-wrap gap-1">
-            {localStepData.assignedTo && localStepData.assignedTo !== 'unassigned' && (
+            {safeAssignedTo && safeAssignedTo !== 'unassigned' && (
               <Badge variant="outline" className="text-xs">
                 <User className="h-3 w-3 mr-1" />
-                {getTeamMemberName(localStepData.assignedTo)}
+                {getTeamMemberName(safeAssignedTo)}
               </Badge>
             )}
             

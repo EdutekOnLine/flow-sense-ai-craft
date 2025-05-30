@@ -46,7 +46,7 @@ export default function WorkflowCreation() {
     description: '',
     priority: 'medium',
     due_date: '',
-    assigned_to: '',
+    assigned_to: 'unassigned',
     tags: [],
     steps: []
   });
@@ -56,7 +56,7 @@ export default function WorkflowCreation() {
     name: '',
     description: '',
     estimated_hours: undefined,
-    assigned_to: '',
+    assigned_to: 'unassigned',
     dependencies: []
   });
 
@@ -128,7 +128,7 @@ export default function WorkflowCreation() {
         description: '',
         priority: 'medium',
         due_date: '',
-        assigned_to: '',
+        assigned_to: 'unassigned',
         tags: [],
         steps: []
       });
@@ -166,7 +166,7 @@ export default function WorkflowCreation() {
         id: crypto.randomUUID(),
         name: currentStep.name,
         description: currentStep.description || '',
-        assigned_to: currentStep.assigned_to || undefined,
+        assigned_to: currentStep.assigned_to === 'unassigned' ? undefined : currentStep.assigned_to,
         estimated_hours: currentStep.estimated_hours || undefined,
         dependencies: currentStep.dependencies || []
       };
@@ -180,7 +180,7 @@ export default function WorkflowCreation() {
         name: '',
         description: '',
         estimated_hours: undefined,
-        assigned_to: '',
+        assigned_to: 'unassigned',
         dependencies: []
       });
     }
@@ -304,7 +304,7 @@ export default function WorkflowCreation() {
 
             <div>
               <Label htmlFor="assigned_to">Assign to Team Member</Label>
-              <Select value={form.assigned_to} onValueChange={(value) => setForm(prev => ({ ...prev, assigned_to: value }))}>
+              <Select value={form.assigned_to || 'unassigned'} onValueChange={(value) => setForm(prev => ({ ...prev, assigned_to: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select team member (optional)" />
                 </SelectTrigger>
