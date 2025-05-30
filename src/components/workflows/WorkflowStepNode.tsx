@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-interface StepNodeData {
+interface StepNodeData extends Record<string, unknown> {
   label: string;
   description: string;
   estimatedHours: number;

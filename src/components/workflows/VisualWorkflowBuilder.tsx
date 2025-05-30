@@ -25,7 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import WorkflowStepNode from './WorkflowStepNode';
 
-interface StepNodeData {
+interface StepNodeData extends Record<string, unknown> {
   label: string;
   description: string;
   estimatedHours: number;
@@ -98,17 +98,19 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         y: event.clientY - reactFlowBounds.top,
       });
 
+      const newNodeData: StepNodeData = {
+        label: 'New Step',
+        description: '',
+        estimatedHours: 0,
+        assignedTo: 'unassigned',
+        teamMembers,
+      };
+
       const newNode: Node = {
         id: `step-${Date.now()}`,
         type: 'workflowStep',
         position,
-        data: {
-          label: 'New Step',
-          description: '',
-          estimatedHours: 0,
-          assignedTo: 'unassigned',
-          teamMembers,
-        } as StepNodeData,
+        data: newNodeData,
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -122,17 +124,19 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
   };
 
   const addStep = () => {
+    const newNodeData: StepNodeData = {
+      label: 'New Step',
+      description: '',
+      estimatedHours: 0,
+      assignedTo: 'unassigned',
+      teamMembers,
+    };
+
     const newNode: Node = {
       id: `step-${Date.now()}`,
       type: 'workflowStep',
       position: { x: Math.random() * 300, y: Math.random() * 300 },
-      data: {
-        label: 'New Step',
-        description: '',
-        estimatedHours: 0,
-        assignedTo: 'unassigned',
-        teamMembers,
-      } as StepNodeData,
+      data: newNodeData,
     };
     setNodes((nds) => nds.concat(newNode));
   };
