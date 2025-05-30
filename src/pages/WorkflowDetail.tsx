@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,7 +102,7 @@ export default function WorkflowDetail() {
         description: workflow.description || '',
         priority: workflow.priority,
         due_date: workflow.due_date ? format(new Date(workflow.due_date), 'yyyy-MM-dd') : '',
-        assigned_to: workflow.assigned_to || '',
+        assigned_to: workflow.assigned_to || 'unassigned',
         tags: workflow.tags || []
       });
       setIsEditing(true);
@@ -113,7 +114,7 @@ export default function WorkflowDetail() {
       name: editForm.name,
       description: editForm.description || null,
       priority: editForm.priority,
-      assigned_to: editForm.assigned_to || null,
+      assigned_to: editForm.assigned_to === 'unassigned' ? null : editForm.assigned_to,
       tags: editForm.tags.length > 0 ? editForm.tags : null,
       updated_at: new Date().toISOString()
     };
@@ -297,7 +298,7 @@ export default function WorkflowDetail() {
                         <SelectValue placeholder="Select user" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {profiles?.map((profile) => (
                           <SelectItem key={profile.id} value={profile.id}>
                             {profile.first_name} {profile.last_name}
