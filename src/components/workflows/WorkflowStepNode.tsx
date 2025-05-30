@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
-interface StepNodeData extends Record<string, unknown> {
+interface StepNodeData {
   label: string;
   description: string;
   estimatedHours: number;
@@ -30,19 +30,20 @@ interface StepNodeData extends Record<string, unknown> {
   }>;
 }
 
-function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
+function WorkflowStepNode({ id, data, selected }: NodeProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [stepData, setStepData] = useState<StepNodeData>(data as StepNodeData);
+  const stepData = data as StepNodeData;
+  const [localStepData, setLocalStepData] = useState<StepNodeData>(stepData);
 
   const getTeamMemberName = (userId: string) => {
     if (userId === 'unassigned') return 'Unassigned';
-    const member = stepData.teamMembers.find(m => m.id === userId);
+    const member = localStepData.teamMembers.find(m => m.id === userId);
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
 
   const updateNodeData = (updates: Partial<StepNodeData>) => {
-    const newData = { ...stepData, ...updates };
-    setStepData(newData);
+    const newData = { ...localStepData, ...updates };
+    setLocalStepData(newData);
     // In a real implementation, you'd update the node data in the parent component
   };
 
@@ -53,7 +54,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
       <Card className={`min-w-[200px] ${selected ? 'ring-2 ring-blue-500' : ''}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-sm truncate">{stepData.label}</h3>
+            <h3 className="font-medium text-sm truncate">{localStepData.label}</h3>
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -69,7 +70,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
                     <Label htmlFor="step-name">Step Name</Label>
                     <Input
                       id="step-name"
-                      value={stepData.label}
+                      value={localStepData.label}
                       onChange={(e) => updateNodeData({ label: e.target.value })}
                       placeholder="Enter step name..."
                     />
@@ -79,7 +80,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
                     <Label htmlFor="step-description">Description</Label>
                     <Textarea
                       id="step-description"
-                      value={stepData.description}
+                      value={localStepData.description}
                       onChange={(e) => updateNodeData({ description: e.target.value })}
                       placeholder="Describe what needs to be done..."
                       rows={3}
@@ -89,7 +90,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
                   <div>
                     <Label htmlFor="step-assigned">Assign to</Label>
                     <Select 
-                      value={stepData.assignedTo} 
+                      value={localStepData.assignedTo} 
                       onValueChange={(value) => updateNodeData({ assignedTo: value })}
                     >
                       <SelectTrigger>
@@ -97,7 +98,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {stepData.teamMembers.map((member) => (
+                        {localStepData.teamMembers.map((member) => (
                           <SelectItem key={member.id} value={member.id}>
                             {member.first_name} {member.last_name}
                           </SelectItem>
@@ -113,7 +114,7 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
                       type="number"
                       min="0"
                       step="0.5"
-                      value={stepData.estimatedHours}
+                      value={localStepData.estimatedHours}
                       onChange={(e) => updateNodeData({ estimatedHours: Number(e.target.value) })}
                       placeholder="e.g., 8"
                     />
@@ -129,22 +130,22 @@ function WorkflowStepNode({ id, data, selected }: NodeProps<StepNodeData>) {
         </CardHeader>
         
         <CardContent className="pt-0 space-y-2">
-          {stepData.description && (
-            <p className="text-xs text-gray-600 line-clamp-2">{stepData.description}</p>
+          {localStepData.description && (
+            <p className="text-xs text-gray-600 line-clamp-2">{localStepData.description}</p>
           )}
           
           <div className="flex flex-wrap gap-1">
-            {stepData.assignedTo && stepData.assignedTo !== 'unassigned' && (
+            {localStepData.assignedTo && localStepData.assignedTo !== 'unassigned' && (
               <Badge variant="outline" className="text-xs">
                 <User className="h-3 w-3 mr-1" />
-                {getTeamMemberName(stepData.assignedTo)}
+                {getTeamMemberName(localStepData.assignedTo)}
               </Badge>
             )}
             
-            {stepData.estimatedHours > 0 && (
+            {localStepData.estimatedHours > 0 && (
               <Badge variant="outline" className="text-xs">
                 <Clock className="h-3 w-3 mr-1" />
-                {stepData.estimatedHours}h
+                {localStepData.estimatedHours}h
               </Badge>
             )}
           </div>

@@ -25,7 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import WorkflowStepNode from './WorkflowStepNode';
 
-interface StepNodeData extends Record<string, unknown> {
+interface StepNodeData {
   label: string;
   description: string;
   estimatedHours: number;
@@ -47,7 +47,7 @@ interface WorkflowBuilderProps {
 }
 
 export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<StepNodeData>>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
@@ -98,7 +98,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         y: event.clientY - reactFlowBounds.top,
       });
 
-      const newNode: Node<StepNodeData> = {
+      const newNode: Node = {
         id: `step-${Date.now()}`,
         type: 'workflowStep',
         position,
@@ -122,7 +122,7 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
   };
 
   const addStep = () => {
-    const newNode: Node<StepNodeData> = {
+    const newNode: Node = {
       id: `step-${Date.now()}`,
       type: 'workflowStep',
       position: { x: Math.random() * 300, y: Math.random() * 300 },
@@ -143,16 +143,19 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
       description: workflowDescription,
       nodes,
       edges,
-      steps: nodes.map((node, index) => ({
-        id: node.id,
-        name: node.data.label,
-        description: node.data.description,
-        estimated_hours: node.data.estimatedHours,
-        assigned_to: node.data.assignedTo === 'unassigned' ? null : node.data.assignedTo,
-        dependencies: edges
-          .filter(edge => edge.target === node.id)
-          .map(edge => edge.source),
-      })),
+      steps: nodes.map((node, index) => {
+        const nodeData = node.data as StepNodeData;
+        return {
+          id: node.id,
+          name: nodeData.label,
+          description: nodeData.description,
+          estimated_hours: nodeData.estimatedHours,
+          assigned_to: nodeData.assignedTo === 'unassigned' ? null : nodeData.assignedTo,
+          dependencies: edges
+            .filter(edge => edge.target === node.id)
+            .map(edge => edge.source),
+        };
+      }),
     };
 
     if (onSave) {
@@ -291,9 +294,9 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         {/* Canvas */}
         <div className="flex-1" ref={reactFlowWrapper}>
           <ReactFlow
-            nodes={nodes as Node[]}
+            nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange as any}
+            onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onInit={setReactFlowInstance}
