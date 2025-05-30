@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import StepStatusManager from '@/components/workflows/StepStatusManager';
 
 export default function WorkflowDetail() {
   const { id } = useParams<{ id: string }>();
@@ -415,9 +416,13 @@ export default function WorkflowDetail() {
                           )}
                         </div>
                       </div>
-                      <Badge className={getStepStatusColor(step.status)}>
-                        {step.status.replace('_', ' ')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <StepStatusManager 
+                          stepId={step.id}
+                          currentStatus={step.status}
+                          workflowId={id!}
+                        />
+                      </div>
                     </div>
 
                     <div className="ml-11 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
