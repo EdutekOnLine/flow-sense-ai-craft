@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -30,22 +31,49 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
-    name: workflow?.name || '',
-    description: workflow?.description || '',
-    priority: workflow?.priority || 'medium',
-    due_date: workflow?.due_date ? new Date(workflow.due_date).toISOString().split('T')[0] : '',
-    assigned_to: workflow?.assigned_to || '',
-    tags: workflow?.tags || [],
-    steps: workflow?.workflow_steps?.map((step: any) => ({
-      name: step.name,
-      description: step.description || '',
-      status: step.status,
-      estimated_hours: step.estimated_hours,
-      assigned_to: step.assigned_to
-    })) || []
+    name: '',
+    description: '',
+    priority: 'medium',
+    due_date: '',
+    assigned_to: '',
+    tags: [],
+    steps: []
   });
 
   const [newTag, setNewTag] = useState('');
+
+  // Initialize form data when workflow prop changes
+  useEffect(() => {
+    if (workflow) {
+      console.log('Initializing form with workflow:', workflow);
+      setFormData({
+        name: workflow.name || '',
+        description: workflow.description || '',
+        priority: workflow.priority || 'medium',
+        due_date: workflow.due_date ? new Date(workflow.due_date).toISOString().split('T')[0] : '',
+        assigned_to: workflow.assigned_to || '',
+        tags: workflow.tags || [],
+        steps: workflow.workflow_steps?.map((step: any) => ({
+          name: step.name,
+          description: step.description || '',
+          status: step.status,
+          estimated_hours: step.estimated_hours,
+          assigned_to: step.assigned_to
+        })) || []
+      });
+    } else {
+      // Reset form for new workflow
+      setFormData({
+        name: '',
+        description: '',
+        priority: 'medium',
+        due_date: '',
+        assigned_to: '',
+        tags: [],
+        steps: []
+      });
+    }
+  }, [workflow]);
 
   const saveWorkflowMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -90,8 +118,6 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           console.error('Step deletion error:', deleteError);
           throw deleteError;
         }
-
-        console.log('Steps to insert:', data.steps);
 
         // Insert new steps if any
         if (data.steps.length > 0) {
@@ -201,6 +227,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
   };
 
   const addStep = () => {
+    console.log('Adding new step');
     setFormData(prev => ({
       ...prev,
       steps: [...prev.steps, {
@@ -214,6 +241,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
   };
 
   const removeStep = (index: number) => {
+    console.log('Removing step at index:', index);
     setFormData(prev => ({
       ...prev,
       steps: prev.steps.filter((_, i) => i !== index)
@@ -221,6 +249,7 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
   };
 
   const updateStep = (index: number, field: keyof WorkflowStep, value: any) => {
+    console.log('Updating step', index, field, value);
     setFormData(prev => ({
       ...prev,
       steps: prev.steps.map((step, i) => 
