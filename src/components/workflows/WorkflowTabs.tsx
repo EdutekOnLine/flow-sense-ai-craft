@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WorkflowList from './WorkflowList';
@@ -41,6 +40,8 @@ export default function WorkflowTabs() {
   // Create workflow mutation for visual builder
   const createWorkflowFromVisual = useMutation({
     mutationFn: async (workflowData: any) => {
+      console.log('Creating workflow with data:', workflowData);
+      
       // First create the workflow
       const { data: workflow, error: workflowError } = await supabase
         .from('workflows')
@@ -104,6 +105,9 @@ export default function WorkflowTabs() {
     mutationFn: async (workflowData: any) => {
       if (!editingWorkflowId) throw new Error('No workflow ID for update');
 
+      console.log('Updating workflow with data:', workflowData);
+      console.log('Editing workflow ID:', editingWorkflowId);
+
       // Update the workflow
       const { error: workflowError } = await supabase
         .from('workflows')
@@ -115,25 +119,20 @@ export default function WorkflowTabs() {
       
       if (workflowError) throw workflowError;
 
-      // Get existing steps
-      const { data: existingSteps, error: existingStepsError } = await supabase
+      // First, delete all existing steps for this workflow
+      const { error: deleteError } = await supabase
         .from('workflow_steps')
-        .select('id')
+        .delete()
         .eq('workflow_id', editingWorkflowId);
       
-      if (existingStepsError) throw existingStepsError;
-
-      // Delete all existing steps first
-      if (existingSteps && existingSteps.length > 0) {
-        const { error: deleteStepsError } = await supabase
-          .from('workflow_steps')
-          .delete()
-          .eq('workflow_id', editingWorkflowId);
-        
-        if (deleteStepsError) throw deleteStepsError;
+      if (deleteError) {
+        console.error('Error deleting existing steps:', deleteError);
+        throw deleteError;
       }
 
-      // Create new steps from the current nodes (this replaces all existing steps)
+      console.log('Deleted existing steps for workflow:', editingWorkflowId);
+
+      // Then create new steps from the current state
       if (workflowData.steps.length > 0) {
         const stepsData = workflowData.steps.map((step: any, index: number) => ({
           workflow_id: editingWorkflowId,
@@ -146,11 +145,16 @@ export default function WorkflowTabs() {
           status: 'pending' as const
         }));
 
+        console.log('Inserting new steps:', stepsData);
+
         const { error: stepsError } = await supabase
           .from('workflow_steps')
           .insert(stepsData);
         
-        if (stepsError) throw stepsError;
+        if (stepsError) {
+          console.error('Error inserting new steps:', stepsError);
+          throw stepsError;
+        }
       }
       
       return { id: editingWorkflowId };
@@ -166,6 +170,7 @@ export default function WorkflowTabs() {
       setEditingWorkflowId(null);
     },
     onError: (error: any) => {
+      console.error('Error updating workflow:', error);
       toast({
         title: 'Error updating workflow',
         description: error.message,

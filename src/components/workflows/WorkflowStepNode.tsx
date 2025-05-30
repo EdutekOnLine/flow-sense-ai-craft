@@ -51,18 +51,25 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
 
-  // Fixed update function without problematic dependencies
+  // Simplified update function - remove all problematic dependencies
   const updateNodeData = useCallback((updates: Partial<StepNodeData>) => {
-    // Use the callback from props or the one in stepData
-    const callback = onDataChange || stepData.onDataChange;
-    if (callback) {
-      callback(id, updates);
+    if (onDataChange) {
+      onDataChange(id, updates);
     }
-  }, [id, onDataChange, stepData.onDataChange]);
+  }, [id, onDataChange]);
 
-  // Handle form submission to prevent dialog from closing on every keystroke
+  // Handle form submission
   const handleSave = () => {
     setIsEditing(false);
+  };
+
+  // Handle input changes with immediate local state update and debounced server update
+  const handleInputChange = (field: keyof StepNodeData, value: any) => {
+    setLocalStepData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleInputBlur = (field: keyof StepNodeData, value: any) => {
+    updateNodeData({ [field]: value });
   };
 
   return (
@@ -89,10 +96,8 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Input
                       id="step-name"
                       value={localStepData.label}
-                      onChange={(e) => {
-                        setLocalStepData(prev => ({ ...prev, label: e.target.value }));
-                      }}
-                      onBlur={(e) => updateNodeData({ label: e.target.value })}
+                      onChange={(e) => handleInputChange('label', e.target.value)}
+                      onBlur={(e) => handleInputBlur('label', e.target.value)}
                       placeholder="Enter step name..."
                     />
                   </div>
@@ -102,10 +107,8 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Textarea
                       id="step-description"
                       value={localStepData.description}
-                      onChange={(e) => {
-                        setLocalStepData(prev => ({ ...prev, description: e.target.value }));
-                      }}
-                      onBlur={(e) => updateNodeData({ description: e.target.value })}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      onBlur={(e) => handleInputBlur('description', e.target.value)}
                       placeholder="Describe what needs to be done..."
                       rows={3}
                     />
@@ -116,7 +119,7 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                     <Select 
                       value={localStepData.assignedTo} 
                       onValueChange={(value) => {
-                        setLocalStepData(prev => ({ ...prev, assignedTo: value }));
+                        handleInputChange('assignedTo', value);
                         updateNodeData({ assignedTo: value });
                       }}
                     >
@@ -142,10 +145,8 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
                       min="0"
                       step="0.5"
                       value={localStepData.estimatedHours}
-                      onChange={(e) => {
-                        setLocalStepData(prev => ({ ...prev, estimatedHours: Number(e.target.value) }));
-                      }}
-                      onBlur={(e) => updateNodeData({ estimatedHours: Number(e.target.value) })}
+                      onChange={(e) => handleInputChange('estimatedHours', Number(e.target.value))}
+                      onBlur={(e) => handleInputBlur('estimatedHours', Number(e.target.value))}
                       placeholder="e.g., 8"
                     />
                   </div>
