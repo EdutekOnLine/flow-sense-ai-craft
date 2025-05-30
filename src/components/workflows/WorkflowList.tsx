@@ -89,14 +89,13 @@ export default function WorkflowList() {
   };
 
   const handleViewDetails = (workflowId: string) => {
+    console.log('Navigating to workflow:', workflowId);
     navigate(`/workflow/${workflowId}`);
   };
 
   const handleEdit = (workflowId: string) => {
-    toast({
-      title: "Edit Workflow",
-      description: "Edit functionality will be implemented next.",
-    });
+    console.log('Editing workflow:', workflowId);
+    navigate(`/workflow/${workflowId}`);
   };
 
   return (
@@ -153,7 +152,11 @@ export default function WorkflowList() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleViewDetails(workflow.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleViewDetails(workflow.id);
+                        }}
                         className="flex items-center gap-1"
                       >
                         <Eye className="h-4 w-4" />
@@ -162,7 +165,11 @@ export default function WorkflowList() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEdit(workflow.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEdit(workflow.id);
+                        }}
                         className="flex items-center gap-1"
                       >
                         <Edit className="h-4 w-4" />
