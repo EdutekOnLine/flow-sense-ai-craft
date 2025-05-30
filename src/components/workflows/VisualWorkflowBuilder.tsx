@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
@@ -93,7 +92,8 @@ export default function VisualWorkflowBuilder({ onSave }: WorkflowBuilderProps) 
         return;
       }
 
-      const position = reactFlowInstance.project({
+      // Use screenToFlowPosition instead of project
+      const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       });
