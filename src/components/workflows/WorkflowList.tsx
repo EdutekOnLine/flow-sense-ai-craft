@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,18 +49,48 @@ export default function WorkflowList() {
   const { data: workflows = [], isLoading } = useQuery({
     queryKey: ['workflows'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get workflows
+      const { data: workflowsData, error: workflowsError } = await supabase
         .from('workflows')
         .select(`
           *,
-          creator:profiles!created_by(first_name, last_name),
-          assignee:profiles!assigned_to(first_name, last_name),
           workflow_steps(id, status)
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as WorkflowData[];
+      if (workflowsError) throw workflowsError;
+
+      // Get all unique user IDs
+      const userIds = new Set<string>();
+      workflowsData?.forEach(workflow => {
+        userIds.add(workflow.created_by);
+        if (workflow.assigned_to) {
+          userIds.add(workflow.assigned_to);
+        }
+      });
+
+      // Fetch profiles for these users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', Array.from(userIds));
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of user ID to profile
+      const profileMap = new Map();
+      profilesData?.forEach(profile => {
+        profileMap.set(profile.id, profile);
+      });
+
+      // Combine the data
+      const enrichedWorkflows = workflowsData?.map(workflow => ({
+        ...workflow,
+        creator: profileMap.get(workflow.created_by) || null,
+        assignee: workflow.assigned_to ? profileMap.get(workflow.assigned_to) || null : null
+      }));
+
+      return enrichedWorkflows as WorkflowData[];
     },
   });
 
