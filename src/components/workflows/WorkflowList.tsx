@@ -30,9 +30,8 @@ import {
   Play,
   Pause,
   CheckCircle,
-  Edit,
-  Trash2,
   Copy,
+  Trash2,
   Eye
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -69,11 +68,7 @@ interface WorkflowData {
   }[];
 }
 
-interface WorkflowListProps {
-  onEditWorkflow?: (workflowId: string) => void;
-}
-
-export default function WorkflowList({ onEditWorkflow }: WorkflowListProps) {
+export default function WorkflowList() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -288,16 +283,6 @@ export default function WorkflowList({ onEditWorkflow }: WorkflowListProps) {
           description: 'Workflow detail view will be implemented soon.',
         });
         break;
-      case 'edit':
-        if (onEditWorkflow) {
-          onEditWorkflow(workflowId);
-        } else {
-          toast({
-            title: 'Edit Workflow',
-            description: 'Workflow edit functionality will be implemented soon.',
-          });
-        }
-        break;
       case 'duplicate':
         duplicateWorkflow.mutate(workflowId);
         break;
@@ -378,10 +363,6 @@ export default function WorkflowList({ onEditWorkflow }: WorkflowListProps) {
                         <DropdownMenuItem onClick={() => handleWorkflowAction('view', workflow.id)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleWorkflowAction('edit', workflow.id)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Workflow
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleWorkflowAction('duplicate', workflow.id)}>
                           <Copy className="mr-2 h-4 w-4" />
