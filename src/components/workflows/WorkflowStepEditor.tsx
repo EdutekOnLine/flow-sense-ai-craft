@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface WorkflowStep {
   id?: string;
@@ -33,58 +33,41 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     status: 'pending'
   });
 
-  // Improved deduplication function that creates truly unique steps
-  const deduplicateSteps = useCallback((stepsArray: WorkflowStep[]): WorkflowStep[] => {
-    console.log('Deduplicating steps:', stepsArray.length, 'input steps');
-    
+  // Simple clean steps function - remove duplicates and invalid entries
+  const cleanSteps = useCallback((stepsArray: WorkflowStep[]): WorkflowStep[] => {
     if (!stepsArray || stepsArray.length === 0) {
       return [];
     }
-    
-    // Filter out invalid steps first
+
+    // Filter out invalid steps and deduplicate by name
     const validSteps = stepsArray.filter(step => 
       step && 
-      typeof step === 'object' && 
       step.name && 
       typeof step.name === 'string' && 
       step.name.trim().length > 0
     );
-    
-    console.log('Valid steps after filtering:', validSteps.length);
-    
-    // Use Set to track unique combinations
-    const seen = new Set<string>();
-    const uniqueSteps: WorkflowStep[] = [];
+
+    // Create a map to store unique steps by name
+    const stepMap = new Map<string, WorkflowStep>();
     
     validSteps.forEach(step => {
-      // Create a unique identifier for this step
-      const identifier = JSON.stringify({
-        name: step.name.trim(),
-        description: step.description?.trim() || '',
-        assigned_to: step.assigned_to || null,
-        estimated_hours: step.estimated_hours || null,
-        status: step.status || 'pending'
-      });
-      
-      if (!seen.has(identifier)) {
-        seen.add(identifier);
-        uniqueSteps.push({
+      const stepName = step.name.trim().toLowerCase();
+      if (!stepMap.has(stepName)) {
+        stepMap.set(stepName, {
           ...step,
           name: step.name.trim(),
-          description: step.description?.trim() || '',
-          step_order: uniqueSteps.length + 1
+          description: step.description?.trim() || ''
         });
       }
     });
-    
-    console.log('Final unique steps:', uniqueSteps.length);
-    return uniqueSteps;
-  }, []);
 
-  // Memoize the deduplicated steps to prevent unnecessary recalculations
-  const deduplicatedSteps = useMemo(() => {
-    return deduplicateSteps(steps);
-  }, [steps, deduplicateSteps]);
+    // Convert back to array and re-order
+    const uniqueSteps = Array.from(stepMap.values());
+    return uniqueSteps.map((step, index) => ({
+      ...step,
+      step_order: index + 1
+    }));
+  }, []);
 
   const addStep = useCallback(() => {
     if (!newStep.name?.trim()) {
@@ -95,7 +78,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     const step: WorkflowStep = {
       name: newStep.name.trim(),
       description: newStep.description?.trim() || '',
-      step_order: deduplicatedSteps.length + 1,
+      step_order: steps.length + 1,
       status: newStep.status || 'pending',
       estimated_hours: newStep.estimated_hours,
       assigned_to: newStep.assigned_to === 'unassigned' ? null : newStep.assigned_to || null,
@@ -103,8 +86,8 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     };
 
     console.log('Adding new step:', step);
-    const updatedSteps = deduplicateSteps([...deduplicatedSteps, step]);
-    console.log('Steps after add and deduplicate:', updatedSteps.length);
+    const updatedSteps = cleanSteps([...steps, step]);
+    console.log('Steps after add and clean:', updatedSteps.length);
     onStepsChange(updatedSteps);
     
     setNewStep({
@@ -114,30 +97,30 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       assigned_to: 'unassigned',
       status: 'pending'
     });
-  }, [newStep, deduplicatedSteps, deduplicateSteps, onStepsChange]);
+  }, [newStep, steps, cleanSteps, onStepsChange]);
 
   const removeStep = useCallback((index: number) => {
     console.log('Removing step at index:', index);
-    if (index < 0 || index >= deduplicatedSteps.length) {
+    if (index < 0 || index >= steps.length) {
       console.warn('Invalid index for step removal:', index);
       return;
     }
     
-    const updatedSteps = deduplicatedSteps.filter((_, i) => i !== index);
-    const finalSteps = deduplicateSteps(updatedSteps);
-    console.log('Steps after remove and deduplicate:', finalSteps.length);
+    const updatedSteps = steps.filter((_, i) => i !== index);
+    const finalSteps = cleanSteps(updatedSteps);
+    console.log('Steps after remove and clean:', finalSteps.length);
     onStepsChange(finalSteps);
-  }, [deduplicatedSteps, deduplicateSteps, onStepsChange]);
+  }, [steps, cleanSteps, onStepsChange]);
 
   const updateStep = useCallback((index: number, field: keyof WorkflowStep, value: any) => {
     console.log('Updating step at index:', index, 'field:', field, 'value:', value);
     
-    if (index < 0 || index >= deduplicatedSteps.length) {
+    if (index < 0 || index >= steps.length) {
       console.warn('Invalid index for step update:', index);
       return;
     }
     
-    const updatedSteps = deduplicatedSteps.map((step, i) => {
+    const updatedSteps = steps.map((step, i) => {
       if (i === index) {
         return {
           ...step,
@@ -147,27 +130,27 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
       return step;
     });
     
-    const finalSteps = deduplicateSteps(updatedSteps);
-    console.log('Steps after update and deduplicate:', finalSteps.length);
+    const finalSteps = cleanSteps(updatedSteps);
+    console.log('Steps after update and clean:', finalSteps.length);
     onStepsChange(finalSteps);
-  }, [deduplicatedSteps, deduplicateSteps, onStepsChange]);
+  }, [steps, cleanSteps, onStepsChange]);
 
   const moveStep = useCallback((index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === deduplicatedSteps.length - 1)) {
+    if ((direction === 'up' && index === 0) || (direction === 'down' && index === steps.length - 1)) {
       return;
     }
 
     console.log('Moving step at index:', index, 'direction:', direction);
     
-    const updatedSteps = [...deduplicatedSteps];
+    const updatedSteps = [...steps];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
     [updatedSteps[index], updatedSteps[targetIndex]] = [updatedSteps[targetIndex], updatedSteps[index]];
     
-    const finalSteps = deduplicateSteps(updatedSteps);
-    console.log('Steps after move and deduplicate:', finalSteps.length);
+    const finalSteps = cleanSteps(updatedSteps);
+    console.log('Steps after move and clean:', finalSteps.length);
     onStepsChange(finalSteps);
-  }, [deduplicatedSteps, deduplicateSteps, onStepsChange]);
+  }, [steps, cleanSteps, onStepsChange]);
 
   const getAssignedUserName = (userId: string | null) => {
     if (!userId || !profiles) return 'Unassigned';
@@ -186,17 +169,20 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     }
   };
 
+  // Use cleaned steps for rendering
+  const cleanedSteps = cleanSteps(steps);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-medium">Workflow Steps</h4>
-        <Badge variant="outline">{deduplicatedSteps.length} steps</Badge>
+        <Badge variant="outline">{cleanedSteps.length} steps</Badge>
       </div>
 
       {/* Existing Steps */}
       <div className="space-y-3">
-        {deduplicatedSteps.map((step, index) => (
-          <Card key={`step-${index}-${step.name}-${step.step_order}`} className="border">
+        {cleanedSteps.map((step, index) => (
+          <Card key={`step-${index}-${step.name}`} className="border">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-1 mt-1">
@@ -217,7 +203,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
                       variant="ghost"
                       size="sm"
                       onClick={() => moveStep(index, 'down')}
-                      disabled={index === deduplicatedSteps.length - 1}
+                      disabled={index === cleanedSteps.length - 1}
                       className="h-6 w-6 p-0"
                     >
                       ↓
