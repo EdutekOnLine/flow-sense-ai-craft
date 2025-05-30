@@ -51,17 +51,14 @@ function WorkflowStepNode({ id, data, selected, onDataChange }: WorkflowStepNode
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
 
-  // Debounced update function to prevent too many updates
+  // Fixed update function without problematic dependencies
   const updateNodeData = useCallback((updates: Partial<StepNodeData>) => {
-    const newData = { ...localStepData, ...updates };
-    setLocalStepData(newData);
-    
     // Use the callback from props or the one in stepData
     const callback = onDataChange || stepData.onDataChange;
     if (callback) {
       callback(id, updates);
     }
-  }, [id, localStepData, onDataChange, stepData.onDataChange]);
+  }, [id, onDataChange, stepData.onDataChange]);
 
   // Handle form submission to prevent dialog from closing on every keystroke
   const handleSave = () => {

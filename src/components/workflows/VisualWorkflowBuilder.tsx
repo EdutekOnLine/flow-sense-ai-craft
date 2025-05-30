@@ -68,6 +68,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
 
   // Handle node data updates
   const handleNodeDataChange = useCallback((nodeId: string, newData: Partial<StepNodeData>) => {
+    console.log('Node data change:', nodeId, newData);
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -100,9 +101,8 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       
       if (editingWorkflow.workflow_steps) {
         // Convert workflow steps to nodes with proper data structure
-        // Use the existing step ID to maintain consistency
         const workflowNodes = editingWorkflow.workflow_steps.map((step: any, index: number) => ({
-          id: `step-${step.id}`, // Use the actual step ID from database
+          id: step.id.toString(), // Use the actual step ID from database
           type: 'workflowStep',
           position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 200 },
           data: {
@@ -213,7 +213,7 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
       steps: nodes.map((node, index) => {
         const nodeData = node.data as StepNodeData;
         return {
-          id: node.id,
+          id: editingWorkflow ? node.id : undefined, // Keep original ID for existing steps
           name: nodeData.label,
           description: nodeData.description,
           estimated_hours: nodeData.estimatedHours,
