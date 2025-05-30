@@ -20,6 +20,9 @@ export default function WorkflowDetail() {
   const { data: workflow, isLoading, error } = useQuery({
     queryKey: ['workflow', id],
     queryFn: async () => {
+      console.log('=== FETCHING WORKFLOW DETAIL ===');
+      console.log('Workflow ID:', id);
+      
       const { data, error } = await supabase
         .from('workflows')
         .select(`
@@ -39,7 +42,32 @@ export default function WorkflowDetail() {
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching workflow:', error);
+        throw error;
+      }
+      
+      console.log('Fetched workflow data:', data);
+      console.log('Workflow steps count:', data.workflow_steps?.length || 0);
+      console.log('All workflow steps:', data.workflow_steps);
+      
+      // Check for duplicates
+      if (data.workflow_steps) {
+        const stepNames = data.workflow_steps.map(step => step.name);
+        const duplicateNames = stepNames.filter((name, index) => stepNames.indexOf(name) !== index);
+        if (duplicateNames.length > 0) {
+          console.warn('⚠️ DUPLICATE STEP NAMES FOUND:', duplicateNames);
+        }
+        
+        const stepIds = data.workflow_steps.map(step => step.id);
+        const uniqueIds = [...new Set(stepIds)];
+        if (stepIds.length !== uniqueIds.length) {
+          console.warn('⚠️ DUPLICATE STEP IDs FOUND');
+        }
+        
+        console.log('Step order distribution:', data.workflow_steps.map(s => s.step_order).sort());
+      }
+      
       return data;
     },
   });
@@ -143,6 +171,7 @@ export default function WorkflowDetail() {
   };
 
   const sortedSteps = workflow.workflow_steps?.sort((a, b) => a.step_order - b.step_order) || [];
+  console.log('Sorted steps for display:', sortedSteps.length);
 
   return (
     <DashboardLayout>
@@ -225,7 +254,14 @@ export default function WorkflowDetail() {
         {/* Workflow Steps */}
         <Card>
           <CardHeader>
-            <CardTitle>Steps ({sortedSteps.length})</CardTitle>
+            <CardTitle>
+              Steps ({sortedSteps.length})
+              {sortedSteps.length > 20 && (
+                <span className="text-red-500 font-normal ml-2">
+                  ⚠️ High step count detected
+                </span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {sortedSteps.length === 0 ? (

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,15 +17,27 @@ export default function WorkflowList() {
   const { data: workflows, isLoading, error } = useQuery({
     queryKey: ['workflows'],
     queryFn: async () => {
+      console.log('=== FETCHING WORKFLOWS WITH STEP COUNTS ===');
       const { data, error } = await supabase
         .from('workflows')
         .select(`
           *,
-          workflow_steps!inner(id)
+          workflow_steps (
+            id
+          )
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching workflows:', error);
+        throw error;
+      }
+      
+      console.log('Fetched workflows with step data:', data);
+      data?.forEach(workflow => {
+        console.log(`Workflow "${workflow.name}" has ${workflow.workflow_steps?.length || 0} steps`);
+      });
+      
       return data;
     },
   });
@@ -167,113 +178,118 @@ export default function WorkflowList() {
             </div>
           ) : (
             <div className="space-y-4">
-              {workflows.map((workflow) => (
-                <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">{workflow.name}</h3>
-                      {workflow.description && (
-                        <p className="text-gray-600 text-sm line-clamp-2">{workflow.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Badge className={getStatusColor(workflow.status)}>
-                        {workflow.status}
-                      </Badge>
-                      <Badge className={getPriorityColor(workflow.priority)}>
-                        {workflow.priority}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        <span>{getAssignedUserName(workflow.assigned_to)}</span>
+              {workflows.map((workflow) => {
+                const stepCount = workflow.workflow_steps?.length || 0;
+                console.log(`Rendering workflow "${workflow.name}" with ${stepCount} steps`);
+                
+                return (
+                  <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">{workflow.name}</h3>
+                        {workflow.description && (
+                          <p className="text-gray-600 text-sm line-clamp-2">{workflow.description}</p>
+                        )}
                       </div>
-                      {workflow.due_date && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>Due: {format(new Date(workflow.due_date), 'MMM dd, yyyy')}</span>
-                        </div>
-                      )}
-                      <div>
-                        Steps: {workflow.workflow_steps?.length || 0}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleViewDetails(workflow.id);
-                        }}
-                        className="flex items-center gap-1"
-                      >
-                        <Eye className="h-4 w-4" />
-                        View Details
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleEdit(workflow.id);
-                        }}
-                        className="flex items-center gap-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{workflow.name}"? This action cannot be undone and will also delete all associated workflow steps.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(workflow.id)}
-                              className="bg-red-600 hover:bg-red-700"
-                              disabled={deleteWorkflowMutation.isPending}
-                            >
-                              {deleteWorkflowMutation.isPending ? 'Deleting...' : 'Delete'}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-
-                  {workflow.tags && workflow.tags.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1">
-                      {workflow.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {tag}
+                      <div className="flex items-center gap-2 ml-4">
+                        <Badge className={getStatusColor(workflow.status)}>
+                          {workflow.status}
                         </Badge>
-                      ))}
+                        <Badge className={getPriorityColor(workflow.priority)}>
+                          {workflow.priority}
+                        </Badge>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          <span>{getAssignedUserName(workflow.assigned_to)}</span>
+                        </div>
+                        {workflow.due_date && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            <span>Due: {format(new Date(workflow.due_date), 'MMM dd, yyyy')}</span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-medium">Steps: {stepCount}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleViewDetails(workflow.id);
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Details
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEdit(workflow.id);
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{workflow.name}"? This action cannot be undone and will also delete all associated workflow steps.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(workflow.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deleteWorkflowMutation.isPending}
+                              >
+                                {deleteWorkflowMutation.isPending ? 'Deleting...' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+
+                    {workflow.tags && workflow.tags.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {workflow.tags.map((tag, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
