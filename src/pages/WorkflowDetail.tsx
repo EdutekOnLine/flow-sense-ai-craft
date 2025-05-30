@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,9 +116,9 @@ export default function WorkflowDetail() {
     mutationFn: async (updatedData: any) => {
       const { steps, ...workflowData } = updatedData;
       
-      console.log('Updating workflow. Original steps count:', steps?.length || 0);
+      console.log('Updating workflow. Steps to save:', steps?.length || 0, steps);
       
-      // Update workflow
+      // Update workflow first
       const { error: workflowError } = await supabase
         .from('workflows')
         .update(workflowData)
@@ -125,9 +126,12 @@ export default function WorkflowDetail() {
       
       if (workflowError) throw workflowError;
 
-      // Handle steps - delete existing and insert new ones
+      // Handle steps replacement
       if (steps && Array.isArray(steps)) {
-        // Delete existing steps first
+        // Use a transaction-like approach by doing operations in sequence
+        console.log('Deleting existing steps...');
+        
+        // First, delete all existing steps
         const { error: deleteError } = await supabase
           .from('workflow_steps')
           .delete()
@@ -138,36 +142,48 @@ export default function WorkflowDetail() {
           throw deleteError;
         }
 
-        // Deduplicate steps before inserting
-        const deduplicatedSteps = deduplicateStepsForSaving(steps);
-        
-        // Insert new steps (only if we have steps to insert)
-        if (deduplicatedSteps.length > 0) {
-          const stepsToInsert = deduplicatedSteps.map((step: any, index: number) => ({
-            workflow_id: id,
-            name: step.name.trim(),
-            description: step.description || null,
-            step_order: index + 1,
-            status: step.status || 'pending',
-            estimated_hours: step.estimated_hours || null,
-            assigned_to: step.assigned_to === 'unassigned' || !step.assigned_to ? null : step.assigned_to,
-            dependencies: step.dependencies || null
-          }));
+        console.log('Existing steps deleted successfully');
 
-          console.log('Final steps to insert:', stepsToInsert.length, stepsToInsert);
+        // Only insert if we have steps to insert
+        if (steps.length > 0) {
+          // Prepare steps for insertion with proper validation
+          const stepsToInsert = steps
+            .filter(step => step && step.name && step.name.trim()) // Only valid steps
+            .map((step: any, index: number) => {
+              const cleanStep = {
+                workflow_id: id,
+                name: step.name.trim(),
+                description: step.description?.trim() || null,
+                step_order: index + 1,
+                status: step.status || 'pending',
+                estimated_hours: step.estimated_hours || null,
+                assigned_to: step.assigned_to === 'unassigned' || !step.assigned_to ? null : step.assigned_to,
+                dependencies: step.dependencies || null
+              };
+              console.log('Prepared step for insertion:', cleanStep);
+              return cleanStep;
+            });
 
-          const { error: insertError } = await supabase
+          console.log('Inserting steps:', stepsToInsert.length, stepsToInsert);
+
+          const { error: insertError, data: insertedSteps } = await supabase
             .from('workflow_steps')
-            .insert(stepsToInsert);
+            .insert(stepsToInsert)
+            .select();
           
           if (insertError) {
             console.error('Error inserting steps:', insertError);
             throw insertError;
           }
+
+          console.log('Steps inserted successfully:', insertedSteps?.length);
+        } else {
+          console.log('No steps to insert');
         }
       }
     },
     onSuccess: () => {
+      console.log('Workflow update completed successfully');
       queryClient.invalidateQueries({ queryKey: ['workflow', id] });
       setIsEditing(false);
       toast({
@@ -226,6 +242,7 @@ export default function WorkflowDetail() {
 
   const handleSave = () => {
     console.log('Saving workflow with form data:', editForm);
+    console.log('Steps in form:', editForm.steps);
     
     const updateData: any = {
       name: editForm.name,
@@ -234,7 +251,7 @@ export default function WorkflowDetail() {
       assigned_to: editForm.assigned_to === 'unassigned' ? null : editForm.assigned_to,
       tags: editForm.tags.length > 0 ? editForm.tags : null,
       updated_at: new Date().toISOString(),
-      steps: editForm.steps // Pass the steps as they are in the form
+      steps: editForm.steps // Pass the steps exactly as they are in the form
     };
 
     if (editForm.due_date) {
