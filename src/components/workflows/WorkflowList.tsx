@@ -54,8 +54,8 @@ export default function WorkflowList() {
         .from('workflows')
         .select(`
           *,
-          creator:profiles!workflows_created_by_fkey(first_name, last_name),
-          assignee:profiles!workflows_assigned_to_fkey(first_name, last_name),
+          creator:profiles!created_by(first_name, last_name),
+          assignee:profiles!assigned_to(first_name, last_name),
           workflow_steps(id, status)
         `)
         .order('created_at', { ascending: false });
