@@ -1,4 +1,5 @@
 
+
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -25,18 +26,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
 
-  // Check if we're on a workflow detail page
+  // Check if we're on a workflow detail page (not the main dashboard)
   const isWorkflowDetailPage = location.pathname.startsWith('/workflow/');
+  const isMainDashboard = location.pathname === '/';
 
   useEffect(() => {
     // Only set active tab from hash if we're on the main dashboard
-    if (!isWorkflowDetailPage) {
+    if (isMainDashboard) {
       const hash = window.location.hash.slice(1);
       if (hash) {
         setActiveTab(hash);
+      } else {
+        setActiveTab('dashboard');
       }
     }
-  }, [isWorkflowDetailPage]);
+  }, [isMainDashboard, location.pathname]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -119,8 +123,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Only show Navigation Tabs if not on a workflow detail page */}
-        {!isWorkflowDetailPage && (
+        {/* Show Navigation Tabs only on the main dashboard */}
+        {isMainDashboard && (
           <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
