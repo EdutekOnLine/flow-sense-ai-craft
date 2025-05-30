@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -84,7 +85,7 @@ export default function WorkflowCreation() {
           description: workflowData.description,
           priority: workflowData.priority,
           due_date: workflowData.due_date || null,
-          assigned_to: workflowData.assigned_to || null,
+          assigned_to: workflowData.assigned_to === 'unassigned' ? null : workflowData.assigned_to || null,
           created_by: profile?.id,
           tags: workflowData.tags,
           status: 'draft' as const
@@ -101,7 +102,7 @@ export default function WorkflowCreation() {
           name: step.name,
           description: step.description,
           step_order: index + 1,
-          assigned_to: step.assigned_to || null,
+          assigned_to: step.assigned_to === 'unassigned' ? null : step.assigned_to || null,
           estimated_hours: step.estimated_hours || null,
           dependencies: step.dependencies,
           status: 'pending' as TaskStatus
@@ -231,6 +232,7 @@ export default function WorkflowCreation() {
   };
 
   const getTeamMemberName = (userId: string) => {
+    if (userId === 'unassigned') return 'Unassigned';
     const member = teamMembers.find(m => m.id === userId);
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
@@ -307,7 +309,7 @@ export default function WorkflowCreation() {
                   <SelectValue placeholder="Select team member (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {teamMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       {member.first_name} {member.last_name} ({member.role})
@@ -360,7 +362,7 @@ export default function WorkflowCreation() {
               </Badge>
             </div>
             
-            {form.assigned_to && (
+            {form.assigned_to && form.assigned_to !== 'unassigned' && (
               <div>
                 <p className="text-sm text-gray-600">Assigned to</p>
                 <p className="font-medium">{getTeamMemberName(form.assigned_to)}</p>
@@ -423,14 +425,14 @@ export default function WorkflowCreation() {
               <div>
                 <Label htmlFor="step-assigned">Assign to</Label>
                 <Select 
-                  value={currentStep.assigned_to || ''} 
+                  value={currentStep.assigned_to || 'unassigned'} 
                   onValueChange={(value) => setCurrentStep(prev => ({ ...prev, assigned_to: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select team member" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {teamMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         {member.first_name} {member.last_name}
@@ -489,7 +491,7 @@ export default function WorkflowCreation() {
                             <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                           )}
                           <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                            {step.assigned_to && (
+                            {step.assigned_to && step.assigned_to !== 'unassigned' && (
                               <span>Assigned to: {getTeamMemberName(step.assigned_to)}</span>
                             )}
                             {step.estimated_hours && (
