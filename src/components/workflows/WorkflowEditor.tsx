@@ -91,6 +91,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
           throw deleteError;
         }
 
+        console.log('Steps to insert:', data.steps);
+
         // Insert new steps if any
         if (data.steps.length > 0) {
           console.log('Inserting new steps:', data.steps);
@@ -103,6 +105,8 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
             estimated_hours: step.estimated_hours,
             assigned_to: step.assigned_to || null
           }));
+
+          console.log('Final steps to insert:', stepsToInsert);
 
           const { error: stepsError } = await supabase
             .from('workflow_steps')
