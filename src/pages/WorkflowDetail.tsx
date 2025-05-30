@@ -133,7 +133,7 @@ export default function WorkflowDetail() {
   });
 
   const handleBackToDashboard = () => {
-    navigate('/');
+    navigate('/#workflows');
   };
 
   const handleEdit = () => {
@@ -291,7 +291,7 @@ export default function WorkflowDetail() {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Back to Workflows
             </Button>
             <h1 className="text-3xl font-bold">{workflow?.name}</h1>
           </div>
