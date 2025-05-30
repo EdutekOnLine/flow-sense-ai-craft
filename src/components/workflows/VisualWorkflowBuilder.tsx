@@ -71,36 +71,36 @@ export default function VisualWorkflowBuilder({ onSave, editingWorkflow, onCance
 
   // Load editing workflow data
   useEffect(() => {
-    if (editingWorkflow) {
+    if (editingWorkflow && teamMembers.length > 0) {
       setWorkflowName(editingWorkflow.name || '');
       setWorkflowDescription(editingWorkflow.description || '');
       
       if (editingWorkflow.workflow_steps) {
-        // Convert workflow steps to nodes
+        // Convert workflow steps to nodes with proper data structure
         const workflowNodes = editingWorkflow.workflow_steps.map((step: any, index: number) => ({
           id: `step-${step.id}`,
           type: 'workflowStep',
           position: { x: (index % 3) * 250, y: Math.floor(index / 3) * 200 },
           data: {
-            label: step.name,
+            label: step.name || 'Untitled Step',
             description: step.description || '',
             estimatedHours: step.estimated_hours || 0,
             assignedTo: step.assigned_to || 'unassigned',
-            teamMembers: [],
-          },
+            teamMembers: teamMembers,
+          } as StepNodeData,
         }));
         
         setNodes(workflowNodes);
-        setEdges([]); // Reset edges for now
+        setEdges([]); // Reset edges for now - we can enhance this later to support connections
       }
-    } else {
+    } else if (!editingWorkflow) {
       // Reset form for new workflow
       setWorkflowName('');
       setWorkflowDescription('');
       setNodes([]);
       setEdges([]);
     }
-  }, [editingWorkflow, setNodes, setEdges]);
+  }, [editingWorkflow, teamMembers, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
