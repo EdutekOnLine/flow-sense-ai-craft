@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -125,8 +126,9 @@ export default function WorkflowEditor({ workflow, profiles, onSave, onCancel }:
         console.log('=== CLEARING ALL EXISTING STEPS ===');
         const { error: deleteError, count: deletedCount } = await supabase
           .from('workflow_steps')
-          .delete({ count: 'exact' })
-          .eq('workflow_id', workflowId);
+          .delete()
+          .eq('workflow_id', workflowId)
+          .select('id', { count: 'exact' });
 
         if (deleteError) {
           console.error('❌ Step deletion error:', deleteError);
