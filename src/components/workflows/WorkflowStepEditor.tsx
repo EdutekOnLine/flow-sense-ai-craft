@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,14 +34,34 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     status: 'pending'
   });
 
-  // Memoized function to ensure clean step ordering
+  // Improved function to deduplicate and normalize steps
   const normalizeSteps = useCallback((stepsArray: WorkflowStep[]): WorkflowStep[] => {
-    // Remove any undefined or invalid steps and reorder
+    console.log('Input steps to normalize:', stepsArray);
+    
+    // Remove any undefined or invalid steps
     const validSteps = stepsArray.filter(step => step && step.name && step.name.trim());
-    return validSteps.map((step, index) => ({
+    
+    // Deduplicate steps by creating a Map with unique keys
+    const stepMap = new Map<string, WorkflowStep>();
+    
+    validSteps.forEach(step => {
+      // Create a unique key based on step content
+      const key = `${step.name.trim()}-${step.description || ''}-${step.assigned_to || 'unassigned'}-${step.estimated_hours || 0}`;
+      
+      // Only add if we haven't seen this exact step before
+      if (!stepMap.has(key)) {
+        stepMap.set(key, step);
+      }
+    });
+    
+    // Convert back to array and reorder
+    const deduplicatedSteps = Array.from(stepMap.values()).map((step, index) => ({
       ...step,
       step_order: index + 1
     }));
+    
+    console.log('Normalized and deduplicated steps:', deduplicatedSteps);
+    return deduplicatedSteps;
   }, []);
 
   const addStep = useCallback(() => {
