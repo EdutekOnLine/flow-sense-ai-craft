@@ -132,7 +132,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               >
                 <Icon className="h-4 w-4 mr-2" />
                 {item.label}
-              </Button>
+              </button>
             );
           })}
         </div>
