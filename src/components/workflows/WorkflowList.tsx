@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,13 +45,20 @@ export default function WorkflowList() {
 
   const deleteWorkflowMutation = useMutation({
     mutationFn: async (workflowId: string) => {
+      console.log('Starting deletion for workflow:', workflowId);
+      
       // First delete workflow steps
       const { error: stepsError } = await supabase
         .from('workflow_steps')
         .delete()
         .eq('workflow_id', workflowId);
       
-      if (stepsError) throw stepsError;
+      if (stepsError) {
+        console.error('Error deleting steps:', stepsError);
+        throw stepsError;
+      }
+
+      console.log('Steps deleted successfully');
 
       // Then delete the workflow
       const { error: workflowError } = await supabase
@@ -58,9 +66,15 @@ export default function WorkflowList() {
         .delete()
         .eq('id', workflowId);
       
-      if (workflowError) throw workflowError;
+      if (workflowError) {
+        console.error('Error deleting workflow:', workflowError);
+        throw workflowError;
+      }
+
+      console.log('Workflow deleted successfully');
     },
     onSuccess: () => {
+      console.log('Delete mutation completed successfully');
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
       toast({
         title: "Success",
@@ -68,7 +82,7 @@ export default function WorkflowList() {
       });
     },
     onError: (error) => {
-      console.error('Delete error:', error);
+      console.error('Delete mutation error:', error);
       toast({
         title: "Error",
         description: "Failed to delete workflow",
@@ -135,6 +149,7 @@ export default function WorkflowList() {
   };
 
   const handleDelete = (workflowId: string) => {
+    console.log('Delete button clicked for workflow:', workflowId);
     deleteWorkflowMutation.mutate(workflowId);
   };
 
@@ -221,10 +236,6 @@ export default function WorkflowList() {
                             variant="outline"
                             size="sm"
                             className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete
