@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -92,13 +93,13 @@ export default function WorkflowDetail() {
         
         if (deleteError) throw deleteError;
 
-        // Insert new steps
+        // Insert new steps (only if we have steps to insert)
         if (steps.length > 0) {
-          const stepsToInsert = steps.map((step: any) => ({
+          const stepsToInsert = steps.map((step: any, index: number) => ({
             workflow_id: id,
             name: step.name,
             description: step.description || null,
-            step_order: step.step_order,
+            step_order: index + 1, // Use index + 1 to ensure proper ordering
             status: step.status,
             estimated_hours: step.estimated_hours,
             assigned_to: step.assigned_to,
@@ -122,6 +123,7 @@ export default function WorkflowDetail() {
       });
     },
     onError: (error) => {
+      console.error('Update error:', error);
       toast({
         title: "Error",
         description: "Failed to update workflow",
@@ -132,6 +134,17 @@ export default function WorkflowDetail() {
 
   const handleEdit = () => {
     if (workflow) {
+      // Create a clean copy of the steps for editing
+      const stepsForEditing = (workflow.workflow_steps || []).map(step => ({
+        name: step.name,
+        description: step.description || '',
+        step_order: step.step_order,
+        status: step.status,
+        estimated_hours: step.estimated_hours,
+        assigned_to: step.assigned_to,
+        dependencies: step.dependencies
+      }));
+
       setEditForm({
         name: workflow.name,
         description: workflow.description || '',
@@ -139,7 +152,7 @@ export default function WorkflowDetail() {
         due_date: workflow.due_date ? format(new Date(workflow.due_date), 'yyyy-MM-dd') : '',
         assigned_to: workflow.assigned_to || 'unassigned',
         tags: workflow.tags || [],
-        steps: workflow.workflow_steps || []
+        steps: stepsForEditing
       });
       setIsEditing(true);
     }
