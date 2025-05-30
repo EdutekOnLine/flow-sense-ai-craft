@@ -1,17 +1,32 @@
-
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Calendar, User, Clock, Edit, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
 export default function WorkflowDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    priority: '',
+    due_date: '',
+    assigned_to: '',
+    tags: [] as string[]
+  });
 
   const { data: workflow, isLoading, error } = useQuery({
     queryKey: ['workflow', id],
@@ -51,6 +66,93 @@ export default function WorkflowDetail() {
       return data;
     },
   });
+
+  const updateWorkflowMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      const { error } = await supabase
+        .from('workflows')
+        .update(updatedData)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflow', id] });
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Workflow updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update workflow",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = () => {
+    if (workflow) {
+      setEditForm({
+        name: workflow.name,
+        description: workflow.description || '',
+        priority: workflow.priority,
+        due_date: workflow.due_date ? format(new Date(workflow.due_date), 'yyyy-MM-dd') : '',
+        assigned_to: workflow.assigned_to || '',
+        tags: workflow.tags || []
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleSave = () => {
+    const updateData: any = {
+      name: editForm.name,
+      description: editForm.description || null,
+      priority: editForm.priority,
+      assigned_to: editForm.assigned_to || null,
+      tags: editForm.tags.length > 0 ? editForm.tags : null,
+      updated_at: new Date().toISOString()
+    };
+
+    if (editForm.due_date) {
+      updateData.due_date = new Date(editForm.due_date).toISOString();
+    } else {
+      updateData.due_date = null;
+    }
+
+    updateWorkflowMutation.mutate(updateData);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditForm({
+      name: '',
+      description: '',
+      priority: '',
+      due_date: '',
+      assigned_to: '',
+      tags: []
+    });
+  };
+
+  const handleTagAdd = (tag: string) => {
+    if (tag.trim() && !editForm.tags.includes(tag.trim())) {
+      setEditForm(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag.trim()]
+      }));
+    }
+  };
+
+  const handleTagRemove = (tagToRemove: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
 
   if (isLoading) {
     return (
@@ -115,16 +217,37 @@ export default function WorkflowDetail() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold">{workflow.name}</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold">{workflow.name}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {!isEditing ? (
+              <Button onClick={handleEdit} className="flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                Edit Workflow
+              </Button>
+            ) : (
+              <>
+                <Button onClick={handleSave} disabled={updateWorkflowMutation.isPending} className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  Save
+                </Button>
+                <Button variant="outline" onClick={handleCancel} className="flex items-center gap-2">
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Workflow Overview */}
@@ -133,54 +256,138 @@ export default function WorkflowDetail() {
             <CardTitle>Workflow Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2">
-                <Badge className={getStatusColor(workflow.status)}>
-                  {workflow.status}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className={getPriorityColor(workflow.priority)}>
-                  {workflow.priority} priority
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="text-sm">{getAssignedUserName(workflow.assigned_to)}</span>
-              </div>
-              {workflow.due_date && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm">
-                    Due: {format(new Date(workflow.due_date), 'MMM dd, yyyy')}
-                  </span>
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Name</label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Workflow name"
+                  />
                 </div>
-              )}
-            </div>
-
-            {workflow.description && (
-              <div>
-                <h4 className="font-medium mb-2">Description</h4>
-                <p className="text-gray-600">{workflow.description}</p>
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Workflow description"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Priority</label>
+                    <Select value={editForm.priority} onValueChange={(value) => setEditForm(prev => ({ ...prev, priority: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Assigned To</label>
+                    <Select value={editForm.assigned_to} onValueChange={(value) => setEditForm(prev => ({ ...prev, assigned_to: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select user" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
+                        {profiles?.map((profile) => (
+                          <SelectItem key={profile.id} value={profile.id}>
+                            {profile.first_name} {profile.last_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Due Date</label>
+                    <Input
+                      type="date"
+                      value={editForm.due_date}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, due_date: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Tags</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {editForm.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="flex items-center gap-1">
+                        {tag}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => handleTagRemove(tag)} />
+                      </Badge>
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Add tag and press Enter"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleTagAdd(e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            )}
-
-            {workflow.tags && workflow.tags.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-2">Tags</h4>
-                <div className="flex flex-wrap gap-2">
-                  {workflow.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline">
-                      {tag}
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Badge className={getStatusColor(workflow.status)}>
+                      {workflow.status}
                     </Badge>
-                  ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getPriorityColor(workflow.priority)}>
+                      {workflow.priority} priority
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm">{getAssignedUserName(workflow.assigned_to)}</span>
+                  </div>
+                  {workflow.due_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">
+                        Due: {format(new Date(workflow.due_date), 'MMM dd, yyyy')}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
 
-            <div className="text-sm text-gray-500">
-              Created: {format(new Date(workflow.created_at), 'MMM dd, yyyy at h:mm a')}
-            </div>
+                {workflow.description && (
+                  <div>
+                    <h4 className="font-medium mb-2">Description</h4>
+                    <p className="text-gray-600">{workflow.description}</p>
+                  </div>
+                )}
+
+                {workflow.tags && workflow.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Tags</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {workflow.tags.map((tag, index) => (
+                        <Badge key={index} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-sm text-gray-500">
+                  Created: {format(new Date(workflow.created_at), 'MMM dd, yyyy at h:mm a')}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
