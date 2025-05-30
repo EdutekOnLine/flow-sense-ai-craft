@@ -33,40 +33,40 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     status: 'pending'
   });
 
-  // Simple clean steps function - remove duplicates and invalid entries
+  // Simplified clean steps function - just validate and re-order
   const cleanSteps = useCallback((stepsArray: WorkflowStep[]): WorkflowStep[] => {
+    console.log('Cleaning steps. Input:', stepsArray.length, stepsArray);
+    
     if (!stepsArray || stepsArray.length === 0) {
+      console.log('No steps to clean, returning empty array');
       return [];
     }
 
-    // Filter out invalid steps and deduplicate by name
-    const validSteps = stepsArray.filter(step => 
-      step && 
-      step.name && 
-      typeof step.name === 'string' && 
-      step.name.trim().length > 0
-    );
-
-    // Create a map to store unique steps by name
-    const stepMap = new Map<string, WorkflowStep>();
-    
-    validSteps.forEach(step => {
-      const stepName = step.name.trim().toLowerCase();
-      if (!stepMap.has(stepName)) {
-        stepMap.set(stepName, {
-          ...step,
-          name: step.name.trim(),
-          description: step.description?.trim() || ''
-        });
+    // Filter out invalid steps only
+    const validSteps = stepsArray.filter(step => {
+      const isValid = step && 
+        step.name && 
+        typeof step.name === 'string' && 
+        step.name.trim().length > 0;
+      
+      if (!isValid) {
+        console.log('Filtering out invalid step:', step);
       }
+      return isValid;
     });
 
-    // Convert back to array and re-order
-    const uniqueSteps = Array.from(stepMap.values());
-    return uniqueSteps.map((step, index) => ({
+    console.log('Valid steps after filtering:', validSteps.length);
+
+    // Just re-order the valid steps without deduplication
+    const reorderedSteps = validSteps.map((step, index) => ({
       ...step,
+      name: step.name.trim(),
+      description: step.description?.trim() || '',
       step_order: index + 1
     }));
+
+    console.log('Final cleaned steps:', reorderedSteps.length, reorderedSteps);
+    return reorderedSteps;
   }, []);
 
   const addStep = useCallback(() => {
@@ -86,9 +86,10 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     };
 
     console.log('Adding new step:', step);
-    const updatedSteps = cleanSteps([...steps, step]);
-    console.log('Steps after add and clean:', updatedSteps.length);
-    onStepsChange(updatedSteps);
+    const updatedSteps = [...steps, step];
+    const finalSteps = cleanSteps(updatedSteps);
+    console.log('Steps after add and clean:', finalSteps.length);
+    onStepsChange(finalSteps);
     
     setNewStep({
       name: '',
@@ -169,19 +170,19 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
     }
   };
 
-  // Use cleaned steps for rendering
-  const cleanedSteps = cleanSteps(steps);
+  // Use the steps directly without additional cleaning for rendering
+  console.log('Rendering with steps:', steps.length, steps);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-medium">Workflow Steps</h4>
-        <Badge variant="outline">{cleanedSteps.length} steps</Badge>
+        <Badge variant="outline">{steps.length} steps</Badge>
       </div>
 
       {/* Existing Steps */}
       <div className="space-y-3">
-        {cleanedSteps.map((step, index) => (
+        {steps.map((step, index) => (
           <Card key={`step-${index}-${step.name}`} className="border">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -203,7 +204,7 @@ export default function WorkflowStepEditor({ steps, onStepsChange, profiles }: W
                       variant="ghost"
                       size="sm"
                       onClick={() => moveStep(index, 'down')}
-                      disabled={index === cleanedSteps.length - 1}
+                      disabled={index === steps.length - 1}
                       className="h-6 w-6 p-0"
                     >
                       ↓
