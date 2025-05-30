@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,7 +94,7 @@ export default function WorkflowList() {
 
   const handleEdit = (workflowId: string) => {
     console.log('Editing workflow:', workflowId);
-    navigate(`/workflow/${workflowId}`);
+    navigate(`/workflow/${workflowId}?edit=true`);
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Calendar, User, Clock, Edit, Save, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import StepStatusManager from '@/components/workflows/StepStatusManager';
@@ -20,6 +20,7 @@ export default function WorkflowDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
@@ -158,8 +159,17 @@ export default function WorkflowDetail() {
         steps: stepsForEditing
       });
       setIsEditing(true);
+      // Remove the edit query parameter from URL
+      navigate(`/workflow/${id}`, { replace: true });
     }
   };
+
+  // Check if we should auto-enter edit mode based on URL parameter
+  useEffect(() => {
+    if (searchParams.get('edit') === 'true' && workflow && !isEditing) {
+      handleEdit();
+    }
+  }, [searchParams, workflow, isEditing]);
 
   const handleSave = () => {
     const updateData: any = {
