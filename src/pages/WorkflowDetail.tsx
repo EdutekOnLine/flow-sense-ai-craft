@@ -20,8 +20,7 @@ export default function WorkflowDetail() {
   const { data: workflow, isLoading, error } = useQuery({
     queryKey: ['workflow', id],
     queryFn: async () => {
-      console.log('=== FETCHING WORKFLOW DETAIL ===');
-      console.log('Workflow ID:', id);
+      console.log('Fetching workflow detail for ID:', id);
       
       const { data, error } = await supabase
         .from('workflows')
@@ -47,56 +46,7 @@ export default function WorkflowDetail() {
         throw error;
       }
       
-      console.log('Fetched workflow data:', data);
-      console.log('Workflow steps count:', data.workflow_steps?.length || 0);
-      console.log('All workflow steps:', data.workflow_steps);
-      
-      // Enhanced duplicate detection
-      if (data.workflow_steps) {
-        console.log('=== DETAILED STEP ANALYSIS ===');
-        
-        // Check for duplicate step names
-        const stepNames = data.workflow_steps.map(step => step.name);
-        const duplicateNames = stepNames.filter((name, index) => stepNames.indexOf(name) !== index);
-        if (duplicateNames.length > 0) {
-          console.warn('⚠️ DUPLICATE STEP NAMES FOUND:', duplicateNames);
-        }
-        
-        // Check for duplicate step IDs
-        const stepIds = data.workflow_steps.map(step => step.id);
-        const uniqueIds = [...new Set(stepIds)];
-        if (stepIds.length !== uniqueIds.length) {
-          console.warn('⚠️ DUPLICATE STEP IDs FOUND');
-          console.log('Total step IDs:', stepIds.length);
-          console.log('Unique step IDs:', uniqueIds.length);
-          console.log('All step IDs:', stepIds);
-        }
-        
-        // Check step order distribution
-        const stepOrders = data.workflow_steps.map(s => s.step_order).sort();
-        console.log('Step order distribution:', stepOrders);
-        
-        // Check for duplicate step orders
-        const uniqueOrders = [...new Set(stepOrders)];
-        if (stepOrders.length !== uniqueOrders.length) {
-          console.warn('⚠️ DUPLICATE STEP ORDERS FOUND');
-          console.log('Total step orders:', stepOrders.length);
-          console.log('Unique step orders:', uniqueOrders.length);
-        }
-        
-        // Sample of first few steps for inspection
-        console.log('First 5 steps details:', data.workflow_steps.slice(0, 5));
-        
-        // Check if there are steps with identical content
-        const stepSignatures = data.workflow_steps.map(step => 
-          `${step.name}-${step.description}-${step.step_order}`
-        );
-        const uniqueSignatures = [...new Set(stepSignatures)];
-        if (stepSignatures.length !== uniqueSignatures.length) {
-          console.warn('⚠️ STEPS WITH IDENTICAL CONTENT FOUND');
-        }
-      }
-      
+      console.log('Fetched workflow with', data.workflow_steps?.length || 0, 'steps');
       return data;
     },
   });
@@ -200,8 +150,6 @@ export default function WorkflowDetail() {
   };
 
   const sortedSteps = workflow.workflow_steps?.sort((a, b) => a.step_order - b.step_order) || [];
-  console.log('Sorted steps for display:', sortedSteps.length);
-  console.log('Raw step count from DB:', workflow.workflow_steps?.length || 0);
 
   return (
     <DashboardLayout>
@@ -284,19 +232,7 @@ export default function WorkflowDetail() {
         {/* Workflow Steps */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Steps ({sortedSteps.length})
-              {sortedSteps.length > 20 && (
-                <span className="text-red-500 font-normal ml-2">
-                  ⚠️ High step count detected - Check console for details
-                </span>
-              )}
-              {sortedSteps.length > 50 && (
-                <div className="text-orange-500 font-normal text-sm mt-1">
-                  This is unusually high. There may be duplicate entries in the database.
-                </div>
-              )}
-            </CardTitle>
+            <CardTitle>Steps ({sortedSteps.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {sortedSteps.length === 0 ? (
@@ -311,10 +247,7 @@ export default function WorkflowDetail() {
                           {step.step_order || index + 1}
                         </div>
                         <div>
-                          <h4 className="font-medium">
-                            {step.name}
-                            <span className="text-xs text-gray-400 ml-2">(ID: {step.id.slice(0, 8)}...)</span>
-                          </h4>
+                          <h4 className="font-medium">{step.name}</h4>
                           {step.description && (
                             <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                           )}
