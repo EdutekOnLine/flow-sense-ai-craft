@@ -316,24 +316,33 @@ export default function WorkflowBuilder() {
     );
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
-  // Use ref to track drag state more reliably
+  // Track drag state with improved logic
   const isDraggingRef = useRef(false);
+  const dragStartTimeRef = useRef<number>(0);
 
   const onNodeDragStart = useCallback(() => {
     isDraggingRef.current = true;
+    dragStartTimeRef.current = Date.now();
   }, []);
 
   const onNodeDragStop = useCallback(() => {
-    // Use a timeout to reset drag state after a delay
-    setTimeout(() => {
+    // Only consider it a drag if it lasted more than 100ms
+    const dragDuration = Date.now() - dragStartTimeRef.current;
+    
+    if (dragDuration > 100) {
+      // It was a real drag, wait before allowing selection
+      setTimeout(() => {
+        isDraggingRef.current = false;
+      }, 150);
+    } else {
+      // It was just a click, allow selection immediately
       isDraggingRef.current = false;
-    }, 300);
+    }
   }, []);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     // Don't handle selection changes during drag operations
     if (isDraggingRef.current) {
-      console.log('Ignoring selection change during drag');
       return;
     }
 
