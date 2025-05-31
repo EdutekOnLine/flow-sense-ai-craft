@@ -82,8 +82,146 @@ const createEdge = (sourceId: string, targetId: string, label?: string): Workflo
   };
 };
 
-const parseWorkflowDescription = (description: string): { nodes: WorkflowNode[], edges: WorkflowEdge[], title: string, workflowDescription: string } => {
-  console.log('Parsing workflow description:', description);
+const generateWorkflowWithOpenAI = async (description: string): Promise<{ nodes: WorkflowNode[], edges: WorkflowEdge[], title: string, workflowDescription: string }> => {
+  console.log('Generating workflow with OpenAI for description:', description);
+
+  const prompt = `
+You are a workflow automation expert. Based on the following description, generate a detailed workflow with clear steps and connections.
+
+Description: "${description}"
+
+Please respond with a JSON object containing:
+1. "title": A concise title for the workflow (max 50 characters)
+2. "description": A brief description of what this workflow accomplishes
+3. "steps": An array of workflow steps, each with:
+   - "type": One of these step types: "trigger", "form-submitted", "send-email", "manual-approval", "if-condition", "manual-task", "create-record", "update-record", "webhook", "delay", "end"
+   - "label": A short, descriptive name for the step
+   - "description": A detailed description of what this step does
+   - "conditions": (optional) For conditional steps, what condition is being checked
+4. "connections": An array of connections between steps, each with:
+   - "from": The index of the source step (0-based)
+   - "to": The index of the target step (0-based)
+   - "label": (optional) For conditional connections, the condition label (e.g., "Yes", "No", "Approved", "Rejected")
+
+Rules:
+- Always start with a "trigger" step
+- Always end with an "end" step
+- Use "if-condition" for decision points with multiple outcomes
+- Use "manual-approval" when human approval is needed
+- Use "send-email" for notifications
+- Use "delay" for waiting periods
+- Make sure all steps are connected logically
+- For conditional steps, create separate paths for different outcomes
+
+Example response format:
+{
+  "title": "Employee Onboarding Process",
+  "description": "Automates the employee onboarding workflow from application to first day",
+  "steps": [
+    {
+      "type": "trigger",
+      "label": "Start Process",
+      "description": "Workflow triggered when new employee form is submitted"
+    },
+    {
+      "type": "manual-approval",
+      "label": "HR Review",
+      "description": "HR manager reviews the application and makes approval decision"
+    }
+  ],
+  "connections": [
+    {
+      "from": 0,
+      "to": 1
+    }
+  ]
+}
+`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are a workflow automation expert that creates structured workflows from natural language descriptions. Always respond with valid JSON only.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    console.log('OpenAI raw response:', content);
+    
+    // Parse the JSON response
+    let workflowData;
+    try {
+      workflowData = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response as JSON:', parseError);
+      // Fallback to rule-based parsing
+      return parseWorkflowDescriptionFallback(description);
+    }
+
+    // Convert OpenAI response to our workflow format
+    const nodes: WorkflowNode[] = [];
+    const edges: WorkflowEdge[] = [];
+    
+    // Create nodes from steps
+    workflowData.steps.forEach((step: any, index: number) => {
+      const x = 250;
+      const y = 50 + (index * 150);
+      
+      const node = createNode(
+        step.type,
+        step.label,
+        step.description,
+        x,
+        y,
+        step.conditions ? { conditionConfig: { value: step.conditions } } : {}
+      );
+      
+      nodes.push(node);
+    });
+    
+    // Create edges from connections
+    workflowData.connections.forEach((connection: any) => {
+      const sourceNode = nodes[connection.from];
+      const targetNode = nodes[connection.to];
+      
+      if (sourceNode && targetNode) {
+        const edge = createEdge(sourceNode.id, targetNode.id, connection.label);
+        edges.push(edge);
+      }
+    });
+
+    return {
+      nodes,
+      edges,
+      title: workflowData.title || 'Generated Workflow',
+      workflowDescription: workflowData.description || description
+    };
+
+  } catch (error) {
+    console.error('OpenAI generation failed, falling back to rule-based parsing:', error);
+    return parseWorkflowDescriptionFallback(description);
+  }
+};
+
+const parseWorkflowDescriptionFallback = (description: string): { nodes: WorkflowNode[], edges: WorkflowEdge[], title: string, workflowDescription: string } => {
+  console.log('Using fallback parsing for description:', description);
   
   const nodes: WorkflowNode[] = [];
   const edges: WorkflowEdge[] = [];
@@ -203,8 +341,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // For now, use rule-based parsing. In the future, this could be enhanced with OpenAI
-    const result = parseWorkflowDescription(description);
+    // Use OpenAI if API key is available, otherwise fallback to rule-based parsing
+    const result = openAIApiKey 
+      ? await generateWorkflowWithOpenAI(description)
+      : parseWorkflowDescriptionFallback(description);
     
     console.log('Generated workflow result:', {
       title: result.title,
