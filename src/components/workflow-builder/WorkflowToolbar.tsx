@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Save, 
@@ -6,7 +7,8 @@ import {
   FileText, 
   Sparkles,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
@@ -21,6 +23,7 @@ interface WorkflowToolbarProps {
   onLoad: (workflowId: string) => Promise<void>;
   onNewWorkflow: () => void;
   onOpenGenerator: () => void;
+  onOpenReview: () => void;
   isSaving: boolean;
   currentWorkflowName?: string;
   currentWorkflowDescription?: string;

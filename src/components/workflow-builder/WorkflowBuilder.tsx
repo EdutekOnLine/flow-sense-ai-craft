@@ -30,6 +30,8 @@ import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
 import { FloatingAssistant } from './FloatingAssistant';
 import { NodeSuggestions } from './NodeSuggestions';
 import { useStepSuggestions } from '@/hooks/useStepSuggestions';
+import { useWorkflowReviewer } from '@/hooks/useWorkflowReviewer';
+import { WorkflowReview } from './WorkflowReview';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -464,6 +466,66 @@ export default function WorkflowBuilder() {
     return [...new Set(fields)]; // Remove duplicates
   }, [selectedNode, nodes]);
 
+  // Add workflow reviewer
+  const {
+    suggestions: reviewSuggestions,
+    isLoading: isReviewing,
+    reviewWorkflow,
+    clearSuggestions: clearReviewSuggestions
+  } = useWorkflowReviewer();
+
+  const [showReview, setShowReview] = useState(false);
+
+  const handleOpenReview = useCallback(() => {
+    reviewWorkflow(nodes, edges, currentWorkflowName);
+    setShowReview(true);
+  }, [reviewWorkflow, nodes, edges, currentWorkflowName]);
+
+  const handleApplySuggestion = useCallback((suggestion: any) => {
+    console.log('Applying suggestion:', suggestion);
+    
+    // Apply the suggested changes
+    if (suggestion.suggestedAction.changes) {
+      const { changes } = suggestion.suggestedAction;
+      
+      // Remove nodes
+      if (changes.nodesToRemove) {
+        changes.nodesToRemove.forEach((nodeId: string) => {
+          deleteNode(nodeId);
+        });
+      }
+      
+      // Modify nodes
+      if (changes.nodesToModify) {
+        changes.nodesToModify.forEach(({ id, changes: nodeChanges }: any) => {
+          updateNodeData(id, nodeChanges);
+        });
+      }
+      
+      // Add nodes (simplified - would need proper positioning logic)
+      if (changes.nodesToAdd) {
+        changes.nodesToAdd.forEach((nodeData: any) => {
+          addNode(nodeData.stepType || 'default', nodeData.label || 'New Step', nodeData.description || '');
+        });
+      }
+      
+      // Remove edges
+      if (changes.edgesToRemove) {
+        setEdges((eds) => eds.filter(edge => !changes.edgesToRemove.includes(edge.id)));
+      }
+    }
+    
+    toast({
+      title: "Suggestion Applied",
+      description: suggestion.title,
+    });
+  }, [deleteNode, updateNodeData, addNode, setEdges, toast]);
+
+  const handleDismissSuggestion = useCallback((suggestionId: string) => {
+    // Could implement local dismissal tracking if needed
+    console.log('Dismissed suggestion:', suggestionId);
+  }, []);
+
   return (
     <WorkflowPermissionGuard>
       <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -475,6 +537,7 @@ export default function WorkflowBuilder() {
             onLoad={handleLoadWorkflow}
             onNewWorkflow={handleNewWorkflow}
             onOpenGenerator={() => setIsGeneratorOpen(true)}
+            onOpenReview={handleOpenReview}
             isSaving={isSaving}
             currentWorkflowName={currentWorkflowName}
             currentWorkflowDescription={currentWorkflowDescription}
@@ -561,6 +624,17 @@ export default function WorkflowBuilder() {
         isOpen={isGeneratorOpen}
         onClose={() => setIsGeneratorOpen(false)}
         onWorkflowGenerated={handleWorkflowGenerated}
+      />
+      
+      {/* Workflow Review Panel */}
+      <WorkflowReview
+        isOpen={showReview}
+        onClose={() => setShowReview(false)}
+        suggestions={reviewSuggestions}
+        isLoading={isReviewing}
+        workflowName={currentWorkflowName}
+        onApplySuggestion={handleApplySuggestion}
+        onDismissSuggestion={handleDismissSuggestion}
       />
     </WorkflowPermissionGuard>
   );
