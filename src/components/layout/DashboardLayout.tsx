@@ -1,11 +1,9 @@
 
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
   Users, 
-  Workflow, 
   Settings, 
   LogOut, 
   FileText,
@@ -15,7 +13,6 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
-import WorkflowTabs from '@/components/workflows/WorkflowTabs';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -26,8 +23,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
 
-  // Check if we're on a workflow detail page (not the main dashboard)
-  const isWorkflowDetailPage = location.pathname.startsWith('/workflow/');
+  // Check if we're on the main dashboard
   const isMainDashboard = location.pathname === '/';
 
   useEffect(() => {
@@ -53,7 +49,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflows', label: 'Workflows', icon: Workflow, roles: ['admin', 'manager', 'employee'] },
     { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
     { id: 'templates', label: 'Templates', icon: FileText, roles: ['admin', 'manager', 'employee'] },
@@ -68,8 +63,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     switch (activeTab) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
-      case 'workflows':
-        return <WorkflowTabs />;
       case 'reports':
         return (
           <div className="text-center py-8">
@@ -103,7 +96,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Workflow className="h-8 w-8 text-blue-600 mr-2" />
+              <LayoutDashboard className="h-8 w-8 text-blue-600 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -147,7 +140,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
         {/* Content */}
-        {isWorkflowDetailPage ? children : renderContent()}
+        {renderContent()}
       </div>
     </div>
   );
