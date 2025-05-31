@@ -526,6 +526,79 @@ export default function WorkflowBuilder() {
     console.log('Dismissed suggestion:', suggestionId);
   }, []);
 
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      if (!canCreateWorkflows) {
+        toast({
+          title: "Permission Denied",
+          description: "You don't have permission to add nodes to workflows.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+      const stepData = event.dataTransfer.getData('application/reactflow');
+
+      // Check if we have valid step data
+      if (typeof stepData === 'undefined' || !stepData) {
+        return;
+      }
+
+      let parsedData;
+      try {
+        parsedData = JSON.parse(stepData);
+      } catch (error) {
+        console.error('Failed to parse dropped data:', error);
+        return;
+      }
+
+      const { type, label, description } = parsedData;
+
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      // Calculate position relative to the ReactFlow canvas
+      const position = reactFlowInstance?.screenToFlowPosition({
+        x: event.clientX - (reactFlowBounds?.left || 0),
+        y: event.clientY - (reactFlowBounds?.top || 0),
+      }) || { x: 0, y: 0 };
+
+      const persistentId = generatePersistentNodeId();
+      
+      const newNode: Node = {
+        id: persistentId,
+        type: 'workflowStep',
+        position,
+        data: { 
+          label: label || 'New Step',
+          stepType: type,
+          description: description || '',
+          assignedTo: null,
+          estimatedHours: null
+        } as WorkflowNodeData,
+        dragHandle: '.drag-handle',
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+      setNodeIdCounter((counter) => counter + 1);
+      
+      toast({
+        title: "Step Added",
+        description: `"${label || 'New Step'}" has been added to your workflow.`,
+      });
+    },
+    [reactFlowInstance, canCreateWorkflows, generatePersistentNodeId, setNodes, toast]
+  );
+
   return (
     <WorkflowPermissionGuard>
       <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -555,6 +628,8 @@ export default function WorkflowBuilder() {
               onConnect={onConnect}
               onSelectionChange={onSelectionChange}
               onInit={setReactFlowInstance}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               fitView
