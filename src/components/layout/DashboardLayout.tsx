@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -7,13 +8,16 @@ import {
   LogOut, 
   FileText,
   BarChart3,
-  Workflow
+  Workflow,
+  Inbox
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
+import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -50,7 +54,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager'] }, // Restricted to admin and manager
+    { id: 'workflow-inbox', label: 'My Tasks', icon: Inbox, roles: ['admin', 'manager', 'employee'] },
+    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager'] },
     { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
     { id: 'templates', label: 'Templates', icon: FileText, roles: ['admin', 'manager', 'employee'] },
@@ -63,6 +68,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'workflow-inbox':
+        return <WorkflowInbox />;
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
       case 'workflow-builder':
@@ -104,6 +111,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationCenter />
               <span className="text-sm text-gray-600">
                 Welcome, {profile?.first_name || profile?.email}
               </span>
