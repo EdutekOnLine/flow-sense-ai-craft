@@ -115,7 +115,8 @@ export function useWorkflowReviewer() {
         .map(([id]) => id),
       startNodes: Array.from(nodeConnections.entries())
         .filter(([_, conn]) => conn.incoming === 0)
-        .map(([id]) => id)
+        .map(([id]) => id),
+      nodeConnections: nodeConnections
     };
   };
 
@@ -194,7 +195,7 @@ export function useWorkflowReviewer() {
     }
 
     // Check for conditional nodes without both branches
-    connectivity.nodeConnections?.forEach(([nodeId, connections]) => {
+    connectivity.nodeConnections.forEach((connections, nodeId) => {
       const node = nodes.find(n => n.id === nodeId);
       const data = node?.data as unknown as WorkflowNodeData;
       
