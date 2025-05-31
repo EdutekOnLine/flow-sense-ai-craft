@@ -38,23 +38,23 @@ interface WorkflowNodeData {
   estimatedHours: number | null;
   // Node type specific configurations
   emailConfig?: {
-    to: string;
-    subject: string;
-    body: string;
+    to?: string;
+    subject?: string;
+    body?: string;
   };
   webhookConfig?: {
-    url: string;
-    method: string;
+    url?: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     headers?: Record<string, string>;
   };
   conditionConfig?: {
-    field: string;
-    operator: string;
-    value: string;
+    field?: string;
+    operator?: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+    value?: string;
   };
   delayConfig?: {
-    duration: number;
-    unit: string;
+    duration?: number;
+    unit?: 'minutes' | 'hours' | 'days';
   };
 }
 
@@ -74,25 +74,25 @@ const baseFormSchema = z.object({
 });
 
 const emailConfigSchema = z.object({
-  to: z.string().email('Invalid email address'),
-  subject: z.string().min(1, 'Subject is required'),
-  body: z.string().min(1, 'Body is required'),
+  to: z.string().email('Invalid email address').optional(),
+  subject: z.string().optional(),
+  body: z.string().optional(),
 });
 
 const webhookConfigSchema = z.object({
-  url: z.string().url('Invalid URL'),
-  method: z.enum(['GET', 'POST', 'PUT', 'DELETE']),
+  url: z.string().url('Invalid URL').optional(),
+  method: z.enum(['GET', 'POST', 'PUT', 'DELETE']).optional(),
 });
 
 const conditionConfigSchema = z.object({
-  field: z.string().min(1, 'Field is required'),
-  operator: z.enum(['equals', 'not_equals', 'contains', 'greater_than', 'less_than']),
-  value: z.string().min(1, 'Value is required'),
+  field: z.string().optional(),
+  operator: z.enum(['equals', 'not_equals', 'contains', 'greater_than', 'less_than']).optional(),
+  value: z.string().optional(),
 });
 
 const delayConfigSchema = z.object({
-  duration: z.number().min(1, 'Duration must be at least 1'),
-  unit: z.enum(['minutes', 'hours', 'days']),
+  duration: z.number().min(1, 'Duration must be at least 1').optional(),
+  unit: z.enum(['minutes', 'hours', 'days']).optional(),
 });
 
 type FormData = z.infer<typeof baseFormSchema> & {
@@ -150,16 +150,30 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
       };
 
       if (nodeData.emailConfig) {
-        formData.emailConfig = nodeData.emailConfig;
+        formData.emailConfig = {
+          to: nodeData.emailConfig.to || '',
+          subject: nodeData.emailConfig.subject || '',
+          body: nodeData.emailConfig.body || '',
+        };
       }
       if (nodeData.webhookConfig) {
-        formData.webhookConfig = nodeData.webhookConfig;
+        formData.webhookConfig = {
+          url: nodeData.webhookConfig.url || '',
+          method: nodeData.webhookConfig.method || 'POST',
+        };
       }
       if (nodeData.conditionConfig) {
-        formData.conditionConfig = nodeData.conditionConfig;
+        formData.conditionConfig = {
+          field: nodeData.conditionConfig.field || '',
+          operator: nodeData.conditionConfig.operator || 'equals',
+          value: nodeData.conditionConfig.value || '',
+        };
       }
       if (nodeData.delayConfig) {
-        formData.delayConfig = nodeData.delayConfig;
+        formData.delayConfig = {
+          duration: nodeData.delayConfig.duration || 1,
+          unit: nodeData.delayConfig.unit || 'hours',
+        };
       }
 
       form.reset(formData);
