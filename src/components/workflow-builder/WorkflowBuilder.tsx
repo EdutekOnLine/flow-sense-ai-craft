@@ -160,14 +160,11 @@ export default function WorkflowBuilder() {
     })
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
-  // Simple function to handle node configuration
-  const handleNodeConfigure = useCallback((nodeId: string) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      setSelectedNode(node);
-      setIsEditorOpen(true);
-    }
-  }, [nodes]);
+  // Handle node click to open configuration
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+    setIsEditorOpen(true);
+  }, []);
 
   const onConnect = useCallback(
     (params) => {
@@ -236,25 +233,11 @@ export default function WorkflowBuilder() {
         description: getDefaultDescription(stepType),
         assignedTo: null,
         estimatedHours: null,
-        onConfigure: handleNodeConfigure
       },
     };
 
     setNodes((nds) => nds.concat(newNode));
-  }, [nodes, handleNodeConfigure, canEditWorkflows, toast]);
-
-  // Update existing nodes to include the configure function
-  useEffect(() => {
-    setNodes((currentNodes) => 
-      currentNodes.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          onConfigure: handleNodeConfigure
-        }
-      }))
-    );
-  }, [handleNodeConfigure, setNodes]);
+  }, [nodes, canEditWorkflows, toast]);
 
   const onDrop = useCallback(
     (event) => {
@@ -399,6 +382,7 @@ export default function WorkflowBuilder() {
             onNodesChange={onNodesChangeWrapper}
             onEdgesChange={onEdgesChangeWrapper}
             onConnect={onConnect}
+            onNodeClick={onNodeClick}
             onDrop={onDrop}
             onDragOver={onDragOver}
             onInit={setReactFlowInstance}
