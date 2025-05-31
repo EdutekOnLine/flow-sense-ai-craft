@@ -9,7 +9,19 @@ import {
   Users,
   Clock,
   Trash2,
-  GripVertical
+  GripVertical,
+  Mail,
+  Database,
+  GitBranch,
+  Webhook,
+  FileText,
+  Calendar,
+  Filter,
+  Timer,
+  Send,
+  Settings,
+  AlertTriangle,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -22,6 +34,35 @@ interface WorkflowNodeData extends Record<string, unknown> {
 }
 
 const stepTypeConfig = {
+  // Triggers
+  trigger: { icon: Zap, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
+  'form-submitted': { icon: FileText, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
+  'schedule-trigger': { icon: Calendar, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
+  'webhook-trigger': { icon: Webhook, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
+  'record-created': { icon: Database, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
+  
+  // Actions
+  action: { icon: Square, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
+  'send-email': { icon: Mail, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
+  'update-record': { icon: Database, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
+  'send-notification': { icon: Send, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
+  'create-task': { icon: CheckCircle, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
+  
+  // Conditions
+  condition: { icon: GitBranch, color: 'border-yellow-500 bg-yellow-50', iconColor: 'text-yellow-600' },
+  'if-condition': { icon: GitBranch, color: 'border-yellow-500 bg-yellow-50', iconColor: 'text-yellow-600' },
+  filter: { icon: Filter, color: 'border-yellow-500 bg-yellow-50', iconColor: 'text-yellow-600' },
+  'switch-case': { icon: Settings, color: 'border-yellow-500 bg-yellow-50', iconColor: 'text-yellow-600' },
+  
+  // Utilities
+  utility: { icon: Settings, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
+  wait: { icon: Clock, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
+  approval: { icon: Users, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
+  'webhook-call': { icon: Webhook, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
+  delay: { icon: Timer, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
+  'error-handler': { icon: AlertTriangle, color: 'border-red-500 bg-red-50', iconColor: 'text-red-600' },
+  
+  // Legacy
   start: { icon: Play, color: 'border-green-500 bg-green-50', iconColor: 'text-green-600' },
   task: { icon: Square, color: 'border-blue-500 bg-blue-50', iconColor: 'text-blue-600' },
   review: { icon: CheckCircle, color: 'border-purple-500 bg-purple-50', iconColor: 'text-purple-600' },
@@ -37,7 +78,6 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    // Delete functionality will be implemented when we add the delete callback
     console.log('Delete node:', id);
   };
 

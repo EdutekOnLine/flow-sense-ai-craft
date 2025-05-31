@@ -16,6 +16,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowNode } from './WorkflowNode';
+import { WorkflowSidebar } from './WorkflowSidebar';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -42,15 +43,15 @@ export default function WorkflowBuilder() {
     [setEdges]
   );
 
-  const addNode = useCallback((type: string) => {
+  const addNode = useCallback((type: string, label: string, description: string = '') => {
     const newNode: Node = {
       id: `node-${nodeIdCounter}`,
       type: 'workflowStep',
       position: { x: 250, y: 100 + nodes.length * 150 },
       data: { 
-        label: `Step ${nodeIdCounter}`,
+        label: label,
         stepType: type,
-        description: '',
+        description: description,
         assignedTo: null,
         estimatedHours: null
       } as WorkflowNodeData,
@@ -77,45 +78,48 @@ export default function WorkflowBuilder() {
   }, [setNodes]);
 
   return (
-    <div className="h-[800px] w-full border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <WorkflowToolbar onAddNode={addNode} />
-      <div className="h-full">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          snapToGrid={true}
-          snapGrid={[15, 15]}
-          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-          minZoom={0.2}
-          maxZoom={2}
-          attributionPosition="bottom-left"
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background 
-            variant={BackgroundVariant.Dots} 
-            gap={15} 
-            size={1}
-            className="bg-gray-50"
-          />
-          <Controls 
-            position="top-right"
-            showZoom={true}
-            showFitView={true}
-            showInteractive={true}
-          />
-          <MiniMap 
-            position="bottom-right"
-            nodeStrokeWidth={3}
-            zoomable
-            pannable
-            className="bg-white border border-gray-200 rounded"
-          />
-        </ReactFlow>
+    <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <WorkflowSidebar onAddNode={addNode} />
+      <div className="flex-1 flex flex-col">
+        <WorkflowToolbar onAddNode={addNode} />
+        <div className="flex-1">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            snapToGrid={true}
+            snapGrid={[15, 15]}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            minZoom={0.2}
+            maxZoom={2}
+            attributionPosition="bottom-left"
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background 
+              variant={BackgroundVariant.Dots} 
+              gap={15} 
+              size={1}
+              className="bg-gray-50"
+            />
+            <Controls 
+              position="top-right"
+              showZoom={true}
+              showFitView={true}
+              showInteractive={true}
+            />
+            <MiniMap 
+              position="bottom-right"
+              nodeStrokeWidth={3}
+              zoomable
+              pannable
+              className="bg-white border border-gray-200 rounded"
+            />
+          </ReactFlow>
+        </div>
       </div>
     </div>
   );
