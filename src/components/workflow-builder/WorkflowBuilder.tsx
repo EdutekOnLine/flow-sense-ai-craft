@@ -316,28 +316,24 @@ export default function WorkflowBuilder() {
     );
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
-  const [isDragging, setIsDragging] = useState(false);
-  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Use ref to track drag state more reliably
+  const isDraggingRef = useRef(false);
 
   const onNodeDragStart = useCallback(() => {
-    setIsDragging(true);
-    // Clear any existing timeout
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-      dragTimeoutRef.current = null;
-    }
+    isDraggingRef.current = true;
   }, []);
 
   const onNodeDragStop = useCallback(() => {
-    // Set a longer delay to ensure selection events don't trigger
-    dragTimeoutRef.current = setTimeout(() => {
-      setIsDragging(false);
-    }, 200);
+    // Use a timeout to reset drag state after a delay
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 300);
   }, []);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     // Don't handle selection changes during drag operations
-    if (isDragging) {
+    if (isDraggingRef.current) {
+      console.log('Ignoring selection change during drag');
       return;
     }
 
@@ -365,7 +361,7 @@ export default function WorkflowBuilder() {
       setShowAssistant(false);
       setContextualSuggestionsPosition(null);
     }
-  }, [isDragging, generateSuggestions, clearSuggestions, nodes, edges]);
+  }, [generateSuggestions, clearSuggestions, nodes, edges]);
 
   const closeNodeEditor = useCallback(() => {
     setIsNodeEditorOpen(false);
