@@ -95,10 +95,17 @@ const delayConfigSchema = z.object({
   unit: z.enum(['minutes', 'hours', 'days']),
 });
 
+type FormData = z.infer<typeof baseFormSchema> & {
+  emailConfig?: z.infer<typeof emailConfigSchema>;
+  webhookConfig?: z.infer<typeof webhookConfigSchema>;
+  conditionConfig?: z.infer<typeof conditionConfigSchema>;
+  delayConfig?: z.infer<typeof delayConfigSchema>;
+};
+
 export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availableFields }: NodeEditorProps) {
   const [formSchema, setFormSchema] = useState(baseFormSchema);
 
-  const form = useForm({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: '',
@@ -135,20 +142,31 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
       setFormSchema(extendedSchema);
       
       // Reset form with current node data
-      form.reset({
+      const formData: FormData = {
         label: nodeData.label || '',
         description: nodeData.description || '',
         assignedTo: nodeData.assignedTo || '',
         estimatedHours: nodeData.estimatedHours || 0,
-        emailConfig: nodeData.emailConfig || { to: '', subject: '', body: '' },
-        webhookConfig: nodeData.webhookConfig || { url: '', method: 'POST' },
-        conditionConfig: nodeData.conditionConfig || { field: '', operator: 'equals', value: '' },
-        delayConfig: nodeData.delayConfig || { duration: 1, unit: 'hours' },
-      });
+      };
+
+      if (nodeData.emailConfig) {
+        formData.emailConfig = nodeData.emailConfig;
+      }
+      if (nodeData.webhookConfig) {
+        formData.webhookConfig = nodeData.webhookConfig;
+      }
+      if (nodeData.conditionConfig) {
+        formData.conditionConfig = nodeData.conditionConfig;
+      }
+      if (nodeData.delayConfig) {
+        formData.delayConfig = nodeData.delayConfig;
+      }
+
+      form.reset(formData);
     }
   }, [selectedNode, form]);
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: FormData) => {
     if (selectedNode) {
       onUpdateNode(selectedNode.id, data);
     }
@@ -291,7 +309,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                     <FormItem>
                       <FormLabel>To Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="recipient@example.com" {...field} />
+                        <Input placeholder="recipient@example.com" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -305,7 +323,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                     <FormItem>
                       <FormLabel>Subject</FormLabel>
                       <FormControl>
-                        <Input placeholder="Email subject" {...field} />
+                        <Input placeholder="Email subject" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -319,7 +337,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                     <FormItem>
                       <FormLabel>Body</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Email body content" {...field} />
+                        <Textarea placeholder="Email body content" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -340,7 +358,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                     <FormItem>
                       <FormLabel>Webhook URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://api.example.com/webhook" {...field} />
+                        <Input placeholder="https://api.example.com/webhook" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -353,7 +371,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>HTTP Method</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || 'POST'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select method" />
@@ -384,7 +402,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Field</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select field" />
@@ -409,7 +427,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Operator</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || 'equals'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select operator" />
@@ -435,7 +453,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                     <FormItem>
                       <FormLabel>Value</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter value" {...field} />
+                        <Input placeholder="Enter value" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -460,7 +478,8 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                           type="number" 
                           placeholder="1" 
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : '')}
                         />
                       </FormControl>
                       <FormMessage />
@@ -474,7 +493,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Unit</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || 'hours'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select unit" />
