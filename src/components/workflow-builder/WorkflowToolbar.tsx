@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Save, Download, Upload, Play, FolderOpen, Edit } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Save, FolderOpen, Plus, Loader2, FileText, Wand2 } from 'lucide-react';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { LoadWorkflowDialog } from './LoadWorkflowDialog';
-import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 
 interface WorkflowToolbarProps {
-  onAddNode: (type: string, label: string, description: string) => void;
-  onSave: (name: string, description?: string) => void;
-  onLoad: (workflowId: string) => void;
+  onAddNode: (type: string, label: string, description?: string) => void;
+  onSave: (name: string, description?: string) => Promise<void>;
+  onLoad: (workflowId: string) => Promise<void>;
   onNewWorkflow: () => void;
+  onOpenGenerator: () => void;
   isSaving: boolean;
   currentWorkflowName?: string;
   currentWorkflowDescription?: string;
@@ -18,147 +19,122 @@ interface WorkflowToolbarProps {
   isCurrentWorkflowSaved: boolean;
 }
 
-export function WorkflowToolbar({ 
-  onAddNode, 
-  onSave, 
-  onLoad, 
+export function WorkflowToolbar({
+  onAddNode,
+  onSave,
+  onLoad,
   onNewWorkflow,
-  isSaving, 
+  onOpenGenerator,
+  isSaving,
   currentWorkflowName,
   currentWorkflowDescription,
   hasUnsavedChanges,
-  isCurrentWorkflowSaved
+  isCurrentWorkflowSaved,
 }: WorkflowToolbarProps) {
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [showLoadDialog, setShowLoadDialog] = useState(false);
-  const { canCreateWorkflows, canEditWorkflows } = useWorkflowPermissions();
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isLoadDialogOpen, setIsLoadDialogOpen] = useState(false);
 
-  const handleSave = (name: string, description?: string) => {
-    onSave(name, description);
-    setShowSaveDialog(false);
+  const handleSave = async (name: string, description?: string) => {
+    await onSave(name, description);
+    setIsSaveDialogOpen(false);
   };
 
-  const handleNewWorkflow = () => {
-    if (!canCreateWorkflows) return;
-    
-    if (hasUnsavedChanges) {
-      if (confirm('You have unsaved changes. Are you sure you want to create a new workflow?')) {
-        onNewWorkflow();
-      }
-    } else {
-      onNewWorkflow();
-    }
+  const handleLoad = async (workflowId: string) => {
+    await onLoad(workflowId);
+    setIsLoadDialogOpen(false);
   };
-
-  const canSaveWorkflow = canCreateWorkflows || (canEditWorkflows && isCurrentWorkflowSaved);
 
   return (
     <>
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-gray-900">
-            Workflow Builder
-            {currentWorkflowName && (
-              <span className="text-sm font-normal text-gray-600 ml-2">
-                - {currentWorkflowName}
-                {hasUnsavedChanges && '*'}
-              </span>
+      <div className="border-b border-gray-200 p-4 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {currentWorkflowName || 'Untitled Workflow'}
+              {hasUnsavedChanges && <span className="text-orange-500 ml-1">*</span>}
+            </h2>
+            {currentWorkflowDescription && (
+              <span className="text-sm text-gray-500">- {currentWorkflowDescription}</span>
             )}
-          </h1>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNewWorkflow}
-            disabled={!canCreateWorkflows}
-            className="flex items-center gap-2"
-            title={!canCreateWorkflows ? "You don't have permission to create workflows" : "Create new workflow"}
-          >
-            <Plus className="h-4 w-4" />
-            New
-          </Button>
+          </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowLoadDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <FolderOpen className="h-4 w-4" />
-            Load
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => canCreateWorkflows && onAddNode('start', 'Start', 'Start of the workflow')}
-            disabled={!canCreateWorkflows}
-            className="flex items-center gap-2"
-            title={!canCreateWorkflows ? "You don't have permission to add nodes" : "Add start node"}
-          >
-            <Plus className="h-4 w-4" />
-            Add Start
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSaveDialog(true)}
-            disabled={isSaving || !canSaveWorkflow}
-            className="flex items-center gap-2"
-            title={!canSaveWorkflow ? "You don't have permission to save workflows" : isCurrentWorkflowSaved ? "Update workflow" : "Save workflow"}
-          >
-            {isCurrentWorkflowSaved ? <Edit className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-            {isCurrentWorkflowSaved ? 'Update' : 'Save'}
-            {hasUnsavedChanges && '*'}
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Import
-          </Button>
-          
-          <Button
-            size="sm"
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-          >
-            <Play className="h-4 w-4" />
-            Run
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenGenerator}
+              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              AI Generate
+            </Button>
+            
+            <Separator orientation="vertical" className="h-6" />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAddNode('manual-task', 'New Task', 'Task description')}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Step
+            </Button>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNewWorkflow}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              New
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsLoadDialogOpen(true)}
+            >
+              <FolderOpen className="h-4 w-4 mr-2" />
+              Open
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => setIsSaveDialogOpen(true)}
+              disabled={isSaving}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {canSaveWorkflow && (
-        <SaveWorkflowDialog
-          isOpen={showSaveDialog}
-          onClose={() => setShowSaveDialog(false)}
-          onSave={handleSave}
-          isLoading={isSaving}
-          initialName={currentWorkflowName}
-          initialDescription={currentWorkflowDescription}
-          isEditing={isCurrentWorkflowSaved}
-        />
-      )}
+      <SaveWorkflowDialog
+        isOpen={isSaveDialogOpen}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onSave={handleSave}
+        defaultName={currentWorkflowName}
+        defaultDescription={currentWorkflowDescription}
+        isUpdate={isCurrentWorkflowSaved}
+      />
 
       <LoadWorkflowDialog
-        isOpen={showLoadDialog}
-        onClose={() => setShowLoadDialog(false)}
-        onLoad={onLoad}
+        isOpen={isLoadDialogOpen}
+        onClose={() => setIsLoadDialogOpen(false)}
+        onLoad={handleLoad}
       />
     </>
   );

@@ -26,6 +26,7 @@ import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
 import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useToast } from '@/hooks/use-toast';
+import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -77,6 +78,7 @@ export default function WorkflowBuilder() {
   const [currentWorkflowName, setCurrentWorkflowName] = useState<string | undefined>();
   const [currentWorkflowDescription, setCurrentWorkflowDescription] = useState<string | undefined>();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
@@ -294,6 +296,37 @@ export default function WorkflowBuilder() {
     setNodeIdCounter(1);
   }, [setNodes, setEdges, setCurrentWorkflowId]);
 
+  const handleWorkflowGenerated = useCallback((result: any) => {
+    console.log('Applying generated workflow:', result);
+    
+    // Clear existing workflow
+    setNodes([]);
+    setEdges([]);
+    
+    // Apply generated nodes and edges
+    setTimeout(() => {
+      setNodes(result.nodes);
+      setEdges(result.edges);
+      
+      // Set the workflow metadata
+      if (result.title) {
+        setCurrentWorkflowName(result.title);
+      }
+      if (result.description) {
+        setCurrentWorkflowDescription(result.description);
+      }
+      
+      setHasUnsavedChanges(true);
+      
+      // Fit view to show all generated nodes
+      if (reactFlowInstance) {
+        setTimeout(() => {
+          reactFlowInstance.fitView({ padding: 0.2 });
+        }, 100);
+      }
+    }, 100);
+  }, [setNodes, setEdges, reactFlowInstance]);
+
   // Generate available fields from previous nodes
   const getAvailableFields = useCallback(() => {
     if (!selectedNode) return [];
@@ -339,6 +372,7 @@ export default function WorkflowBuilder() {
             onSave={handleSaveWorkflow}
             onLoad={handleLoadWorkflow}
             onNewWorkflow={handleNewWorkflow}
+            onOpenGenerator={() => setIsGeneratorOpen(true)}
             isSaving={isSaving}
             currentWorkflowName={currentWorkflowName}
             currentWorkflowDescription={currentWorkflowDescription}
@@ -398,6 +432,12 @@ export default function WorkflowBuilder() {
           </div>
         </div>
       </div>
+      
+      <NaturalLanguageGenerator
+        isOpen={isGeneratorOpen}
+        onClose={() => setIsGeneratorOpen(false)}
+        onWorkflowGenerated={handleWorkflowGenerated}
+      />
     </WorkflowPermissionGuard>
   );
 }
