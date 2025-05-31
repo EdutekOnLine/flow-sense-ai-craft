@@ -39,6 +39,7 @@ interface WorkflowNodeData extends Record<string, unknown> {
   description: string;
   assignedTo: string | null;
   estimatedHours: number | null;
+  onConfigure?: () => void;
   // Node type specific configurations
   emailConfig?: {
     to?: string;
@@ -135,6 +136,28 @@ export default function WorkflowBuilder() {
     return `edge-${sourceId}-${targetId}-${timestamp}-${random}`;
   }, []);
 
+  // Function to handle opening configuration for a specific node
+  const handleOpenNodeConfiguration = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      setSelectedNode(node);
+      setIsNodeEditorOpen(true);
+    }
+  }, [nodes]);
+
+  // Update nodes to include the onConfigure callback
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onConfigure: () => handleOpenNodeConfiguration(node.id),
+        },
+      }))
+    );
+  }, [handleOpenNodeConfiguration, setNodes]);
+
   const handleAddSuggestedStep = useCallback((suggestion: StepSuggestion) => {
     if (!canCreateWorkflows) {
       toast({
@@ -165,7 +188,8 @@ export default function WorkflowBuilder() {
         stepType: suggestion.stepType,
         description: suggestion.description,
         assignedTo: null,
-        estimatedHours: null
+        estimatedHours: null,
+        onConfigure: () => handleOpenNodeConfiguration(persistentId),
       } as WorkflowNodeData,
       draggable: true,
     };
@@ -199,7 +223,7 @@ export default function WorkflowBuilder() {
       title: "Step Added",
       description: `"${suggestion.label}" has been added to your workflow.`,
     });
-  }, [selectedNode, nodes.length, setNodes, setEdges, generatePersistentNodeId, generatePersistentEdgeId, canCreateWorkflows, toast]);
+  }, [selectedNode, nodes.length, setNodes, setEdges, generatePersistentNodeId, generatePersistentEdgeId, canCreateWorkflows, toast, handleOpenNodeConfiguration]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -262,14 +286,15 @@ export default function WorkflowBuilder() {
         stepType: type,
         description: description,
         assignedTo: null,
-        estimatedHours: null
+        estimatedHours: null,
+        onConfigure: () => handleOpenNodeConfiguration(persistentId),
       } as WorkflowNodeData,
       draggable: true,
     };
     
     setNodes((nds) => nds.concat(newNode));
     setNodeIdCounter((counter) => counter + 1);
-  }, [nodes.length, setNodes, generatePersistentNodeId, canCreateWorkflows, toast]);
+  }, [nodes.length, setNodes, generatePersistentNodeId, canCreateWorkflows, toast, handleOpenNodeConfiguration]);
 
   const deleteNode = useCallback((nodeId: string) => {
     if (!canDeleteWorkflows) {
@@ -304,7 +329,14 @@ export default function WorkflowBuilder() {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          const updatedNode = { ...node, data: { ...node.data, ...newData } };
+          const updatedNode = { 
+            ...node, 
+            data: { 
+              ...node.data, 
+              ...newData,
+              onConfigure: () => handleOpenNodeConfiguration(nodeId),
+            } 
+          };
           // Update selected node if it's the same
           if (selectedNode?.id === nodeId) {
             setSelectedNode(updatedNode);
@@ -314,16 +346,14 @@ export default function WorkflowBuilder() {
         return node;
       })
     );
-  }, [setNodes, selectedNode, canEditWorkflows, toast]);
+  }, [setNodes, selectedNode, canEditWorkflows, toast, handleOpenNodeConfiguration]);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     const selectedNodes = params.nodes;
     
-    // Handle node selection
+    // Handle node selection for suggestions but don't open configuration panel
     if (selectedNodes.length === 1) {
       const node = selectedNodes[0];
-      setSelectedNode(node);
-      setIsNodeEditorOpen(true);
       
       // Generate AI suggestions for the selected node
       generateSuggestions(node, nodes, edges);
@@ -335,8 +365,6 @@ export default function WorkflowBuilder() {
         y: node.position.y + 50
       });
     } else {
-      setSelectedNode(null);
-      setIsNodeEditorOpen(false);
       clearSuggestions();
       setShowAssistant(false);
       setContextualSuggestionsPosition(null);
@@ -370,7 +398,14 @@ export default function WorkflowBuilder() {
     const workflow = await loadWorkflow(workflowId);
     if (workflow) {
       // Preserve persistent IDs from loaded workflow and ensure draggable
-      const draggableNodes = workflow.nodes.map(node => ({ ...node, draggable: true }));
+      const draggableNodes = workflow.nodes.map(node => ({ 
+        ...node, 
+        draggable: true,
+        data: {
+          ...node.data,
+          onConfigure: () => handleOpenNodeConfiguration(node.id),
+        }
+      }));
       setNodes(draggableNodes);
       setEdges(workflow.edges);
       setCurrentWorkflowName(workflow.name);
@@ -387,7 +422,7 @@ export default function WorkflowBuilder() {
         description: `"${workflow.name}" has been loaded successfully.`,
       });
     }
-  }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance]);
+  }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance, handleOpenNodeConfiguration]);
 
   const handleNewWorkflow = useCallback(() => {
     setNodes([]);
@@ -410,8 +445,15 @@ export default function WorkflowBuilder() {
     
     // Apply generated nodes and edges
     setTimeout(() => {
-      // Ensure all generated nodes are draggable
-      const draggableNodes = result.nodes.map((node: Node) => ({ ...node, draggable: true }));
+      // Ensure all generated nodes are draggable and have configure callback
+      const draggableNodes = result.nodes.map((node: Node) => ({ 
+        ...node, 
+        draggable: true,
+        data: {
+          ...node.data,
+          onConfigure: () => handleOpenNodeConfiguration(node.id),
+        }
+      }));
       setNodes(draggableNodes);
       setEdges(result.edges);
       
@@ -432,7 +474,7 @@ export default function WorkflowBuilder() {
         }, 100);
       }
     }, 100);
-  }, [setNodes, setEdges, reactFlowInstance]);
+  }, [setNodes, setEdges, reactFlowInstance, handleOpenNodeConfiguration]);
 
   // Generate available fields from previous nodes
   const getAvailableFields = useCallback(() => {
@@ -586,7 +628,8 @@ export default function WorkflowBuilder() {
           stepType: type,
           description: description || '',
           assignedTo: null,
-          estimatedHours: null
+          estimatedHours: null,
+          onConfigure: () => handleOpenNodeConfiguration(persistentId),
         } as WorkflowNodeData,
         draggable: true,
       };
@@ -599,7 +642,7 @@ export default function WorkflowBuilder() {
         description: `"${label || 'New Step'}" has been added to your workflow.`,
       });
     },
-    [reactFlowInstance, canCreateWorkflows, generatePersistentNodeId, setNodes, toast]
+    [reactFlowInstance, canCreateWorkflows, generatePersistentNodeId, setNodes, toast, handleOpenNodeConfiguration]
   );
 
   return (
