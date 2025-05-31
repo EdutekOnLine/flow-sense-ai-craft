@@ -1,37 +1,57 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
-import {
-  ReactFlow,
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import ReactFlow, {
   addEdge,
-  MiniMap,
-  Controls,
-  Background,
   useNodesState,
   useEdgesState,
-  Connection,
-  Edge,
+  Controls,
+  Background,
   Node,
-  BackgroundVariant,
-  OnSelectionChangeParams,
-  MarkerType,
-  ConnectionMode,
-  ReactFlowInstance,
+  Edge,
+  useReactFlow,
+  ReactFlowProvider,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { WorkflowToolbar } from './WorkflowToolbar';
+import { initialNodes, initialEdges } from './initial-elements';
 import { WorkflowNode } from './WorkflowNode';
-import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
-import { ConditionalEdge } from './ConditionalEdge';
-import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
-import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
-import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
-import { useToast } from '@/hooks/use-toast';
-import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
-import { FloatingAssistant } from './FloatingAssistant';
-import { NodeSuggestions } from './NodeSuggestions';
-import { useStepSuggestions } from '@/hooks/useStepSuggestions';
-import { useWorkflowReviewer } from '@/hooks/useWorkflowReviewer';
-import { WorkflowReview } from './WorkflowReview';
+import { Button } from '@/components/ui/button';
+import { Plus, Save, Upload, Download, Settings } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from "@/components/ui/use-toast"
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createWorkflow, getWorkflow, updateWorkflow } from '@/lib/api/workflow.api';
+import { useParams } from 'next/navigation';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from "zod"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Workflow } from '@/lib/types';
+import { useUser } from '@clerk/nextjs';
+import { DraggableStep } from './DraggableStep';
+
+const defaultNodeOptions = [
+  { label: 'Send Email', type: 'send-email', description: 'Send an email to a specified address.' },
+  { label: 'Update Record', type: 'update-record', description: 'Update a record in the database.' },
+  { label: 'Create Task', type: 'create-task', description: 'Create a new task for a user.' },
+  { label: 'Webhook Call', type: 'webhook-call', description: 'Make a call to a webhook endpoint.' },
+  { label: 'If Condition', type: 'if-condition', description: 'Check a condition and branch the workflow.' },
+  { label: 'Filter', type: 'filter', description: 'Filter records based on specified criteria.' },
+  { label: 'Delay', type: 'delay', description: 'Pause the workflow for a specified duration.' },
+  { label: 'Wait', type: 'wait', description: 'Wait for a specific event to occur.' },
+  { label: 'Approval', type: 'approval', description: 'Request approval from a user.' },
+  { label: 'Form Submitted', type: 'form-submitted', description: 'Triggered when a form is submitted.' },
+  { label: 'Schedule Trigger', type: 'schedule-trigger', description: 'Triggered based on a schedule.' },
+];
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -39,264 +59,100 @@ interface WorkflowNodeData extends Record<string, unknown> {
   description: string;
   assignedTo: string | null;
   estimatedHours: number | null;
-  // Node type specific configurations
-  emailConfig?: {
-    to?: string;
-    subject?: string;
-    body?: string;
-  };
-  webhookConfig?: {
-    url?: string;
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    headers?: Record<string, string>;
-  };
-  conditionConfig?: {
-    field?: string;
-    operator?: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
-    value?: string;
-  };
-  delayConfig?: {
-    duration?: number;
-    unit?: 'minutes' | 'hours' | 'days';
-  };
+  onConfigure?: (nodeId: string) => void;
 }
 
-const nodeTypes = {
-  workflowStep: WorkflowNode,
-};
-
-const edgeTypes = {
-  conditional: ConditionalEdge,
-};
-
-const initialNodes: Node[] = [];
-const initialEdges: Edge[] = [];
-
-interface StepSuggestion {
-  id: string;
-  label: string;
-  description: string;
-  stepType: string;
-  reason: string;
-  confidence: number;
-}
+const workflowSchema = z.object({
+  name: z.string().min(3, {
+    message: "Workflow name must be at least 3 characters.",
+  }),
+  description: z.string().optional(),
+  triggerType: z.string().optional(),
+})
 
 export default function WorkflowBuilder() {
-  const { canCreateWorkflows, canEditWorkflows, canDeleteWorkflows } = useWorkflowPermissions();
+  const { toast } = useToast()
+  const { id: workflowId } = useParams();
+  const queryClient = useQueryClient();
+  const { user } = useUser();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [nodeIdCounter, setNodeIdCounter] = useState(1);
+  const [edges, setEdges, onEdgesChange, updateEdge] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
-  const [currentWorkflowName, setCurrentWorkflowName] = useState<string | undefined>();
-  const [currentWorkflowDescription, setCurrentWorkflowDescription] = useState<string | undefined>();
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const { toast } = useToast();
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [availableFields, setAvailableFields] = useState<string[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [canEditWorkflows, setCanEditWorkflows] = useState(false);
+  const [workflowDetails, setWorkflowDetails] = useState<Workflow | null>(null);
 
-  // Initialize step suggestions hook
-  const {
-    suggestions,
-    isLoading: isSuggestionsLoading,
-    generateSuggestions,
-    clearSuggestions
-  } = useStepSuggestions();
-  
-  const [showAssistant, setShowAssistant] = useState(false);
-  const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
-
-  const {
-    currentWorkflowId,
-    setCurrentWorkflowId,
-    isLoading: isSaving,
-    saveWorkflow,
-    loadWorkflow
-  } = useWorkflowPersistence();
-
-  // Track changes to mark workflow as modified
-  useEffect(() => {
-    if (nodes.length > 0 || edges.length > 0) {
-      setHasUnsavedChanges(true);
-    }
-  }, [nodes, edges]);
-
-  const generatePersistentNodeId = useCallback(() => {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
-    return `node-${timestamp}-${random}`;
-  }, []);
-
-  const generatePersistentEdgeId = useCallback((sourceId: string, targetId: string) => {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
-    return `edge-${sourceId}-${targetId}-${timestamp}-${random}`;
-  }, []);
-
-  const handleAddSuggestedStep = useCallback((suggestion: StepSuggestion) => {
-    if (!canCreateWorkflows) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to add nodes to workflows.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const persistentId = generatePersistentNodeId();
-    
-    // Position new node to the right of the selected node
-    let newPosition = { x: 400, y: 100 + nodes.length * 150 };
-    if (selectedNode) {
-      newPosition = {
-        x: selectedNode.position.x + 300,
-        y: selectedNode.position.y
-      };
-    }
-    
-    const newNode: Node = {
-      id: persistentId,
-      type: 'workflowStep',
-      position: newPosition,
-      data: { 
-        label: suggestion.label,
-        stepType: suggestion.stepType,
-        description: suggestion.description,
-        assignedTo: null,
-        estimatedHours: null
-      } as WorkflowNodeData,
-      dragHandle: '.drag-handle',
-    };
-    
-    setNodes((nds) => nds.concat(newNode));
-    
-    // Connect to selected node if there is one
-    if (selectedNode) {
-      const newEdge: Edge = {
-        id: generatePersistentEdgeId(selectedNode.id, persistentId),
-        source: selectedNode.id,
-        target: persistentId,
-        type: 'default',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-        },
-        style: {
-          strokeWidth: 2,
-          stroke: '#64748b',
-        },
-      };
-      setEdges((eds) => addEdge(newEdge, eds));
-    }
-    
-    // Clear contextual suggestions
-    setContextualSuggestionsPosition(null);
-    
-    toast({
-      title: "Step Added",
-      description: `"${suggestion.label}" has been added to your workflow.`,
-    });
-  }, [selectedNode, nodes.length, setNodes, setEdges, generatePersistentNodeId, generatePersistentEdgeId, canCreateWorkflows, toast]);
-
-  const onConnect = useCallback(
-    (params: Connection) => {
-      // Determine edge type based on source node type
-      const sourceNode = nodes.find(node => node.id === params.source);
-      const sourceNodeData = sourceNode?.data as WorkflowNodeData;
-      
-      let edgeType = 'default';
-      let edgeLabel = '';
-      
-      // Use conditional edge for decision nodes
-      if (sourceNodeData?.stepType === 'if-condition' || 
-          sourceNodeData?.stepType === 'condition' || 
-          sourceNodeData?.stepType === 'decision' ||
-          sourceNodeData?.stepType === 'switch-case' ||
-          sourceNodeData?.stepType === 'filter') {
-        edgeType = 'conditional';
-        edgeLabel = 'Yes'; // Default label for conditional branches
-      }
-
-      const newEdge: Edge = {
-        ...params,
-        id: generatePersistentEdgeId(params.source!, params.target!),
-        type: edgeType,
-        data: { label: edgeLabel },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-        },
-        style: {
-          strokeWidth: 2,
-          stroke: edgeType === 'conditional' ? '#6366f1' : '#64748b',
-        },
-      };
-
-      setEdges((eds) => addEdge(newEdge, eds));
+  const workflowForm = useForm<z.infer<typeof workflowSchema>>({
+    resolver: zodResolver(workflowSchema),
+    defaultValues: {
+      name: "",
+      description: "",
     },
-    [setEdges, nodes, generatePersistentEdgeId]
-  );
+  })
 
-  const addNode = useCallback((type: string, label: string, description: string = '') => {
-    if (!canCreateWorkflows) {
+  const { data: workflowData, isLoading: isWorkflowLoading } = useQuery({
+    queryKey: ['workflow', workflowId],
+    queryFn: () => getWorkflow(workflowId as string),
+    enabled: !!workflowId,
+    onSuccess: (data) => {
+      if (data) {
+        setNodes(data.nodes as Node[]);
+        setEdges(data.edges as Edge[]);
+        setWorkflowDetails(data);
+        workflowForm.reset({
+          name: data.name,
+          description: data.description,
+          triggerType: data.triggerType || '',
+        });
+        setCanEditWorkflows(data.createdBy === user?.id);
+      }
+    },
+    onError: (error) => {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to add nodes to workflows.",
+        title: "Error fetching workflow",
+        description: "Failed to fetch workflow details. Please try again.",
         variant: "destructive",
-      });
-      return;
+      })
     }
+  });
 
-    const persistentId = generatePersistentNodeId();
-    
-    const newNode: Node = {
-      id: persistentId,
-      type: 'workflowStep',
-      position: { x: 250, y: 100 + nodes.length * 150 },
-      data: { 
-        label: label,
-        stepType: type,
-        description: description,
-        assignedTo: null,
-        estimatedHours: null
-      } as WorkflowNodeData,
-      dragHandle: '.drag-handle',
-    };
-    
-    setNodes((nds) => nds.concat(newNode));
-    setNodeIdCounter((counter) => counter + 1);
-  }, [nodes.length, setNodes, generatePersistentNodeId, canCreateWorkflows, toast]);
-
-  const deleteNode = useCallback((nodeId: string) => {
-    if (!canDeleteWorkflows) {
+  const { mutate: saveWorkflow, isLoading: isSaveLoading } = useMutation({
+    mutationFn: async (data: { nodes: Node[], edges: Edge[], name: string, description: string, triggerType: string }) => {
+      if (workflowId) {
+        return updateWorkflow(workflowId, data);
+      } else {
+        return createWorkflow(data);
+      }
+    },
+    onSuccess: (data) => {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to delete nodes from workflows.",
+        title: "Workflow saved",
+        description: "Your workflow has been saved successfully.",
+      })
+      queryClient.invalidateQueries(['workflows']);
+      if (!workflowId && data?.id) {
+        window.location.href = `/workflow/${data.id}`;
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving workflow",
+        description: "Failed to save workflow. Please try again.",
         variant: "destructive",
-      });
-      return;
+      })
     }
+  });
 
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-    
-    // Close editor if deleted node was selected
-    if (selectedNode?.id === nodeId) {
-      setSelectedNode(null);
-      setIsNodeEditorOpen(false);
-    }
-  }, [setNodes, setEdges, selectedNode, canDeleteWorkflows, toast]);
-
-  const updateNodeData = useCallback((nodeId: string, newData: Partial<WorkflowNodeData>) => {
+  const onUpdateNode = useCallback((nodeId: string, newData: Partial<WorkflowNodeData>) => {
     if (!canEditWorkflows) {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to edit workflow nodes.",
-        variant: "destructive",
+        title: "Cannot edit workflow",
+        description: "You do not have permission to edit this workflow.",
       });
       return;
     }
@@ -304,450 +160,303 @@ export default function WorkflowBuilder() {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
-          const updatedNode = { ...node, data: { ...node.data, ...newData } };
-          // Update selected node if it's the same
-          if (selectedNode?.id === nodeId) {
-            setSelectedNode(updatedNode);
-          }
-          return updatedNode;
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...newData,
+            },
+          };
         }
         return node;
       })
     );
+
+    // Update selected node if it's the one being edited
+    if (selectedNode && selectedNode.id === nodeId) {
+      setSelectedNode((prevSelectedNode) => {
+        if (prevSelectedNode) {
+          return {
+            ...prevSelectedNode,
+            data: {
+              ...prevSelectedNode.data,
+              ...newData,
+            },
+          };
+        }
+        return prevSelectedNode;
+      });
+    }
+
+    toast({
+      title: "Node updated",
+      description: `Node ${nodeId} has been updated.`,
+    })
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
-  // Track drag state with improved logic
-  const isDraggingRef = useRef(false);
-  const dragStartTimeRef = useRef<number>(0);
-
-  const onNodeDragStart = useCallback(() => {
-    isDraggingRef.current = true;
-    dragStartTimeRef.current = Date.now();
-  }, []);
-
-  const onNodeDragStop = useCallback(() => {
-    // Only consider it a drag if it lasted more than 100ms
-    const dragDuration = Date.now() - dragStartTimeRef.current;
-    
-    if (dragDuration > 100) {
-      // It was a real drag, wait before allowing selection
-      setTimeout(() => {
-        isDraggingRef.current = false;
-      }, 150);
-    } else {
-      // It was just a click, allow selection immediately
-      isDraggingRef.current = false;
-    }
-  }, []);
-
-  const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
-    // Don't handle selection changes during drag operations
-    if (isDraggingRef.current) {
-      return;
-    }
-
-    const selectedNodes = params.nodes;
-    
-    // Handle node selection
-    if (selectedNodes.length === 1) {
-      const node = selectedNodes[0];
+  // Simple function to handle node configuration
+  const handleNodeConfigure = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
       setSelectedNode(node);
-      setIsNodeEditorOpen(true);
-      
-      // Generate AI suggestions for the selected node
-      generateSuggestions(node, nodes, edges);
-      setShowAssistant(true);
-      
-      // Position contextual suggestions near the node
-      setContextualSuggestionsPosition({
-        x: node.position.x + 200,
-        y: node.position.y + 50
-      });
-    } else {
-      setSelectedNode(null);
-      setIsNodeEditorOpen(false);
-      clearSuggestions();
-      setShowAssistant(false);
-      setContextualSuggestionsPosition(null);
+      setIsEditorOpen(true);
     }
-  }, [generateSuggestions, clearSuggestions, nodes, edges]);
+  }, [nodes]);
 
-  const closeNodeEditor = useCallback(() => {
-    setIsNodeEditorOpen(false);
-    setSelectedNode(null);
-  }, []);
+  const onConnect = useCallback(
+    (params) => {
+      if (!canEditWorkflows) {
+        toast({
+          title: "Cannot edit workflow",
+          description: "You do not have permission to edit this workflow.",
+        });
+        return;
+      }
+      setEdges((eds) => addEdge(params, eds))
+    },
+    [setEdges, canEditWorkflows, toast]
+  );
 
-  const handleSaveWorkflow = useCallback(async (name: string, description?: string) => {
-    if (!canCreateWorkflows && !canEditWorkflows) {
+  const onNodesChangeWrapper = useCallback((changes) => {
+    if (!canEditWorkflows) {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to save workflows.",
-        variant: "destructive",
+        title: "Cannot edit workflow",
+        description: "You do not have permission to edit this workflow.",
+      });
+      return;
+    }
+    onNodesChange(changes)
+  }, [onNodesChange, canEditWorkflows, toast]);
+
+  const onEdgesChangeWrapper = useCallback((changes) => {
+    if (!canEditWorkflows) {
+      toast({
+        title: "Cannot edit workflow",
+        description: "You do not have permission to edit this workflow.",
+      });
+      return;
+    }
+    onEdgesChange(changes)
+  }, [onEdgesChange, canEditWorkflows, toast]);
+
+  const addNewNode = useCallback((stepType: string, position?: { x: number; y: number }) => {
+    if (!canEditWorkflows) {
+      toast({
+        title: "Cannot edit workflow",
+        description: "You do not have permission to edit this workflow.",
       });
       return;
     }
 
-    const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
-    await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
-    
-    setCurrentWorkflowName(name);
-    setCurrentWorkflowDescription(description);
-    setHasUnsavedChanges(false);
-  }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
+    const newId = String(nodes.length + 1);
 
-  const handleLoadWorkflow = useCallback(async (workflowId: string) => {
-    const workflow = await loadWorkflow(workflowId);
-    if (workflow) {
-      // Preserve persistent IDs from loaded workflow and ensure draggable
-      const draggableNodes = workflow.nodes.map(node => ({ ...node, draggable: true }));
-      setNodes(draggableNodes);
-      setEdges(workflow.edges);
-      setCurrentWorkflowName(workflow.name);
-      setCurrentWorkflowDescription(workflow.description);
-      setHasUnsavedChanges(false);
-      
-      // Set viewport
-      if (reactFlowInstance && workflow.viewport) {
-        reactFlowInstance.setViewport(workflow.viewport);
-      }
-      
-      toast({
-        title: "Workflow Loaded",
-        description: `"${workflow.name}" has been loaded successfully.`,
-      });
-    }
-  }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance]);
+    const getDefaultLabel = (type: string) => {
+      const foundOption = defaultNodeOptions.find(option => option.type === type);
+      return foundOption ? foundOption.label : 'New Node';
+    };
 
-  const handleNewWorkflow = useCallback(() => {
-    setNodes([]);
-    setEdges([]);
-    setCurrentWorkflowId(null);
-    setCurrentWorkflowName(undefined);
-    setCurrentWorkflowDescription(undefined);
-    setHasUnsavedChanges(false);
-    setSelectedNode(null);
-    setIsNodeEditorOpen(false);
-    setNodeIdCounter(1);
-  }, [setNodes, setEdges, setCurrentWorkflowId]);
+    const getDefaultDescription = (type: string) => {
+      const foundOption = defaultNodeOptions.find(option => option.type === type);
+      return foundOption ? foundOption.description : '';
+    };
+    
+    const newNode: Node = {
+      id: newId,
+      type: 'workflow',
+      position: position || { x: Math.random() * 300, y: Math.random() * 300 },
+      data: {
+        label: getDefaultLabel(stepType),
+        stepType,
+        description: getDefaultDescription(stepType),
+        assignedTo: null,
+        estimatedHours: null,
+        onConfigure: handleNodeConfigure
+      },
+    };
 
-  const handleWorkflowGenerated = useCallback((result: any) => {
-    console.log('Applying generated workflow:', result);
+    setNodes((nds) => nds.concat(newNode));
     
-    // Clear existing workflow
-    setNodes([]);
-    setEdges([]);
-    
-    // Apply generated nodes and edges
-    setTimeout(() => {
-      // Ensure all generated nodes are draggable
-      const draggableNodes = result.nodes.map((node: Node) => ({ ...node, draggable: true }));
-      setNodes(draggableNodes);
-      setEdges(result.edges);
-      
-      // Set the workflow metadata
-      if (result.title) {
-        setCurrentWorkflowName(result.title);
-      }
-      if (result.description) {
-        setCurrentWorkflowDescription(result.description);
-      }
-      
-      setHasUnsavedChanges(true);
-      
-      // Fit view to show all generated nodes
-      if (reactFlowInstance) {
-        setTimeout(() => {
-          reactFlowInstance.fitView({ padding: 0.2 });
-        }, 100);
-      }
-    }, 100);
-  }, [setNodes, setEdges, reactFlowInstance]);
+    // Auto-select and open editor for new nodes
+    setSelectedNode(newNode);
+    setIsEditorOpen(true);
+  }, [nodes, handleNodeConfigure, canEditWorkflows, toast]);
 
-  // Generate available fields from previous nodes
-  const getAvailableFields = useCallback(() => {
-    if (!selectedNode) return [];
-    
-    const fields: string[] = [];
-    
-    // Find all nodes that come before the selected node in the workflow
-    const selectedNodeIndex = nodes.findIndex(n => n.id === selectedNode.id);
-    const previousNodes = nodes.slice(0, selectedNodeIndex);
-    
-    previousNodes.forEach(node => {
-      const nodeData = node.data as WorkflowNodeData;
-      
-      // Add common fields based on step type
-      switch (nodeData.stepType) {
-        case 'form-submitted':
-          fields.push('form.name', 'form.email', 'form.phone', 'form.message');
-          break;
-        case 'record-created':
-          fields.push('record.id', 'record.title', 'record.status', 'record.created_at');
-          break;
-        case 'webhook-trigger':
-          fields.push('webhook.payload', 'webhook.headers', 'webhook.method');
-          break;
-        default:
-          fields.push(`${nodeData.stepType}.result`, `${nodeData.stepType}.status`);
-      }
-    });
-    
-    // Add some common system fields
-    fields.push('current_user.id', 'current_user.email', 'current_date', 'current_time');
-    
-    return [...new Set(fields)]; // Remove duplicates
-  }, [selectedNode, nodes]);
-
-  // Add workflow reviewer
-  const {
-    suggestions: reviewSuggestions,
-    isLoading: isReviewing,
-    reviewWorkflow,
-    clearSuggestions: clearReviewSuggestions
-  } = useWorkflowReviewer();
-
-  const [showReview, setShowReview] = useState(false);
-
-  const handleOpenReview = useCallback(() => {
-    reviewWorkflow(nodes, edges, currentWorkflowName);
-    setShowReview(true);
-  }, [reviewWorkflow, nodes, edges, currentWorkflowName]);
-
-  const handleApplySuggestion = useCallback((suggestion: any) => {
-    console.log('Applying suggestion:', suggestion);
-    
-    // Apply the suggested changes
-    if (suggestion.suggestedAction.changes) {
-      const { changes } = suggestion.suggestedAction;
-      
-      // Remove nodes
-      if (changes.nodesToRemove) {
-        changes.nodesToRemove.forEach((nodeId: string) => {
-          deleteNode(nodeId);
-        });
-      }
-      
-      // Modify nodes
-      if (changes.nodesToModify) {
-        changes.nodesToModify.forEach(({ id, changes: nodeChanges }: any) => {
-          updateNodeData(id, nodeChanges);
-        });
-      }
-      
-      // Add nodes (simplified - would need proper positioning logic)
-      if (changes.nodesToAdd) {
-        changes.nodesToAdd.forEach((nodeData: any) => {
-          addNode(nodeData.stepType || 'default', nodeData.label || 'New Step', nodeData.description || '');
-        });
-      }
-      
-      // Remove edges
-      if (changes.edgesToRemove) {
-        setEdges((eds) => eds.filter(edge => !changes.edgesToRemove.includes(edge.id)));
-      }
-    }
-    
-    toast({
-      title: "Suggestion Applied",
-      description: suggestion.title,
-    });
-  }, [deleteNode, updateNodeData, addNode, setEdges, toast]);
-
-  const handleDismissSuggestion = useCallback((suggestionId: string) => {
-    // Could implement local dismissal tracking if needed
-    console.log('Dismissed suggestion:', suggestionId);
-  }, []);
-
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
+  // Update existing nodes to include the configure function
+  useEffect(() => {
+    setNodes((currentNodes) => 
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          onConfigure: handleNodeConfigure
+        }
+      }))
+    );
+  }, [handleNodeConfigure, setNodes]);
 
   const onDrop = useCallback(
-    (event: React.DragEvent) => {
+    (event) => {
       event.preventDefault();
 
-      if (!canCreateWorkflows) {
+      if (!canEditWorkflows) {
         toast({
-          title: "Permission Denied",
-          description: "You don't have permission to add nodes to workflows.",
-          variant: "destructive",
+          title: "Cannot edit workflow",
+          description: "You do not have permission to edit this workflow.",
         });
         return;
       }
 
       const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
-      const stepData = event.dataTransfer.getData('application/reactflow');
+      const type = event.dataTransfer.getData('application/reactflow');
 
-      // Check if we have valid step data
-      if (typeof stepData === 'undefined' || !stepData) {
-        return;
-      }
-
-      let parsedData;
-      try {
-        parsedData = JSON.parse(stepData);
-      } catch (error) {
-        console.error('Failed to parse dropped data:', error);
-        return;
-      }
-
-      const { type, label, description } = parsedData;
-
+      // check if the dropped element is valid
       if (typeof type === 'undefined' || !type) {
         return;
       }
 
-      // Calculate position relative to the ReactFlow canvas
-      const position = reactFlowInstance?.screenToFlowPosition({
-        x: event.clientX - (reactFlowBounds?.left || 0),
-        y: event.clientY - (reactFlowBounds?.top || 0),
-      }) || { x: 0, y: 0 };
-
-      const persistentId = generatePersistentNodeId();
-      
-      const newNode: Node = {
-        id: persistentId,
-        type: 'workflowStep',
-        position,
-        data: { 
-          label: label || 'New Step',
-          stepType: type,
-          description: description || '',
-          assignedTo: null,
-          estimatedHours: null
-        } as WorkflowNodeData,
-        dragHandle: '.drag-handle',
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-      setNodeIdCounter((counter) => counter + 1);
-      
-      toast({
-        title: "Step Added",
-        description: `"${label || 'New Step'}" has been added to your workflow.`,
+      const position = reactFlowInstance!.project({
+        x: event.clientX - reactFlowBounds!.left,
+        y: event.clientY - reactFlowBounds!.top,
       });
+      addNewNode(type, position);
     },
-    [reactFlowInstance, canCreateWorkflows, generatePersistentNodeId, setNodes, toast]
+    [reactFlowInstance, addNewNode, canEditWorkflows, toast]
   );
 
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleSave = async (values: z.infer<typeof workflowSchema>) => {
+    if (!canEditWorkflows) {
+      toast({
+        title: "Cannot edit workflow",
+        description: "You do not have permission to edit this workflow.",
+      });
+      return;
+    }
+
+    try {
+      saveWorkflow({
+        nodes,
+        edges,
+        name: values.name,
+        description: values.description,
+        triggerType: values.triggerType || '',
+      });
+    } catch (error) {
+      console.error("Error saving workflow:", error);
+      toast({
+        title: "Error saving workflow",
+        description: "Failed to save workflow. Please try again.",
+        variant: "destructive",
+      })
+    }
+  };
+
+  const nodeTypes = useMemo(() => ({ workflow: WorkflowNode }), []);
+
   return (
-    <WorkflowPermissionGuard>
-      <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
-        <WorkflowSidebar onAddNode={addNode} />
-        <div className="flex-1 flex flex-col">
-          <WorkflowToolbar 
-            onAddNode={addNode}
-            onSave={handleSaveWorkflow}
-            onLoad={handleLoadWorkflow}
-            onNewWorkflow={handleNewWorkflow}
-            onOpenGenerator={() => setIsGeneratorOpen(true)}
-            onOpenReview={handleOpenReview}
-            isSaving={isSaving}
-            currentWorkflowName={currentWorkflowName}
-            currentWorkflowDescription={currentWorkflowDescription}
-            hasUnsavedChanges={hasUnsavedChanges}
-            isCurrentWorkflowSaved={!!currentWorkflowId}
+    <div className="h-screen w-full">
+      <ReactFlowProvider>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="absolute top-4 right-20 z-50">
+              <Settings className="h-4 w-4 mr-2" />
+              Workflow Settings
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Workflow Settings</DialogTitle>
+              <DialogDescription>
+                Make changes to your workflow here. Click save when you're done.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...workflowForm}>
+              <form onSubmit={workflowForm.handleSubmit(handleSave)} className="space-y-4">
+                <FormField
+                  control={workflowForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Workflow Name" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This is the name that will be displayed in the workflow list.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={workflowForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Workflow Description" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Briefly describe what this workflow does.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button type="submit" disabled={isSaveLoading}>Save changes</Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        <div className="absolute top-4 right-4 z-50">
+          <Button variant="outline" size="sm" onClick={() => handleSave(workflowForm.getValues())} disabled={isSaveLoading}>
+            <Save className="h-4 w-4 mr-2" />
+            {workflowId ? 'Update' : 'Save'}
+          </Button>
+        </div>
+
+        <div className="sidebar absolute left-4 top-4 z-50 bg-white border rounded p-2">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">Add New Step</h3>
+          {defaultNodeOptions.map((option) => (
+            <DraggableStep key={option.type} type={option.type} label={option.label} />
+          ))}
+        </div>
+
+        <div className="reactflow-wrapper h-full" ref={reactFlowWrapper}>
+          <ReactFlow
             nodes={nodes}
             edges={edges}
-          />
-          <div className="flex-1 relative" ref={reactFlowWrapper}>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onSelectionChange={onSelectionChange}
-              onNodeDragStart={onNodeDragStart}
-              onNodeDragStop={onNodeDragStop}
-              onInit={setReactFlowInstance}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              fitView
-              snapToGrid={true}
-              snapGrid={[15, 15]}
-              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-              minZoom={0.2}
-              maxZoom={2}
-              attributionPosition="bottom-left"
-              proOptions={{ hideAttribution: true }}
-              connectionMode={ConnectionMode.Loose}
-              deleteKeyCode={canDeleteWorkflows ? ['Backspace', 'Delete'] : []}
-              nodesDraggable={canEditWorkflows}
-              nodesConnectable={canCreateWorkflows}
-              elementsSelectable={true}
-            >
-              <Background 
-                variant={BackgroundVariant.Dots} 
-                gap={15} 
-                size={1}
-                className="bg-gray-50"
-              />
-              <Controls 
-                position="top-right"
-                showZoom={true}
-                showFitView={true}
-                showInteractive={true}
-              />
-              <MiniMap 
-                position="bottom-right"
-                nodeStrokeWidth={3}
-                zoomable
-                pannable
-                className="bg-white border border-gray-200 rounded"
-              />
-            </ReactFlow>
-            
-            {/* Contextual suggestions near selected node */}
-            {contextualSuggestionsPosition && suggestions.length > 0 && (
-              <NodeSuggestions
-                suggestions={suggestions}
-                position={contextualSuggestionsPosition}
-                onAddSuggestion={handleAddSuggestedStep}
-                onDismiss={() => setContextualSuggestionsPosition(null)}
-              />
-            )}
-            
-            <NodeEditor
-              selectedNode={selectedNode}
-              isOpen={isNodeEditorOpen}
-              onClose={closeNodeEditor}
-              onUpdateNode={updateNodeData}
-              availableFields={getAvailableFields()}
-            />
-          </div>
+            onNodesChange={onNodesChangeWrapper}
+            onEdgesChange={onEdgesChangeWrapper}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onInit={setReactFlowInstance}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-gray-100"
+          >
+            <Controls />
+            <Background variant="dots" gap={20} size={0.5} />
+          </ReactFlow>
         </div>
-      </div>
-      
-      {/* Floating AI Assistant Panel */}
-      <FloatingAssistant
-        suggestions={suggestions}
-        isLoading={isSuggestionsLoading}
-        isVisible={showAssistant}
-        onClose={() => setShowAssistant(false)}
-        onAddSuggestion={handleAddSuggestedStep}
-        selectedNodeLabel={(selectedNode?.data as WorkflowNodeData)?.label}
-      />
-      
-      <NaturalLanguageGenerator
-        isOpen={isGeneratorOpen}
-        onClose={() => setIsGeneratorOpen(false)}
-        onWorkflowGenerated={handleWorkflowGenerated}
-      />
-      
-      {/* Workflow Review Panel */}
-      <WorkflowReview
-        isOpen={showReview}
-        onClose={() => setShowReview(false)}
-        suggestions={reviewSuggestions}
-        isLoading={isReviewing}
-        workflowName={currentWorkflowName}
-        onApplySuggestion={handleApplySuggestion}
-        onDismissSuggestion={handleDismissSuggestion}
-      />
-    </WorkflowPermissionGuard>
+
+        <NodeEditor
+          selectedNode={selectedNode}
+          isOpen={isEditorOpen}
+          onClose={() => setIsEditorOpen(false)}
+          onUpdateNode={onUpdateNode}
+          availableFields={availableFields}
+        />
+      </ReactFlowProvider>
+    </div>
   );
 }

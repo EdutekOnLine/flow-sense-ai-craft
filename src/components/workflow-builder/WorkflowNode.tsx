@@ -31,6 +31,7 @@ interface WorkflowNodeData extends Record<string, unknown> {
   description: string;
   assignedTo: string | null;
   estimatedHours: number | null;
+  onConfigure?: (nodeId: string) => void;
 }
 
 const stepTypeConfig = {
@@ -85,6 +86,13 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
   };
 
+  const handleConfigure = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (nodeData.onConfigure) {
+      nodeData.onConfigure(id);
+    }
+  };
+
   return (
     <div className={`relative bg-white border-2 rounded-lg shadow-sm min-w-[200px] ${config.color}`}>
       {/* Top Handle */}
@@ -96,7 +104,7 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
       
       {/* Node Content */}
       <div className="p-3">
-        {/* Header with drag handle and delete button */}
+        {/* Header with drag handle, configure, and delete buttons */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 flex-1">
             {/* Drag handle - only this area is draggable */}
@@ -106,14 +114,26 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
             <Icon className={`h-4 w-4 ${config.iconColor}`} />
             <span className="font-medium text-sm text-gray-900 flex-1">{nodeData.label}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDelete}
-            className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 flex-shrink-0"
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleConfigure}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-blue-500 flex-shrink-0"
+              title="Configure node"
+            >
+              <Settings className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 flex-shrink-0"
+              title="Delete node"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         
         {/* Step Type Badge */}
