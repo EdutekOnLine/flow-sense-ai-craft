@@ -1,5 +1,7 @@
+
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -9,6 +11,7 @@ import ReactFlow, {
   Edge,
   useReactFlow,
   ReactFlowProvider,
+  BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { initialNodes, initialEdges } from './initial-elements';
@@ -22,8 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/components/ui/use-toast"
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createWorkflow, getWorkflow, updateWorkflow } from '@/lib/api/workflow.api';
-import { useParams } from 'next/navigation';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,7 +38,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Workflow } from '@/lib/types';
-import { useUser } from '@clerk/nextjs';
 import { DraggableStep } from './DraggableStep';
 
 const defaultNodeOptions = [
@@ -72,19 +73,17 @@ const workflowSchema = z.object({
 
 export default function WorkflowBuilder() {
   const { toast } = useToast()
-  const { id: workflowId } = useParams();
   const queryClient = useQueryClient();
-  const { user } = useUser();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange, updateEdge] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [availableFields, setAvailableFields] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [canEditWorkflows, setCanEditWorkflows] = useState(false);
+  const [canEditWorkflows, setCanEditWorkflows] = useState(true);
   const [workflowDetails, setWorkflowDetails] = useState<Workflow | null>(null);
 
   const workflowForm = useForm<z.infer<typeof workflowSchema>>({
@@ -95,49 +94,16 @@ export default function WorkflowBuilder() {
     },
   })
 
-  const { data: workflowData, isLoading: isWorkflowLoading } = useQuery({
-    queryKey: ['workflow', workflowId],
-    queryFn: () => getWorkflow(workflowId as string),
-    enabled: !!workflowId,
-    onSuccess: (data) => {
-      if (data) {
-        setNodes(data.nodes as Node[]);
-        setEdges(data.edges as Edge[]);
-        setWorkflowDetails(data);
-        workflowForm.reset({
-          name: data.name,
-          description: data.description,
-          triggerType: data.triggerType || '',
-        });
-        setCanEditWorkflows(data.createdBy === user?.id);
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error fetching workflow",
-        description: "Failed to fetch workflow details. Please try again.",
-        variant: "destructive",
-      })
-    }
-  });
-
-  const { mutate: saveWorkflow, isLoading: isSaveLoading } = useMutation({
+  const { mutate: saveWorkflow, isPending: isSaveLoading } = useMutation({
     mutationFn: async (data: { nodes: Node[], edges: Edge[], name: string, description: string, triggerType: string }) => {
-      if (workflowId) {
-        return updateWorkflow(workflowId, data);
-      } else {
-        return createWorkflow(data);
-      }
+      return createWorkflow(data);
     },
     onSuccess: (data) => {
       toast({
         title: "Workflow saved",
         description: "Your workflow has been saved successfully.",
       })
-      queryClient.invalidateQueries(['workflows']);
-      if (!workflowId && data?.id) {
-        window.location.href = `/workflow/${data.id}`;
-      }
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
     },
     onError: (error) => {
       toast({
@@ -275,10 +241,6 @@ export default function WorkflowBuilder() {
     };
 
     setNodes((nds) => nds.concat(newNode));
-    
-    // Auto-select and open editor for new nodes
-    setSelectedNode(newNode);
-    setIsEditorOpen(true);
   }, [nodes, handleNodeConfigure, canEditWorkflows, toast]);
 
   // Update existing nodes to include the configure function
@@ -419,7 +381,7 @@ export default function WorkflowBuilder() {
         <div className="absolute top-4 right-4 z-50">
           <Button variant="outline" size="sm" onClick={() => handleSave(workflowForm.getValues())} disabled={isSaveLoading}>
             <Save className="h-4 w-4 mr-2" />
-            {workflowId ? 'Update' : 'Save'}
+            Save
           </Button>
         </div>
 
@@ -445,7 +407,7 @@ export default function WorkflowBuilder() {
             className="bg-gray-100"
           >
             <Controls />
-            <Background variant="dots" gap={20} size={0.5} />
+            <Background variant={BackgroundVariant.Dots} gap={20} size={0.5} />
           </ReactFlow>
         </div>
 
