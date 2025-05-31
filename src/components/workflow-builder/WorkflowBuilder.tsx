@@ -15,6 +15,7 @@ import {
   MarkerType,
   ConnectionMode,
   ReactFlowInstance,
+  NodeDragHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
@@ -316,7 +317,22 @@ export default function WorkflowBuilder() {
     );
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const onNodeDragStart: NodeDragHandler = useCallback(() => {
+    setIsDragging(true);
+  }, []);
+
+  const onNodeDragStop: NodeDragHandler = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
+    // Don't handle selection changes during drag operations
+    if (isDragging) {
+      return;
+    }
+
     const selectedNodes = params.nodes;
     
     // Handle node selection
@@ -341,7 +357,7 @@ export default function WorkflowBuilder() {
       setShowAssistant(false);
       setContextualSuggestionsPosition(null);
     }
-  }, [generateSuggestions, clearSuggestions, nodes, edges]);
+  }, [isDragging, generateSuggestions, clearSuggestions, nodes, edges]);
 
   const closeNodeEditor = useCallback(() => {
     setIsNodeEditorOpen(false);
@@ -630,6 +646,8 @@ export default function WorkflowBuilder() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onSelectionChange={onSelectionChange}
+              onNodeDragStart={onNodeDragStart}
+              onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
               onDrop={onDrop}
               onDragOver={onDragOver}
