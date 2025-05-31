@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Save, 
@@ -142,10 +141,10 @@ export function WorkflowToolbar({
         isOpen={showSaveDialog}
         onClose={() => setShowSaveDialog(false)}
         onSave={handleSave}
-        currentName={currentWorkflowName}
-        currentDescription={currentWorkflowDescription}
-        isSaving={isSaving}
-        isUpdate={isCurrentWorkflowSaved}
+        initialName={currentWorkflowName}
+        initialDescription={currentWorkflowDescription}
+        isLoading={isSaving}
+        isEditing={isCurrentWorkflowSaved}
       />
 
       <LoadWorkflowDialog

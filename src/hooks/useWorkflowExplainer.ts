@@ -76,8 +76,8 @@ export function useWorkflowExplainer() {
         outgoingEdges.forEach((edge, index) => {
           const nextNode = nodes.find(node => node.id === edge.target);
           if (nextNode && !visitedNodes.has(nextNode.id)) {
-            const edgeLabel = edge.data?.label || `Path ${index + 1}`;
-            explanation.push(`• If ${edgeLabel.toLowerCase()}:`);
+            const edgeLabel = (edge.data as any)?.label || `Path ${index + 1}`;
+            explanation.push(`• If ${String(edgeLabel).toLowerCase()}:`);
             explainFromNode(nextNode, depth + 1);
           }
         });
