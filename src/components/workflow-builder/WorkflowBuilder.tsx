@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -23,7 +22,9 @@ import { WorkflowNode } from './WorkflowNode';
 import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
 import { ConditionalEdge } from './ConditionalEdge';
+import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
 import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowNodeData extends Record<string, unknown> {
@@ -66,6 +67,8 @@ const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
 export default function WorkflowBuilder() {
+  const { canCreateWorkflows, canEditWorkflows, canDeleteWorkflows } = useWorkflowPermissions();
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
@@ -146,6 +149,15 @@ export default function WorkflowBuilder() {
   );
 
   const addNode = useCallback((type: string, label: string, description: string = '') => {
+    if (!canCreateWorkflows) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to add nodes to workflows.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const persistentId = generatePersistentNodeId();
     
     const newNode: Node = {
@@ -164,9 +176,18 @@ export default function WorkflowBuilder() {
     
     setNodes((nds) => nds.concat(newNode));
     setNodeIdCounter((counter) => counter + 1);
-  }, [nodes.length, setNodes, generatePersistentNodeId]);
+  }, [nodes.length, setNodes, generatePersistentNodeId, canCreateWorkflows, toast]);
 
   const deleteNode = useCallback((nodeId: string) => {
+    if (!canDeleteWorkflows) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to delete nodes from workflows.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
     
@@ -175,9 +196,18 @@ export default function WorkflowBuilder() {
       setSelectedNode(null);
       setIsNodeEditorOpen(false);
     }
-  }, [setNodes, setEdges, selectedNode]);
+  }, [setNodes, setEdges, selectedNode, canDeleteWorkflows, toast]);
 
   const updateNodeData = useCallback((nodeId: string, newData: Partial<WorkflowNodeData>) => {
+    if (!canEditWorkflows) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to edit workflow nodes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -191,7 +221,7 @@ export default function WorkflowBuilder() {
         return node;
       })
     );
-  }, [setNodes, selectedNode]);
+  }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     const selectedNodes = params.nodes;
@@ -213,15 +243,22 @@ export default function WorkflowBuilder() {
   }, []);
 
   const handleSaveWorkflow = useCallback(async (name: string, description?: string) => {
-    if (!reactFlowInstance) return;
-    
+    if (!canCreateWorkflows && !canEditWorkflows) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to save workflows.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const viewport = reactFlowInstance.getViewport();
     await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
     
     setCurrentWorkflowName(name);
     setCurrentWorkflowDescription(description);
     setHasUnsavedChanges(false);
-  }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance]);
+  }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
 
   const handleLoadWorkflow = useCallback(async (workflowId: string) => {
     const workflow = await loadWorkflow(workflowId);
@@ -293,72 +330,74 @@ export default function WorkflowBuilder() {
   }, [selectedNode, nodes]);
 
   return (
-    <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <WorkflowSidebar onAddNode={addNode} />
-      <div className="flex-1 flex flex-col">
-        <WorkflowToolbar 
-          onAddNode={addNode}
-          onSave={handleSaveWorkflow}
-          onLoad={handleLoadWorkflow}
-          onNewWorkflow={handleNewWorkflow}
-          isSaving={isSaving}
-          currentWorkflowName={currentWorkflowName}
-          currentWorkflowDescription={currentWorkflowDescription}
-          hasUnsavedChanges={hasUnsavedChanges}
-          isCurrentWorkflowSaved={!!currentWorkflowId}
-        />
-        <div className="flex-1 relative" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectionChange={onSelectionChange}
-            onInit={setReactFlowInstance}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            snapToGrid={true}
-            snapGrid={[15, 15]}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-            minZoom={0.2}
-            maxZoom={2}
-            attributionPosition="bottom-left"
-            proOptions={{ hideAttribution: true }}
-            connectionMode={ConnectionMode.Loose}
-            deleteKeyCode={['Backspace', 'Delete']}
-          >
-            <Background 
-              variant={BackgroundVariant.Dots} 
-              gap={15} 
-              size={1}
-              className="bg-gray-50"
-            />
-            <Controls 
-              position="top-right"
-              showZoom={true}
-              showFitView={true}
-              showInteractive={true}
-            />
-            <MiniMap 
-              position="bottom-right"
-              nodeStrokeWidth={3}
-              zoomable
-              pannable
-              className="bg-white border border-gray-200 rounded"
-            />
-          </ReactFlow>
-          
-          <NodeEditor
-            selectedNode={selectedNode}
-            isOpen={isNodeEditorOpen}
-            onClose={closeNodeEditor}
-            onUpdateNode={updateNodeData}
-            availableFields={getAvailableFields()}
+    <WorkflowPermissionGuard>
+      <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
+        <WorkflowSidebar onAddNode={addNode} />
+        <div className="flex-1 flex flex-col">
+          <WorkflowToolbar 
+            onAddNode={addNode}
+            onSave={handleSaveWorkflow}
+            onLoad={handleLoadWorkflow}
+            onNewWorkflow={handleNewWorkflow}
+            isSaving={isSaving}
+            currentWorkflowName={currentWorkflowName}
+            currentWorkflowDescription={currentWorkflowDescription}
+            hasUnsavedChanges={hasUnsavedChanges}
+            isCurrentWorkflowSaved={!!currentWorkflowId}
           />
+          <div className="flex-1 relative" ref={reactFlowWrapper}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onSelectionChange={onSelectionChange}
+              onInit={setReactFlowInstance}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              snapToGrid={true}
+              snapGrid={[15, 15]}
+              defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+              minZoom={0.2}
+              maxZoom={2}
+              attributionPosition="bottom-left"
+              proOptions={{ hideAttribution: true }}
+              connectionMode={ConnectionMode.Loose}
+              deleteKeyCode={canDeleteWorkflows ? ['Backspace', 'Delete'] : []}
+            >
+              <Background 
+                variant={BackgroundVariant.Dots} 
+                gap={15} 
+                size={1}
+                className="bg-gray-50"
+              />
+              <Controls 
+                position="top-right"
+                showZoom={true}
+                showFitView={true}
+                showInteractive={true}
+              />
+              <MiniMap 
+                position="bottom-right"
+                nodeStrokeWidth={3}
+                zoomable
+                pannable
+                className="bg-white border border-gray-200 rounded"
+              />
+            </ReactFlow>
+            
+            <NodeEditor
+              selectedNode={selectedNode}
+              isOpen={isNodeEditorOpen}
+              onClose={closeNodeEditor}
+              onUpdateNode={updateNodeData}
+              availableFields={getAvailableFields()}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </WorkflowPermissionGuard>
   );
 }

@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager', 'employee'] },
+    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager'] }, // Restricted to admin and manager
     { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
     { id: 'templates', label: 'Templates', icon: FileText, roles: ['admin', 'manager', 'employee'] },

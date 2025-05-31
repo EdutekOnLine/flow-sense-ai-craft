@@ -295,6 +295,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      has_workflow_permissions: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       task_priority: "low" | "medium" | "high" | "urgent"

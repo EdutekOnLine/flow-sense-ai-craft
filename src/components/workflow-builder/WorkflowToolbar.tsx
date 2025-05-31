@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Upload, Play, FolderOpen, Edit } from 'lucide-react';
 import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { LoadWorkflowDialog } from './LoadWorkflowDialog';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 
 interface WorkflowToolbarProps {
   onAddNode: (type: string, label: string, description: string) => void;
@@ -30,6 +31,7 @@ export function WorkflowToolbar({
 }: WorkflowToolbarProps) {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const { canCreateWorkflows, canEditWorkflows } = useWorkflowPermissions();
 
   const handleSave = (name: string, description?: string) => {
     onSave(name, description);
@@ -37,6 +39,8 @@ export function WorkflowToolbar({
   };
 
   const handleNewWorkflow = () => {
+    if (!canCreateWorkflows) return;
+    
     if (hasUnsavedChanges) {
       if (confirm('You have unsaved changes. Are you sure you want to create a new workflow?')) {
         onNewWorkflow();
@@ -45,6 +49,8 @@ export function WorkflowToolbar({
       onNewWorkflow();
     }
   };
+
+  const canSaveWorkflow = canCreateWorkflows || (canEditWorkflows && isCurrentWorkflowSaved);
 
   return (
     <>
@@ -66,7 +72,9 @@ export function WorkflowToolbar({
             variant="outline"
             size="sm"
             onClick={handleNewWorkflow}
+            disabled={!canCreateWorkflows}
             className="flex items-center gap-2"
+            title={!canCreateWorkflows ? "You don't have permission to create workflows" : "Create new workflow"}
           >
             <Plus className="h-4 w-4" />
             New
@@ -85,8 +93,10 @@ export function WorkflowToolbar({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onAddNode('start', 'Start', 'Start of the workflow')}
+            onClick={() => canCreateWorkflows && onAddNode('start', 'Start', 'Start of the workflow')}
+            disabled={!canCreateWorkflows}
             className="flex items-center gap-2"
+            title={!canCreateWorkflows ? "You don't have permission to add nodes" : "Add start node"}
           >
             <Plus className="h-4 w-4" />
             Add Start
@@ -96,8 +106,9 @@ export function WorkflowToolbar({
             variant="outline"
             size="sm"
             onClick={() => setShowSaveDialog(true)}
-            disabled={isSaving}
+            disabled={isSaving || !canSaveWorkflow}
             className="flex items-center gap-2"
+            title={!canSaveWorkflow ? "You don't have permission to save workflows" : isCurrentWorkflowSaved ? "Update workflow" : "Save workflow"}
           >
             {isCurrentWorkflowSaved ? <Edit className="h-4 w-4" /> : <Save className="h-4 w-4" />}
             {isCurrentWorkflowSaved ? 'Update' : 'Save'}
@@ -132,15 +143,17 @@ export function WorkflowToolbar({
         </div>
       </div>
 
-      <SaveWorkflowDialog
-        isOpen={showSaveDialog}
-        onClose={() => setShowSaveDialog(false)}
-        onSave={handleSave}
-        isLoading={isSaving}
-        initialName={currentWorkflowName}
-        initialDescription={currentWorkflowDescription}
-        isEditing={isCurrentWorkflowSaved}
-      />
+      {canSaveWorkflow && (
+        <SaveWorkflowDialog
+          isOpen={showSaveDialog}
+          onClose={() => setShowSaveDialog(false)}
+          onSave={handleSave}
+          isLoading={isSaving}
+          initialName={currentWorkflowName}
+          initialDescription={currentWorkflowDescription}
+          isEditing={isCurrentWorkflowSaved}
+        />
+      )}
 
       <LoadWorkflowDialog
         isOpen={showLoadDialog}
