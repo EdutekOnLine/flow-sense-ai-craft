@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +13,11 @@ import { formatDistanceToNow } from 'date-fns';
 type AssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 export function WorkflowInbox() {
-  const { assignments, isLoading, updateAssignmentStatus } = useWorkflowAssignments();
+  const { assignments, isLoading, updateAssignmentStatus, completeStep } = useWorkflowAssignments();
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [notes, setNotes] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -56,6 +57,16 @@ export function WorkflowInbox() {
     setNotes('');
   };
 
+  const handleCompleteStep = async (assignment: any) => {
+    setIsCompleting(true);
+    try {
+      await completeStep(assignment.id, notes);
+      setNotes('');
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
   const filteredAssignments = assignments.filter(assignment => {
     if (statusFilter === 'all') return true;
     return assignment.status === statusFilter;
@@ -76,7 +87,7 @@ export function WorkflowInbox() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Workflow Inbox</h2>
+          <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
           <p className="text-gray-600">Manage your assigned workflow steps</p>
         </div>
         <div className="flex items-center gap-4">
@@ -164,69 +175,138 @@ export function WorkflowInbox() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 pt-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAssignment(assignment);
-                          setNotes(assignment.notes || '');
-                        }}
-                      >
-                        Update Status
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Update Assignment Status</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 pt-4">
-                        <div>
-                          <h4 className="font-medium mb-2">Step: {selectedAssignment?.workflow_steps.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            Workflow: {selectedAssignment?.workflow_steps.workflows.name}
-                          </p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Notes (optional)</label>
-                          <Textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Add any notes about this step..."
-                            rows={3}
-                          />
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-blue-50 hover:bg-blue-100"
-                            onClick={() => handleStatusUpdate('in_progress')}
-                          >
-                            Start Working
-                          </Button>
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  {assignment.status !== 'completed' && (
+                    <>
+                      {assignment.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-blue-50 hover:bg-blue-100"
+                          onClick={() => handleStatusUpdate('in_progress')}
+                        >
+                          <PlayCircle className="h-4 w-4 mr-1" />
+                          Start Working
+                        </Button>
+                      )}
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
                           <Button
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleStatusUpdate('completed')}
+                            disabled={isCompleting}
                           >
-                            Mark Complete
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            {isCompleting ? 'Completing...' : 'Mark as Done'}
                           </Button>
-                          <Button
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Complete Step</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 pt-4">
+                            <div>
+                              <h4 className="font-medium mb-2">Step: {assignment.workflow_steps.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                Workflow: {assignment.workflow_steps.workflows.name}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Completion Notes</label>
+                              <Textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Add notes about the completion of this step..."
+                                rows={3}
+                              />
+                            </div>
+
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                variant="outline"
+                                onClick={() => setNotes('')}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleCompleteStep(assignment)}
+                                disabled={isCompleting}
+                              >
+                                <ArrowRight className="h-4 w-4 mr-1" />
+                                {isCompleting ? 'Completing...' : 'Complete & Advance Workflow'}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
                             size="sm"
-                            variant="ghost"
-                            onClick={() => handleStatusUpdate('skipped')}
+                            onClick={() => {
+                              setSelectedAssignment(assignment);
+                              setNotes(assignment.notes || '');
+                            }}
                           >
-                            Skip
+                            Update Status
                           </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Update Assignment Status</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 pt-4">
+                            <div>
+                              <h4 className="font-medium mb-2">Step: {selectedAssignment?.workflow_steps.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                Workflow: {selectedAssignment?.workflow_steps.workflows.name}
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Notes (optional)</label>
+                              <Textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                placeholder="Add any notes about this step..."
+                                rows={3}
+                              />
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-blue-50 hover:bg-blue-100"
+                                onClick={() => handleStatusUpdate('in_progress')}
+                              >
+                                Start Working
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleStatusUpdate('skipped')}
+                              >
+                                Skip
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </>
+                  )}
+                  
+                  {assignment.status === 'completed' && assignment.completed_at && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      Completed {formatDistanceToNow(new Date(assignment.completed_at), { addSuffix: true })}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

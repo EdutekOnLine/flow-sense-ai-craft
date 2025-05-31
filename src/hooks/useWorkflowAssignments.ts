@@ -20,6 +20,7 @@ interface WorkflowAssignment {
     name: string;
     description?: string;
     workflow_id: string;
+    step_order: number;
     workflows: {
       name: string;
     };
@@ -45,6 +46,7 @@ export function useWorkflowAssignments() {
             name,
             description,
             workflow_id,
+            step_order,
             workflows (
               name
             )
@@ -119,6 +121,83 @@ export function useWorkflowAssignments() {
     }
   }, [toast]);
 
+  const completeStep = useCallback(async (
+    assignmentId: string,
+    completionNotes?: string
+  ) => {
+    try {
+      // Get the assignment details first
+      const assignment = assignments.find(a => a.id === assignmentId);
+      if (!assignment) {
+        throw new Error('Assignment not found');
+      }
+
+      console.log('Completing step for assignment:', assignment);
+
+      // Update assignment status to completed
+      const updateData = {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        notes: completionNotes || assignment.notes
+      };
+
+      const { error: updateError } = await supabase
+        .from('workflow_step_assignments')
+        .update(updateData)
+        .eq('id', assignmentId);
+
+      if (updateError) throw updateError;
+
+      // Call the edge function to advance the workflow
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('advance-workflow', {
+        body: {
+          workflowId: assignment.workflow_steps.workflow_id,
+          completedStepId: assignment.workflow_step_id,
+          completedBy: user?.id,
+          completionNotes: completionNotes
+        }
+      });
+
+      if (functionError) {
+        console.error('Error advancing workflow:', functionError);
+        // Don't fail the whole operation if workflow advancement fails
+        toast({
+          title: "Step Completed",
+          description: "Step completed but workflow advancement may have failed. Check with administrator.",
+          variant: "destructive",
+        });
+      } else {
+        console.log('Workflow advancement result:', functionData);
+        toast({
+          title: "Step Completed",
+          description: "Step completed successfully and workflow has been advanced.",
+        });
+      }
+
+      // Update local state
+      setAssignments(prev => 
+        prev.map(a => 
+          a.id === assignmentId 
+            ? { ...a, ...updateData, status: 'completed' as AssignmentStatus }
+            : a
+        )
+      );
+
+      // Refresh assignments to get any new ones
+      setTimeout(() => {
+        fetchAssignments();
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error completing step:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete step. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [assignments, user?.id, toast, fetchAssignments]);
+
   useEffect(() => {
     fetchAssignments();
   }, [fetchAssignments]);
@@ -127,6 +206,7 @@ export function useWorkflowAssignments() {
     assignments,
     isLoading,
     updateAssignmentStatus,
+    completeStep,
     refetch: fetchAssignments
   };
 }
