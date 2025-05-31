@@ -126,9 +126,10 @@ export function WorkflowToolbar({
         isOpen={isSaveDialogOpen}
         onClose={() => setIsSaveDialogOpen(false)}
         onSave={handleSave}
-        defaultName={currentWorkflowName}
-        defaultDescription={currentWorkflowDescription}
-        isUpdate={isCurrentWorkflowSaved}
+        initialName={currentWorkflowName}
+        initialDescription={currentWorkflowDescription}
+        isEditing={isCurrentWorkflowSaved}
+        isLoading={isSaving}
       />
 
       <LoadWorkflowDialog
