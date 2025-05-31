@@ -70,6 +70,15 @@ const edgeTypes = {
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
+interface StepSuggestion {
+  id: string;
+  label: string;
+  description: string;
+  stepType: string;
+  reason: string;
+  confidence: number;
+}
+
 export default function WorkflowBuilder() {
   const { canCreateWorkflows, canEditWorkflows, canDeleteWorkflows } = useWorkflowPermissions();
 
@@ -85,6 +94,17 @@ export default function WorkflowBuilder() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
+
+  // Initialize step suggestions hook
+  const {
+    suggestions,
+    isLoading: isSuggestionsLoading,
+    generateSuggestions,
+    clearSuggestions
+  } = useStepSuggestions();
+  
+  const [showAssistant, setShowAssistant] = useState(false);
+  const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
 
   const {
     currentWorkflowId,
@@ -112,6 +132,72 @@ export default function WorkflowBuilder() {
     const random = Math.random().toString(36).substr(2, 9);
     return `edge-${sourceId}-${targetId}-${timestamp}-${random}`;
   }, []);
+
+  const handleAddSuggestedStep = useCallback((suggestion: StepSuggestion) => {
+    if (!canCreateWorkflows) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to add nodes to workflows.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const persistentId = generatePersistentNodeId();
+    
+    // Position new node to the right of the selected node
+    let newPosition = { x: 400, y: 100 + nodes.length * 150 };
+    if (selectedNode) {
+      newPosition = {
+        x: selectedNode.position.x + 300,
+        y: selectedNode.position.y
+      };
+    }
+    
+    const newNode: Node = {
+      id: persistentId,
+      type: 'workflowStep',
+      position: newPosition,
+      data: { 
+        label: suggestion.label,
+        stepType: suggestion.stepType,
+        description: suggestion.description,
+        assignedTo: null,
+        estimatedHours: null
+      } as WorkflowNodeData,
+      dragHandle: '.drag-handle',
+    };
+    
+    setNodes((nds) => nds.concat(newNode));
+    
+    // Connect to selected node if there is one
+    if (selectedNode) {
+      const newEdge: Edge = {
+        id: generatePersistentEdgeId(selectedNode.id, persistentId),
+        source: selectedNode.id,
+        target: persistentId,
+        type: 'default',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+        },
+        style: {
+          strokeWidth: 2,
+          stroke: '#64748b',
+        },
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    }
+    
+    // Clear contextual suggestions
+    setContextualSuggestionsPosition(null);
+    
+    toast({
+      title: "Step Added",
+      description: `"${suggestion.label}" has been added to your workflow.`,
+    });
+  }, [selectedNode, nodes.length, setNodes, setEdges, generatePersistentNodeId, generatePersistentEdgeId, canCreateWorkflows, toast]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -270,7 +356,7 @@ export default function WorkflowBuilder() {
       return;
     }
 
-    const viewport = reactFlowInstance.getViewport();
+    const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
     await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
     
     setCurrentWorkflowName(name);
@@ -378,16 +464,6 @@ export default function WorkflowBuilder() {
     return [...new Set(fields)]; // Remove duplicates
   }, [selectedNode, nodes]);
 
-  const {
-    suggestions,
-    isLoading: isSuggestionsLoading,
-    generateSuggestions,
-    clearSuggestions
-  } = useStepSuggestions();
-  
-  const [showAssistant, setShowAssistant] = useState(false);
-  const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
-
   return (
     <WorkflowPermissionGuard>
       <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -476,7 +552,7 @@ export default function WorkflowBuilder() {
         isVisible={showAssistant}
         onClose={() => setShowAssistant(false)}
         onAddSuggestion={handleAddSuggestedStep}
-        selectedNodeLabel={selectedNode?.data?.label}
+        selectedNodeLabel={(selectedNode?.data as WorkflowNodeData)?.label}
       />
       
       <NaturalLanguageGenerator

@@ -46,10 +46,13 @@ export function useStepSuggestions() {
           label: nodeData.label,
           description: nodeData.description
         },
-        existingNextSteps: nextNodes.map(node => ({
-          type: (node?.data as WorkflowNodeData)?.stepType,
-          label: (node?.data as WorkflowNodeData)?.label
-        })),
+        existingNextSteps: nextNodes.map(node => {
+          const data = node?.data as WorkflowNodeData;
+          return {
+            type: data?.stepType,
+            label: data?.label
+          };
+        }),
         workflowSize: allNodes.length,
         totalConnections: allEdges.length
       };
