@@ -193,6 +193,57 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_instances: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step_id: string | null
+          id: string
+          start_data: Json | null
+          started_by: string
+          status: string
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step_id?: string | null
+          id?: string
+          start_data?: Json | null
+          started_by: string
+          status?: string
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step_id?: string | null
+          id?: string
+          start_data?: Json | null
+          started_by?: string
+          status?: string
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instances_current_step_id_fkey"
+            columns: ["current_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instances_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_step_assignments: {
         Row: {
           assigned_by: string

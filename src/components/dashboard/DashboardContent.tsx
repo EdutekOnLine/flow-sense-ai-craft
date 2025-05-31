@@ -1,22 +1,35 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
+import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useAuth } from '@/hooks/useAuth';
-import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, History } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, History, Play } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
 export default function DashboardContent() {
-  const { assignments, isLoading } = useWorkflowAssignments();
+  const { assignments, isLoading: assignmentsLoading } = useWorkflowAssignments();
+  const { startableWorkflows, isLoading: workflowsLoading, startWorkflow } = useWorkflowInstances();
   const { profile } = useAuth();
   const navigate = useNavigate();
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');
   const completedAssignments = assignments.filter(a => a.status === 'completed');
-  const recentAssignments = assignments.slice(0, 5); // Show last 5 assignments
+  const recentAssignments = assignments.slice(0, 5);
+
+  const handleStartWorkflow = async (workflowId: string, startData: any) => {
+    try {
+      await startWorkflow(workflowId, startData);
+      toast.success('Workflow started successfully!');
+    } catch (error) {
+      console.error('Failed to start workflow:', error);
+      toast.error('Failed to start workflow. Please try again.');
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -52,7 +65,7 @@ export default function DashboardContent() {
     window.location.hash = 'workflow-inbox';
   };
 
-  if (isLoading) {
+  if (assignmentsLoading || workflowsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -72,6 +85,17 @@ export default function DashboardContent() {
           View All Tasks
         </Button>
       </div>
+
+      {/* Startable Workflows Section */}
+      {startableWorkflows.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <StartableWorkflows
+            workflows={startableWorkflows}
+            onStartWorkflow={handleStartWorkflow}
+            isLoading={workflowsLoading}
+          />
+        </div>
+      )}
 
       {/* Stats Overview */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -113,12 +137,12 @@ export default function DashboardContent() {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Assignments</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Available Workflows</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-purple-500" />
-              <span className="text-2xl font-bold">{assignments.length}</span>
+              <Play className="h-5 w-5 text-green-500" />
+              <span className="text-2xl font-bold">{startableWorkflows.length}</span>
             </div>
           </CardContent>
         </Card>
@@ -163,7 +187,7 @@ export default function DashboardContent() {
           </CardContent>
         </Card>
 
-        {/* Completed Steps */}
+        {/* Recently Completed */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
