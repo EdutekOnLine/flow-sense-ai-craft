@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import {
   ReactFlow,
@@ -19,6 +18,7 @@ import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowNode } from './WorkflowNode';
 import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
+import { ConditionalEdge } from './ConditionalEdge';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -52,6 +52,10 @@ const nodeTypes = {
   workflowStep: WorkflowNode,
 };
 
+const edgeTypes = {
+  conditional: ConditionalEdge,
+};
+
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
@@ -63,8 +67,43 @@ export default function WorkflowBuilder() {
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      // Determine edge type based on source node type
+      const sourceNode = nodes.find(node => node.id === params.source);
+      const sourceNodeData = sourceNode?.data as WorkflowNodeData;
+      
+      let edgeType = 'default';
+      let edgeLabel = '';
+      
+      // Use conditional edge for decision nodes
+      if (sourceNodeData?.stepType === 'if-condition' || 
+          sourceNodeData?.stepType === 'condition' || 
+          sourceNodeData?.stepType === 'decision' ||
+          sourceNodeData?.stepType === 'switch-case' ||
+          sourceNodeData?.stepType === 'filter') {
+        edgeType = 'conditional';
+        edgeLabel = 'Yes'; // Default label for conditional branches
+      }
+
+      const newEdge = {
+        ...params,
+        id: `edge-${params.source}-${params.target}-${Date.now()}`,
+        type: edgeType,
+        data: { label: edgeLabel },
+        markerEnd: {
+          type: 'arrowclosed' as const,
+          width: 20,
+          height: 20,
+        },
+        style: {
+          strokeWidth: 2,
+          stroke: edgeType === 'conditional' ? '#6366f1' : '#64748b',
+        },
+      };
+
+      setEdges((eds) => [...eds, newEdge]);
+    },
+    [setEdges, nodes]
   );
 
   const addNode = useCallback((type: string, label: string, description: string = '') => {
@@ -115,6 +154,9 @@ export default function WorkflowBuilder() {
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     const selectedNodes = params.nodes;
+    const selectedEdges = params.edges;
+    
+    // Handle node selection
     if (selectedNodes.length === 1) {
       const node = selectedNodes[0];
       setSelectedNode(node);
@@ -122,6 +164,11 @@ export default function WorkflowBuilder() {
     } else {
       setSelectedNode(null);
       setIsNodeEditorOpen(false);
+    }
+
+    // Handle edge selection - you could add edge editing here if needed
+    if (selectedEdges.length > 0) {
+      console.log('Selected edges:', selectedEdges);
     }
   }, []);
 
@@ -179,6 +226,7 @@ export default function WorkflowBuilder() {
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             fitView
             snapToGrid={true}
             snapGrid={[15, 15]}
@@ -187,6 +235,8 @@ export default function WorkflowBuilder() {
             maxZoom={2}
             attributionPosition="bottom-left"
             proOptions={{ hideAttribution: true }}
+            connectionMode="loose"
+            deleteKeyCode={['Backspace', 'Delete']}
           >
             <Background 
               variant={BackgroundVariant.Dots} 
