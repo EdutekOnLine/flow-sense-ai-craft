@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface WorkflowNodeData {
+interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
   stepType: string;
   description: string;
@@ -30,8 +30,9 @@ const stepTypeConfig = {
   deadline: { icon: Clock, color: 'border-red-500 bg-red-50', iconColor: 'text-red-600' },
 };
 
-export const WorkflowNode = memo(({ data, id }: NodeProps<WorkflowNodeData>) => {
-  const config = stepTypeConfig[data.stepType as keyof typeof stepTypeConfig] || stepTypeConfig.task;
+export const WorkflowNode = memo(({ data, id }: NodeProps) => {
+  const nodeData = data as WorkflowNodeData;
+  const config = stepTypeConfig[nodeData.stepType as keyof typeof stepTypeConfig] || stepTypeConfig.task;
   const Icon = config.icon;
 
   const handleDelete = (event: React.MouseEvent) => {
@@ -56,7 +57,7 @@ export const WorkflowNode = memo(({ data, id }: NodeProps<WorkflowNodeData>) => 
           <div className="flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-gray-400 drag-handle cursor-move" />
             <Icon className={`h-4 w-4 ${config.iconColor}`} />
-            <span className="font-medium text-sm text-gray-900">{data.label}</span>
+            <span className="font-medium text-sm text-gray-900">{nodeData.label}</span>
           </div>
           <Button
             variant="ghost"
@@ -71,27 +72,27 @@ export const WorkflowNode = memo(({ data, id }: NodeProps<WorkflowNodeData>) => 
         {/* Step Type Badge */}
         <div className="mb-2">
           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${config.color.replace('bg-', 'bg-').replace('border-', 'text-')}`}>
-            {data.stepType.charAt(0).toUpperCase() + data.stepType.slice(1)}
+            {nodeData.stepType.charAt(0).toUpperCase() + nodeData.stepType.slice(1)}
           </span>
         </div>
         
         {/* Description */}
-        {data.description && (
-          <p className="text-xs text-gray-600 mb-2">{data.description}</p>
+        {nodeData.description && (
+          <p className="text-xs text-gray-600 mb-2">{nodeData.description}</p>
         )}
         
         {/* Additional Info */}
         <div className="space-y-1">
-          {data.assignedTo && (
+          {nodeData.assignedTo && (
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Users className="h-3 w-3" />
-              <span>{data.assignedTo}</span>
+              <span>{nodeData.assignedTo}</span>
             </div>
           )}
-          {data.estimatedHours && (
+          {nodeData.estimatedHours && (
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Clock className="h-3 w-3" />
-              <span>{data.estimatedHours}h</span>
+              <span>{nodeData.estimatedHours}h</span>
             </div>
           )}
         </div>

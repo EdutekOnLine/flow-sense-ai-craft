@@ -17,7 +17,7 @@ import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowNode } from './WorkflowNode';
 
-interface WorkflowNodeData {
+interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
   stepType: string;
   description: string;
@@ -43,7 +43,7 @@ export default function WorkflowBuilder() {
   );
 
   const addNode = useCallback((type: string) => {
-    const newNode: Node<WorkflowNodeData> = {
+    const newNode: Node = {
       id: `node-${nodeIdCounter}`,
       type: 'workflowStep',
       position: { x: 250, y: 100 + nodes.length * 150 },
@@ -53,7 +53,7 @@ export default function WorkflowBuilder() {
         description: '',
         assignedTo: null,
         estimatedHours: null
-      },
+      } as WorkflowNodeData,
       dragHandle: '.drag-handle',
     };
     
