@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2, Edit2, Check, X } from 'lucide-react';
 
-interface ConditionalEdgeData extends Record<string, unknown> {
+interface ConditionalEdgeData {
   label?: string;
   condition?: string;
 }
@@ -28,10 +28,11 @@ export function ConditionalEdge({
   style = {},
   markerEnd,
   data,
-}: EdgeProps<ConditionalEdgeData>) {
+}: EdgeProps) {
   const { setEdges } = useReactFlow();
   const [isEditing, setIsEditing] = useState(false);
-  const [labelValue, setLabelValue] = useState((data?.label as string) || '');
+  const edgeData = data as ConditionalEdgeData;
+  const [labelValue, setLabelValue] = useState(edgeData?.label || '');
 
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -58,7 +59,7 @@ export function ConditionalEdge({
         if (edge.id === id) {
           return {
             ...edge,
-            data: { ...(edge.data || {}), label: labelValue },
+            data: { ...edge.data, label: labelValue },
             label: labelValue,
           };
         }
@@ -69,7 +70,7 @@ export function ConditionalEdge({
   };
 
   const onLabelCancel = () => {
-    setLabelValue((data?.label as string) || '');
+    setLabelValue(edgeData?.label || '');
     setIsEditing(false);
   };
 
@@ -124,7 +125,7 @@ export function ConditionalEdge({
           ) : (
             <div className="flex items-center gap-1">
               <span className="text-xs font-medium text-gray-700 min-w-[40px] text-center">
-                {(data?.label as string) || 'Yes'}
+                {edgeData?.label || 'Yes'}
               </span>
               <Button
                 variant="ghost"
