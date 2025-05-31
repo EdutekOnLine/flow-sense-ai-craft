@@ -167,7 +167,7 @@ export default function WorkflowBuilder() {
         assignedTo: null,
         estimatedHours: null
       } as WorkflowNodeData,
-      draggable: true,
+      dragHandle: '.drag-handle',
     };
     
     setNodes((nds) => nds.concat(newNode));
@@ -264,7 +264,7 @@ export default function WorkflowBuilder() {
         assignedTo: null,
         estimatedHours: null
       } as WorkflowNodeData,
-      draggable: true,
+      dragHandle: '.drag-handle',
     };
     
     setNodes((nds) => nds.concat(newNode));
@@ -588,7 +588,7 @@ export default function WorkflowBuilder() {
           assignedTo: null,
           estimatedHours: null
         } as WorkflowNodeData,
-        draggable: true,
+        dragHandle: '.drag-handle',
       };
 
       setNodes((nds) => nds.concat(newNode));

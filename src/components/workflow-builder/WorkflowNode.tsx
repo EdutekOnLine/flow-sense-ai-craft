@@ -86,7 +86,7 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
   };
 
   return (
-    <div className={`relative bg-white border-2 rounded-lg shadow-sm min-w-[200px] ${config.color} cursor-move`}>
+    <div className={`relative bg-white border-2 rounded-lg shadow-sm min-w-[200px] ${config.color}`}>
       {/* Top Handle */}
       <Handle
         type="target"
@@ -99,7 +99,10 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
         {/* Header with drag handle and delete button */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 flex-1">
-            <GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
+            {/* Drag handle - only this area is draggable */}
+            <div className="drag-handle cursor-move p-1 hover:bg-gray-100 rounded">
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </div>
             <Icon className={`h-4 w-4 ${config.iconColor}`} />
             <span className="font-medium text-sm text-gray-900 flex-1">{nodeData.label}</span>
           </div>
