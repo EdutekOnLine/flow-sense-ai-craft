@@ -26,22 +26,32 @@ export function useWorkflowLogs(workflowId?: string) {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // First get the workflow comments
+      const { data: comments, error: commentsError } = await supabase
         .from('workflow_comments')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('workflow_id', workflowId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (commentsError) throw commentsError;
 
-      setLogs(data || []);
+      // Then get profile data for each comment
+      const logsWithProfiles: WorkflowLog[] = [];
+      
+      for (const comment of comments || []) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('id', comment.user_id)
+          .single();
+
+        logsWithProfiles.push({
+          ...comment,
+          profiles: profile || undefined
+        });
+      }
+
+      setLogs(logsWithProfiles);
     } catch (error) {
       console.error('Error fetching workflow logs:', error);
       toast({
@@ -58,26 +68,34 @@ export function useWorkflowLogs(workflowId?: string) {
     if (!workflowId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data: newComment, error } = await supabase
         .from('workflow_comments')
         .insert({
           workflow_id: workflowId,
           comment,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: user.user.id
         })
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
 
-      setLogs(prev => [data, ...prev]);
+      // Get the user's profile for the new log entry
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', user.user.id)
+        .single();
+
+      const newLog: WorkflowLog = {
+        ...newComment,
+        profiles: profile || undefined
+      };
+
+      setLogs(prev => [newLog, ...prev]);
       
       toast({
         title: "Log Added",
