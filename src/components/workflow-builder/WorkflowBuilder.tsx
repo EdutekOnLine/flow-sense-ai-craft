@@ -317,13 +317,23 @@ export default function WorkflowBuilder() {
   }, [setNodes, selectedNode, canEditWorkflows, toast]);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [dragEndTimeout, setDragEndTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const onNodeDragStart = useCallback(() => {
     setIsDragging(true);
-  }, []);
+    // Clear any existing timeout
+    if (dragEndTimeout) {
+      clearTimeout(dragEndTimeout);
+      setDragEndTimeout(null);
+    }
+  }, [dragEndTimeout]);
 
   const onNodeDragStop = useCallback(() => {
-    setIsDragging(false);
+    // Set a brief delay before allowing selection changes
+    const timeout = setTimeout(() => {
+      setIsDragging(false);
+    }, 100);
+    setDragEndTimeout(timeout);
   }, []);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
