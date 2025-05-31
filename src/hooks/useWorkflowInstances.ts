@@ -55,7 +55,14 @@ export function useWorkflowInstances() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInstances(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'active' | 'completed' | 'cancelled' | 'paused'
+      })) as WorkflowInstance[];
+      
+      setInstances(typedData);
     } catch (error) {
       console.error('Error fetching workflow instances:', error);
     }
