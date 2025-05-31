@@ -1,17 +1,6 @@
 
 import React from 'react';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
-import {
   Play,
   Mail,
   Database,
@@ -180,44 +169,40 @@ export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
   };
 
   const renderStepGroup = (title: string, steps: WorkflowStep[], colorClass: string) => (
-    <SidebarGroup key={title}>
-      <SidebarGroupLabel className={`text-xs font-semibold uppercase tracking-wide ${colorClass}`}>
+    <div key={title} className="mb-6">
+      <h3 className={`text-xs font-semibold uppercase tracking-wide mb-3 px-2 ${colorClass}`}>
         {title}
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
-              <SidebarMenuItem key={step.id}>
-                <SidebarMenuButton
-                  onClick={() => handleStepClick(step)}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, step)}
-                  className="cursor-grab active:cursor-grabbing hover:bg-gray-50 p-3 group"
-                  size="lg"
-                  tooltip={step.description}
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    <div className={`p-2 rounded-lg ${getIconBackgroundColor(step.stepType)}`}>
-                      <Icon className={`h-4 w-4 ${getIconColor(step.stepType)}`} />
-                    </div>
-                    <div className="flex flex-col items-start text-left min-w-0 flex-1">
-                      <span className="font-medium text-sm text-gray-900 truncate">
-                        {step.label}
-                      </span>
-                      <span className="text-xs text-gray-500 truncate w-full">
-                        {step.description}
-                      </span>
-                    </div>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+      </h3>
+      <div className="space-y-1">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          return (
+            <button
+              key={step.id}
+              onClick={() => handleStepClick(step)}
+              draggable
+              onDragStart={(e) => handleDragStart(e, step)}
+              className="w-full cursor-grab active:cursor-grabbing hover:bg-gray-50 p-3 group rounded-lg text-left transition-colors"
+              title={step.description}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className={`p-2 rounded-lg ${getIconBackgroundColor(step.stepType)}`}>
+                  <Icon className={`h-4 w-4 ${getIconColor(step.stepType)}`} />
+                </div>
+                <div className="flex flex-col items-start text-left min-w-0 flex-1">
+                  <span className="font-medium text-sm text-gray-900 truncate">
+                    {step.label}
+                  </span>
+                  <span className="text-xs text-gray-500 truncate w-full">
+                    {step.description}
+                  </span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 
   return (
@@ -228,14 +213,12 @@ export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
           Drag and drop steps onto the canvas
         </p>
       </div>
-      <Sidebar className="w-full">
-        <SidebarContent className="px-2 py-4 space-y-6">
-          {renderStepGroup('Triggers', workflowSteps.triggers, 'text-green-700')}
-          {renderStepGroup('Actions', workflowSteps.actions, 'text-blue-700')}
-          {renderStepGroup('Conditions', workflowSteps.conditions, 'text-yellow-700')}
-          {renderStepGroup('Utilities', workflowSteps.utilities, 'text-purple-700')}
-        </SidebarContent>
-      </Sidebar>
+      <div className="px-2 py-4 space-y-6 overflow-y-auto h-full">
+        {renderStepGroup('Triggers', workflowSteps.triggers, 'text-green-700')}
+        {renderStepGroup('Actions', workflowSteps.actions, 'text-blue-700')}
+        {renderStepGroup('Conditions', workflowSteps.conditions, 'text-yellow-700')}
+        {renderStepGroup('Utilities', workflowSteps.utilities, 'text-purple-700')}
+      </div>
     </div>
   );
 }
