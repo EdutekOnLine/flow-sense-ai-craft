@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
+import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -66,12 +66,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
       case 'workflow-builder':
-        return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Workflow Builder</h2>
-            <p className="text-gray-600">Workflow builder functionality will be implemented here...</p>
-          </div>
-        );
+        return <WorkflowBuilder />;
       case 'reports':
         return (
           <div className="text-center py-8">
