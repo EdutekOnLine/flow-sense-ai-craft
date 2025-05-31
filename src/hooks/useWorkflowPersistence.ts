@@ -8,6 +8,7 @@ interface WorkflowDefinition {
   id: string;
   name: string;
   description?: string;
+  is_reusable: boolean;
   nodes: Node[];
   edges: Edge[];
   viewport: Viewport;
@@ -26,7 +27,8 @@ export function useWorkflowPersistence() {
     edges: Edge[],
     viewport: Viewport,
     description?: string,
-    workflowId?: string
+    workflowId?: string,
+    isReusable?: boolean
   ) => {
     setIsLoading(true);
     try {
@@ -49,6 +51,7 @@ export function useWorkflowPersistence() {
           .update({
             name,
             description,
+            is_reusable: isReusable || false,
             nodes: nodesWithIds as any,
             edges: edgesWithIds as any,
             viewport: viewport as any,
@@ -69,6 +72,7 @@ export function useWorkflowPersistence() {
           .insert([{
             name,
             description,
+            is_reusable: isReusable || false,
             nodes: nodesWithIds as any,
             edges: edgesWithIds as any,
             viewport: viewport as any,
@@ -113,6 +117,7 @@ export function useWorkflowPersistence() {
         id: data.id,
         name: data.name,
         description: data.description,
+        is_reusable: data.is_reusable || false,
         nodes: data.nodes as unknown as Node[],
         edges: data.edges as unknown as Edge[],
         viewport: data.viewport as unknown as Viewport,
@@ -136,7 +141,7 @@ export function useWorkflowPersistence() {
     try {
       const { data, error } = await supabase
         .from('workflow_definitions')
-        .select('id, name, description, created_at, updated_at')
+        .select('id, name, description, is_reusable, created_at, updated_at')
         .order('updated_at', { ascending: false });
 
       if (error) throw error;

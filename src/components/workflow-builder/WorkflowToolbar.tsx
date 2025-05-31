@@ -19,7 +19,7 @@ import { Node, Edge } from '@xyflow/react';
 
 interface WorkflowToolbarProps {
   onAddNode: (type: string, label: string, description?: string) => void;
-  onSave: (name: string, description?: string) => Promise<void>;
+  onSave: (name: string, description?: string, isReusable?: boolean) => Promise<void>;
   onLoad: (workflowId: string) => Promise<void>;
   onNewWorkflow: () => void;
   onOpenGenerator: () => void;
@@ -27,6 +27,7 @@ interface WorkflowToolbarProps {
   isSaving: boolean;
   currentWorkflowName?: string;
   currentWorkflowDescription?: string;
+  currentWorkflowIsReusable?: boolean;
   hasUnsavedChanges: boolean;
   isCurrentWorkflowSaved: boolean;
   nodes: Node[];
@@ -42,6 +43,7 @@ export function WorkflowToolbar({
   isSaving,
   currentWorkflowName,
   currentWorkflowDescription,
+  currentWorkflowIsReusable,
   hasUnsavedChanges,
   isCurrentWorkflowSaved,
   nodes,
@@ -52,8 +54,8 @@ export function WorkflowToolbar({
   const [showExplanation, setShowExplanation] = useState(false);
   const { explainWorkflow } = useWorkflowExplainer();
 
-  const handleSave = async (name: string, description?: string) => {
-    await onSave(name, description);
+  const handleSave = async (name: string, description?: string, isReusable?: boolean) => {
+    await onSave(name, description, isReusable);
     setShowSaveDialog(false);
   };
 
@@ -146,6 +148,7 @@ export function WorkflowToolbar({
         onSave={handleSave}
         initialName={currentWorkflowName}
         initialDescription={currentWorkflowDescription}
+        initialIsReusable={currentWorkflowIsReusable}
         isLoading={isSaving}
         isEditing={isCurrentWorkflowSaved}
       />

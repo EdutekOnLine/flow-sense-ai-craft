@@ -16,6 +16,7 @@ export interface WorkflowInstance {
   workflows: {
     name: string;
     description: string | null;
+    is_reusable: boolean;
   };
   workflow_steps: {
     name: string;
@@ -27,6 +28,7 @@ export interface StartableWorkflow {
   id: string;
   name: string;
   description: string | null;
+  is_reusable: boolean;
   start_step: {
     id: string;
     name: string;
@@ -49,7 +51,7 @@ export function useWorkflowInstances() {
         .from('workflow_instances')
         .select(`
           *,
-          workflows!inner(name, description),
+          workflows!inner(name, description, is_reusable),
           workflow_steps(name, description)
         `)
         .order('created_at', { ascending: false });
@@ -79,6 +81,7 @@ export function useWorkflowInstances() {
           id,
           name,
           description,
+          is_reusable,
           workflow_steps!inner(
             id,
             name,
@@ -98,6 +101,7 @@ export function useWorkflowInstances() {
         id: workflow.id,
         name: workflow.name,
         description: workflow.description,
+        is_reusable: workflow.is_reusable,
         start_step: {
           id: workflow.workflow_steps[0].id,
           name: workflow.workflow_steps[0].name,

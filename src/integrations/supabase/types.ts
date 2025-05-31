@@ -164,6 +164,7 @@ export type Database = {
           description: string | null
           edges: Json
           id: string
+          is_reusable: boolean
           name: string
           nodes: Json
           updated_at: string
@@ -175,6 +176,7 @@ export type Database = {
           description?: string | null
           edges?: Json
           id?: string
+          is_reusable?: boolean
           name: string
           nodes?: Json
           updated_at?: string
@@ -186,6 +188,7 @@ export type Database = {
           description?: string | null
           edges?: Json
           id?: string
+          is_reusable?: boolean
           name?: string
           nodes?: Json
           updated_at?: string
@@ -391,6 +394,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          is_reusable: boolean
           metadata: Json | null
           name: string
           priority: Database["public"]["Enums"]["task_priority"]
@@ -405,6 +409,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_reusable?: boolean
           metadata?: Json | null
           name: string
           priority?: Database["public"]["Enums"]["task_priority"]
@@ -419,6 +424,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_reusable?: boolean
           metadata?: Json | null
           name?: string
           priority?: Database["public"]["Enums"]["task_priority"]
