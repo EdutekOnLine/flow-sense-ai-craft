@@ -15,7 +15,6 @@ import {
   MarkerType,
   ConnectionMode,
   ReactFlowInstance,
-  NodeDragHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
@@ -319,11 +318,11 @@ export default function WorkflowBuilder() {
 
   const [isDragging, setIsDragging] = useState(false);
 
-  const onNodeDragStart: NodeDragHandler = useCallback(() => {
+  const onNodeDragStart = useCallback(() => {
     setIsDragging(true);
   }, []);
 
-  const onNodeDragStop: NodeDragHandler = useCallback(() => {
+  const onNodeDragStop = useCallback(() => {
     setIsDragging(false);
   }, []);
 
