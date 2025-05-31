@@ -28,23 +28,23 @@ interface WorkflowNodeData extends Record<string, unknown> {
   estimatedHours: number | null;
   // Node type specific configurations
   emailConfig?: {
-    to: string;
-    subject: string;
-    body: string;
+    to?: string;
+    subject?: string;
+    body?: string;
   };
   webhookConfig?: {
-    url: string;
-    method: string;
+    url?: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     headers?: Record<string, string>;
   };
   conditionConfig?: {
-    field: string;
-    operator: string;
-    value: string;
+    field?: string;
+    operator?: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+    value?: string;
   };
   delayConfig?: {
-    duration: number;
-    unit: string;
+    duration?: number;
+    unit?: 'minutes' | 'hours' | 'days';
   };
 }
 
