@@ -167,7 +167,7 @@ export default function WorkflowBuilder() {
         assignedTo: null,
         estimatedHours: null
       } as WorkflowNodeData,
-      dragHandle: '.drag-handle',
+      draggable: true,
     };
     
     setNodes((nds) => nds.concat(newNode));
@@ -264,7 +264,7 @@ export default function WorkflowBuilder() {
         assignedTo: null,
         estimatedHours: null
       } as WorkflowNodeData,
-      dragHandle: '.drag-handle',
+      draggable: true,
     };
     
     setNodes((nds) => nds.concat(newNode));
@@ -369,8 +369,9 @@ export default function WorkflowBuilder() {
   const handleLoadWorkflow = useCallback(async (workflowId: string) => {
     const workflow = await loadWorkflow(workflowId);
     if (workflow) {
-      // Preserve persistent IDs from loaded workflow
-      setNodes(workflow.nodes);
+      // Preserve persistent IDs from loaded workflow and ensure draggable
+      const draggableNodes = workflow.nodes.map(node => ({ ...node, draggable: true }));
+      setNodes(draggableNodes);
       setEdges(workflow.edges);
       setCurrentWorkflowName(workflow.name);
       setCurrentWorkflowDescription(workflow.description);
@@ -409,7 +410,9 @@ export default function WorkflowBuilder() {
     
     // Apply generated nodes and edges
     setTimeout(() => {
-      setNodes(result.nodes);
+      // Ensure all generated nodes are draggable
+      const draggableNodes = result.nodes.map((node: Node) => ({ ...node, draggable: true }));
+      setNodes(draggableNodes);
       setEdges(result.edges);
       
       // Set the workflow metadata
@@ -585,7 +588,7 @@ export default function WorkflowBuilder() {
           assignedTo: null,
           estimatedHours: null
         } as WorkflowNodeData,
-        dragHandle: '.drag-handle',
+        draggable: true,
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -642,6 +645,9 @@ export default function WorkflowBuilder() {
               proOptions={{ hideAttribution: true }}
               connectionMode={ConnectionMode.Loose}
               deleteKeyCode={canDeleteWorkflows ? ['Backspace', 'Delete'] : []}
+              nodesDraggable={canEditWorkflows}
+              nodesConnectable={canCreateWorkflows}
+              elementsSelectable={true}
             >
               <Background 
                 variant={BackgroundVariant.Dots} 
