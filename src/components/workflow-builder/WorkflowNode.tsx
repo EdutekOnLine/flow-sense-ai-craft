@@ -1,6 +1,6 @@
 
 import React, { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
 import { 
   Play, 
   Square, 
@@ -72,13 +72,17 @@ const stepTypeConfig = {
 };
 
 export const WorkflowNode = memo(({ data, id }: NodeProps) => {
+  const { setNodes, setEdges } = useReactFlow();
   const nodeData = data as WorkflowNodeData;
   const config = stepTypeConfig[nodeData.stepType as keyof typeof stepTypeConfig] || stepTypeConfig.task;
   const Icon = config.icon;
 
   const handleDelete = (event: React.MouseEvent) => {
     event.stopPropagation();
-    console.log('Delete node:', id);
+    
+    // Remove the node and its connected edges
+    setNodes((nodes) => nodes.filter((node) => node.id !== id));
+    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
   };
 
   return (
@@ -112,7 +116,7 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
         {/* Step Type Badge */}
         <div className="mb-2">
           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${config.color.replace('bg-', 'bg-').replace('border-', 'text-')}`}>
-            {nodeData.stepType.charAt(0).toUpperCase() + nodeData.stepType.slice(1)}
+            {nodeData.stepType.charAt(0).toUpperCase() + nodeData.stepType.slice(1).replace('-', ' ')}
           </span>
         </div>
         
