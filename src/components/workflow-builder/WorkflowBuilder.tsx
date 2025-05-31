@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -14,6 +15,7 @@ import {
   OnSelectionChangeParams,
   MarkerType,
   ConnectionMode,
+  ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
@@ -21,6 +23,8 @@ import { WorkflowNode } from './WorkflowNode';
 import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
 import { ConditionalEdge } from './ConditionalEdge';
+import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -67,6 +71,38 @@ export default function WorkflowBuilder() {
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
+  const [currentWorkflowName, setCurrentWorkflowName] = useState<string | undefined>();
+  const [currentWorkflowDescription, setCurrentWorkflowDescription] = useState<string | undefined>();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const { toast } = useToast();
+
+  const {
+    currentWorkflowId,
+    setCurrentWorkflowId,
+    isLoading: isSaving,
+    saveWorkflow,
+    loadWorkflow
+  } = useWorkflowPersistence();
+
+  // Track changes to mark workflow as modified
+  useEffect(() => {
+    if (nodes.length > 0 || edges.length > 0) {
+      setHasUnsavedChanges(true);
+    }
+  }, [nodes, edges]);
+
+  const generatePersistentNodeId = useCallback(() => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `node-${timestamp}-${random}`;
+  }, []);
+
+  const generatePersistentEdgeId = useCallback((sourceId: string, targetId: string) => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    return `edge-${sourceId}-${targetId}-${timestamp}-${random}`;
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -89,7 +125,7 @@ export default function WorkflowBuilder() {
 
       const newEdge: Edge = {
         ...params,
-        id: `edge-${params.source}-${params.target}-${Date.now()}`,
+        id: generatePersistentEdgeId(params.source!, params.target!),
         type: edgeType,
         data: { label: edgeLabel },
         markerEnd: {
@@ -105,12 +141,14 @@ export default function WorkflowBuilder() {
 
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges, nodes]
+    [setEdges, nodes, generatePersistentEdgeId]
   );
 
   const addNode = useCallback((type: string, label: string, description: string = '') => {
+    const persistentId = generatePersistentNodeId();
+    
     const newNode: Node = {
-      id: `node-${nodeIdCounter}`,
+      id: persistentId,
       type: 'workflowStep',
       position: { x: 250, y: 100 + nodes.length * 150 },
       data: { 
@@ -125,7 +163,7 @@ export default function WorkflowBuilder() {
     
     setNodes((nds) => nds.concat(newNode));
     setNodeIdCounter((counter) => counter + 1);
-  }, [nodes.length, nodeIdCounter, setNodes]);
+  }, [nodes.length, setNodes, generatePersistentNodeId]);
 
   const deleteNode = useCallback((nodeId: string) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -156,7 +194,6 @@ export default function WorkflowBuilder() {
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     const selectedNodes = params.nodes;
-    const selectedEdges = params.edges;
     
     // Handle node selection
     if (selectedNodes.length === 1) {
@@ -167,17 +204,57 @@ export default function WorkflowBuilder() {
       setSelectedNode(null);
       setIsNodeEditorOpen(false);
     }
-
-    // Handle edge selection - you could add edge editing here if needed
-    if (selectedEdges.length > 0) {
-      console.log('Selected edges:', selectedEdges);
-    }
   }, []);
 
   const closeNodeEditor = useCallback(() => {
     setIsNodeEditorOpen(false);
     setSelectedNode(null);
   }, []);
+
+  const handleSaveWorkflow = useCallback(async (name: string, description?: string) => {
+    if (!reactFlowInstance.current) return;
+    
+    const viewport = reactFlowInstance.current.getViewport();
+    await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
+    
+    setCurrentWorkflowName(name);
+    setCurrentWorkflowDescription(description);
+    setHasUnsavedChanges(false);
+  }, [saveWorkflow, nodes, edges, currentWorkflowId]);
+
+  const handleLoadWorkflow = useCallback(async (workflowId: string) => {
+    const workflow = await loadWorkflow(workflowId);
+    if (workflow) {
+      // Preserve persistent IDs from loaded workflow
+      setNodes(workflow.nodes);
+      setEdges(workflow.edges);
+      setCurrentWorkflowName(workflow.name);
+      setCurrentWorkflowDescription(workflow.description);
+      setHasUnsavedChanges(false);
+      
+      // Set viewport
+      if (reactFlowInstance.current && workflow.viewport) {
+        reactFlowInstance.current.setViewport(workflow.viewport);
+      }
+      
+      toast({
+        title: "Workflow Loaded",
+        description: `"${workflow.name}" has been loaded successfully.`,
+      });
+    }
+  }, [loadWorkflow, setNodes, setEdges, toast]);
+
+  const handleNewWorkflow = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setCurrentWorkflowId(null);
+    setCurrentWorkflowName(undefined);
+    setCurrentWorkflowDescription(undefined);
+    setHasUnsavedChanges(false);
+    setSelectedNode(null);
+    setIsNodeEditorOpen(false);
+    setNodeIdCounter(1);
+  }, [setNodes, setEdges, setCurrentWorkflowId]);
 
   // Generate available fields from previous nodes
   const getAvailableFields = useCallback(() => {
@@ -218,9 +295,20 @@ export default function WorkflowBuilder() {
     <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
       <WorkflowSidebar onAddNode={addNode} />
       <div className="flex-1 flex flex-col">
-        <WorkflowToolbar onAddNode={addNode} />
+        <WorkflowToolbar 
+          onAddNode={addNode}
+          onSave={handleSaveWorkflow}
+          onLoad={handleLoadWorkflow}
+          onNewWorkflow={handleNewWorkflow}
+          isSaving={isSaving}
+          currentWorkflowName={currentWorkflowName}
+          currentWorkflowDescription={currentWorkflowDescription}
+          hasUnsavedChanges={hasUnsavedChanges}
+          isCurrentWorkflowSaved={!!currentWorkflowId}
+        />
         <div className="flex-1 relative">
           <ReactFlow
+            ref={reactFlowInstance}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}

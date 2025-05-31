@@ -113,6 +113,42 @@ export type Database = {
           },
         ]
       }
+      workflow_definitions: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          edges: Json
+          id: string
+          name: string
+          nodes: Json
+          updated_at: string
+          viewport: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          edges?: Json
+          id?: string
+          name: string
+          nodes?: Json
+          updated_at?: string
+          viewport?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          edges?: Json
+          id?: string
+          name?: string
+          nodes?: Json
+          updated_at?: string
+          viewport?: Json | null
+        }
+        Relationships: []
+      }
       workflow_steps: {
         Row: {
           actual_hours: number | null
