@@ -27,6 +27,9 @@ import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useToast } from '@/hooks/use-toast';
 import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
+import { FloatingAssistant } from './FloatingAssistant';
+import { NodeSuggestions } from './NodeSuggestions';
+import { useStepSuggestions } from '@/hooks/useStepSuggestions';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -233,11 +236,24 @@ export default function WorkflowBuilder() {
       const node = selectedNodes[0];
       setSelectedNode(node);
       setIsNodeEditorOpen(true);
+      
+      // Generate AI suggestions for the selected node
+      generateSuggestions(node, nodes, edges);
+      setShowAssistant(true);
+      
+      // Position contextual suggestions near the node
+      setContextualSuggestionsPosition({
+        x: node.position.x + 200,
+        y: node.position.y + 50
+      });
     } else {
       setSelectedNode(null);
       setIsNodeEditorOpen(false);
+      clearSuggestions();
+      setShowAssistant(false);
+      setContextualSuggestionsPosition(null);
     }
-  }, []);
+  }, [generateSuggestions, clearSuggestions, nodes, edges]);
 
   const closeNodeEditor = useCallback(() => {
     setIsNodeEditorOpen(false);
@@ -362,6 +378,16 @@ export default function WorkflowBuilder() {
     return [...new Set(fields)]; // Remove duplicates
   }, [selectedNode, nodes]);
 
+  const {
+    suggestions,
+    isLoading: isSuggestionsLoading,
+    generateSuggestions,
+    clearSuggestions
+  } = useStepSuggestions();
+  
+  const [showAssistant, setShowAssistant] = useState(false);
+  const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
+
   return (
     <WorkflowPermissionGuard>
       <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -422,6 +448,16 @@ export default function WorkflowBuilder() {
               />
             </ReactFlow>
             
+            {/* Contextual suggestions near selected node */}
+            {contextualSuggestionsPosition && suggestions.length > 0 && (
+              <NodeSuggestions
+                suggestions={suggestions}
+                position={contextualSuggestionsPosition}
+                onAddSuggestion={handleAddSuggestedStep}
+                onDismiss={() => setContextualSuggestionsPosition(null)}
+              />
+            )}
+            
             <NodeEditor
               selectedNode={selectedNode}
               isOpen={isNodeEditorOpen}
@@ -432,6 +468,16 @@ export default function WorkflowBuilder() {
           </div>
         </div>
       </div>
+      
+      {/* Floating AI Assistant Panel */}
+      <FloatingAssistant
+        suggestions={suggestions}
+        isLoading={isSuggestionsLoading}
+        isVisible={showAssistant}
+        onClose={() => setShowAssistant(false)}
+        onAddSuggestion={handleAddSuggestedStep}
+        selectedNodeLabel={selectedNode?.data?.label}
+      />
       
       <NaturalLanguageGenerator
         isOpen={isGeneratorOpen}
