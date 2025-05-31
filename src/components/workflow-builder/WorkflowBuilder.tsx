@@ -12,6 +12,8 @@ import {
   Node,
   BackgroundVariant,
   OnSelectionChangeParams,
+  MarkerType,
+  ConnectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { WorkflowToolbar } from './WorkflowToolbar';
@@ -85,13 +87,13 @@ export default function WorkflowBuilder() {
         edgeLabel = 'Yes'; // Default label for conditional branches
       }
 
-      const newEdge = {
+      const newEdge: Edge = {
         ...params,
         id: `edge-${params.source}-${params.target}-${Date.now()}`,
         type: edgeType,
         data: { label: edgeLabel },
         markerEnd: {
-          type: 'arrowclosed' as const,
+          type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
         },
@@ -101,7 +103,7 @@ export default function WorkflowBuilder() {
         },
       };
 
-      setEdges((eds) => [...eds, newEdge]);
+      setEdges((eds) => addEdge(newEdge, eds));
     },
     [setEdges, nodes]
   );
@@ -235,7 +237,7 @@ export default function WorkflowBuilder() {
             maxZoom={2}
             attributionPosition="bottom-left"
             proOptions={{ hideAttribution: true }}
-            connectionMode="loose"
+            connectionMode={ConnectionMode.Loose}
             deleteKeyCode={['Backspace', 'Delete']}
           >
             <Background 
