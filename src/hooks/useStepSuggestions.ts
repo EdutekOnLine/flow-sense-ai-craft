@@ -34,7 +34,7 @@ export function useStepSuggestions() {
     setIsLoading(true);
     try {
       // Analyze workflow context
-      const nodeData = selectedNode.data as WorkflowNodeData;
+      const nodeData = selectedNode.data as unknown as WorkflowNodeData;
       const nextNodes = allEdges
         .filter(edge => edge.source === selectedNode.id)
         .map(edge => allNodes.find(node => node.id === edge.target))
@@ -47,7 +47,7 @@ export function useStepSuggestions() {
           description: nodeData.description
         },
         existingNextSteps: nextNodes.map(node => {
-          const data = node?.data as WorkflowNodeData;
+          const data = node?.data as unknown as WorkflowNodeData;
           return {
             type: data?.stepType,
             label: data?.label
@@ -79,7 +79,7 @@ export function useStepSuggestions() {
     allNodes: Node[],
     allEdges: Edge[]
   ): StepSuggestion[] => {
-    const nodeData = selectedNode.data as WorkflowNodeData;
+    const nodeData = selectedNode.data as unknown as WorkflowNodeData;
     const suggestions: StepSuggestion[] = [];
 
     // Rule-based suggestions based on step type
