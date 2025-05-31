@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+type AssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
+
 interface WorkflowAssignment {
   id: string;
   workflow_step_id: string;
   assigned_to: string;
   assigned_by: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'skipped';
+  status: AssignmentStatus;
   due_date?: string;
   completed_at?: string;
   notes?: string;
@@ -53,7 +55,13 @@ export function useWorkflowAssignments() {
 
       if (error) throw error;
 
-      setAssignments(data || []);
+      // Type-safe mapping of database data to our interface
+      const typedAssignments: WorkflowAssignment[] = (data || []).map(item => ({
+        ...item,
+        status: item.status as AssignmentStatus
+      }));
+
+      setAssignments(typedAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
       toast({
@@ -68,7 +76,7 @@ export function useWorkflowAssignments() {
 
   const updateAssignmentStatus = useCallback(async (
     assignmentId: string, 
-    status: 'pending' | 'in_progress' | 'completed' | 'skipped',
+    status: AssignmentStatus,
     notes?: string
   ) => {
     try {

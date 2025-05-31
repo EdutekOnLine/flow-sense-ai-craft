@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
 import { formatDistanceToNow } from 'date-fns';
 
+type AssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
+
 export function WorkflowInbox() {
   const { assignments, isLoading, updateAssignmentStatus } = useWorkflowAssignments();
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
@@ -46,7 +48,7 @@ export function WorkflowInbox() {
     }
   };
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = async (newStatus: AssignmentStatus) => {
     if (!selectedAssignment) return;
     
     await updateAssignmentStatus(selectedAssignment.id, newStatus, notes);
