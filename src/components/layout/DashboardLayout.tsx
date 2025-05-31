@@ -7,7 +7,8 @@ import {
   Settings, 
   LogOut, 
   FileText,
-  BarChart3
+  BarChart3,
+  Workflow
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -49,6 +50,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
+    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager', 'employee'] },
     { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
     { id: 'templates', label: 'Templates', icon: FileText, roles: ['admin', 'manager', 'employee'] },
@@ -63,6 +65,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     switch (activeTab) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
+      case 'workflow-builder':
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Workflow Builder</h2>
+            <p className="text-gray-600">Workflow builder functionality will be implemented here...</p>
+          </div>
+        );
       case 'reports':
         return (
           <div className="text-center py-8">
