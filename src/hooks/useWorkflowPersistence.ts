@@ -49,9 +49,9 @@ export function useWorkflowPersistence() {
           .update({
             name,
             description,
-            nodes: nodesWithIds,
-            edges: edgesWithIds,
-            viewport,
+            nodes: nodesWithIds as any,
+            edges: edgesWithIds as any,
+            viewport: viewport as any,
             updated_at: new Date().toISOString()
           })
           .eq('id', workflowId);
@@ -66,14 +66,14 @@ export function useWorkflowPersistence() {
         // Create new workflow
         const { data, error } = await supabase
           .from('workflow_definitions')
-          .insert({
+          .insert([{
             name,
             description,
-            nodes: nodesWithIds,
-            edges: edgesWithIds,
-            viewport,
+            nodes: nodesWithIds as any,
+            edges: edgesWithIds as any,
+            viewport: viewport as any,
             created_by: (await supabase.auth.getUser()).data.user?.id
-          })
+          }])
           .select()
           .single();
 
@@ -113,9 +113,9 @@ export function useWorkflowPersistence() {
         id: data.id,
         name: data.name,
         description: data.description,
-        nodes: data.nodes as Node[],
-        edges: data.edges as Edge[],
-        viewport: data.viewport as Viewport,
+        nodes: data.nodes as unknown as Node[],
+        edges: data.edges as unknown as Edge[],
+        viewport: data.viewport as unknown as Viewport,
         created_at: data.created_at,
         updated_at: data.updated_at
       } as WorkflowDefinition;

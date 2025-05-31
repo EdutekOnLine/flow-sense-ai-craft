@@ -74,7 +74,8 @@ export default function WorkflowBuilder() {
   const [currentWorkflowName, setCurrentWorkflowName] = useState<string | undefined>();
   const [currentWorkflowDescription, setCurrentWorkflowDescription] = useState<string | undefined>();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
 
   const {
@@ -212,15 +213,15 @@ export default function WorkflowBuilder() {
   }, []);
 
   const handleSaveWorkflow = useCallback(async (name: string, description?: string) => {
-    if (!reactFlowInstance.current) return;
+    if (!reactFlowInstance) return;
     
-    const viewport = reactFlowInstance.current.getViewport();
+    const viewport = reactFlowInstance.getViewport();
     await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
     
     setCurrentWorkflowName(name);
     setCurrentWorkflowDescription(description);
     setHasUnsavedChanges(false);
-  }, [saveWorkflow, nodes, edges, currentWorkflowId]);
+  }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance]);
 
   const handleLoadWorkflow = useCallback(async (workflowId: string) => {
     const workflow = await loadWorkflow(workflowId);
@@ -233,8 +234,8 @@ export default function WorkflowBuilder() {
       setHasUnsavedChanges(false);
       
       // Set viewport
-      if (reactFlowInstance.current && workflow.viewport) {
-        reactFlowInstance.current.setViewport(workflow.viewport);
+      if (reactFlowInstance && workflow.viewport) {
+        reactFlowInstance.setViewport(workflow.viewport);
       }
       
       toast({
@@ -242,7 +243,7 @@ export default function WorkflowBuilder() {
         description: `"${workflow.name}" has been loaded successfully.`,
       });
     }
-  }, [loadWorkflow, setNodes, setEdges, toast]);
+  }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance]);
 
   const handleNewWorkflow = useCallback(() => {
     setNodes([]);
@@ -306,15 +307,15 @@ export default function WorkflowBuilder() {
           hasUnsavedChanges={hasUnsavedChanges}
           isCurrentWorkflowSaved={!!currentWorkflowId}
         />
-        <div className="flex-1 relative">
+        <div className="flex-1 relative" ref={reactFlowWrapper}>
           <ReactFlow
-            ref={reactFlowInstance}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}
+            onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
