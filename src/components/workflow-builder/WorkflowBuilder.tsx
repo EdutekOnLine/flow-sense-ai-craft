@@ -480,6 +480,8 @@ export default function WorkflowBuilder() {
             currentWorkflowDescription={currentWorkflowDescription}
             hasUnsavedChanges={hasUnsavedChanges}
             isCurrentWorkflowSaved={!!currentWorkflowId}
+            nodes={nodes}
+            edges={edges}
           />
           <div className="flex-1 relative" ref={reactFlowWrapper}>
             <ReactFlow
