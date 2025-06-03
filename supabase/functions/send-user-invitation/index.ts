@@ -36,11 +36,25 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // First, create the invitation record in the database
+    // First, delete any existing unused invitations for this email
+    console.log("Deleting any existing unused invitations for email:", email);
+    const { error: deleteError } = await supabase
+      .from('user_invitations')
+      .delete()
+      .eq('email', email)
+      .is('used_at', null);
+
+    if (deleteError) {
+      console.error("Error deleting existing invitations:", deleteError);
+    } else {
+      console.log("Successfully deleted existing unused invitations");
+    }
+
+    // Create the new invitation record
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
-    console.log("Creating invitation record in database...");
+    console.log("Creating new invitation record in database...");
     
     const { data: invitationData, error: dbError } = await supabase
       .from('user_invitations')
