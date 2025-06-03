@@ -107,7 +107,12 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   const [formSchema, setFormSchema] = useState(baseFormSchema);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiFieldType, setAIFieldType] = useState<'email' | 'webhook' | 'condition' | 'delay' | 'general'>('general');
-  const { data: users = [], isLoading: isLoadingUsers } = useUsers();
+  const { data: users = [], isLoading: isLoadingUsers, error: usersError } = useUsers();
+
+  console.log('NodeEditor: selectedNode', selectedNode);
+  console.log('NodeEditor: isOpen', isOpen);
+  console.log('NodeEditor: users', users);
+  console.log('NodeEditor: usersError', usersError);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -120,71 +125,80 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   });
 
   useEffect(() => {
+    console.log('NodeEditor: useEffect triggered with selectedNode', selectedNode);
+    
     if (selectedNode) {
-      const nodeData = selectedNode.data as WorkflowNodeData;
-      
-      // Update form schema based on node type
-      let extendedSchema = baseFormSchema;
-      if (nodeData.stepType === 'send-email') {
-        extendedSchema = baseFormSchema.extend({
-          emailConfig: emailConfigSchema,
-        });
-      } else if (nodeData.stepType === 'webhook-call') {
-        extendedSchema = baseFormSchema.extend({
-          webhookConfig: webhookConfigSchema,
-        });
-      } else if (nodeData.stepType.includes('condition') || nodeData.stepType === 'filter') {
-        extendedSchema = baseFormSchema.extend({
-          conditionConfig: conditionConfigSchema,
-        });
-      } else if (nodeData.stepType === 'delay' || nodeData.stepType === 'wait') {
-        extendedSchema = baseFormSchema.extend({
-          delayConfig: delayConfigSchema,
-        });
-      }
-      
-      setFormSchema(extendedSchema);
-      
-      // Reset form with current node data
-      const formData: FormData = {
-        label: nodeData.label || '',
-        description: nodeData.description || '',
-        assignedTo: nodeData.assignedTo || '',
-        estimatedHours: nodeData.estimatedHours || 0,
-      };
+      try {
+        const nodeData = selectedNode.data as WorkflowNodeData;
+        console.log('NodeEditor: nodeData', nodeData);
+        
+        // Update form schema based on node type
+        let extendedSchema = baseFormSchema;
+        if (nodeData.stepType === 'send-email') {
+          extendedSchema = baseFormSchema.extend({
+            emailConfig: emailConfigSchema,
+          });
+        } else if (nodeData.stepType === 'webhook-call') {
+          extendedSchema = baseFormSchema.extend({
+            webhookConfig: webhookConfigSchema,
+          });
+        } else if (nodeData.stepType.includes('condition') || nodeData.stepType === 'filter') {
+          extendedSchema = baseFormSchema.extend({
+            conditionConfig: conditionConfigSchema,
+          });
+        } else if (nodeData.stepType === 'delay' || nodeData.stepType === 'wait') {
+          extendedSchema = baseFormSchema.extend({
+            delayConfig: delayConfigSchema,
+          });
+        }
+        
+        setFormSchema(extendedSchema);
+        
+        // Reset form with current node data
+        const formData: FormData = {
+          label: nodeData.label || '',
+          description: nodeData.description || '',
+          assignedTo: nodeData.assignedTo || '',
+          estimatedHours: nodeData.estimatedHours || 0,
+        };
 
-      if (nodeData.emailConfig) {
-        formData.emailConfig = {
-          to: nodeData.emailConfig.to || '',
-          subject: nodeData.emailConfig.subject || '',
-          body: nodeData.emailConfig.body || '',
-        };
-      }
-      if (nodeData.webhookConfig) {
-        formData.webhookConfig = {
-          url: nodeData.webhookConfig.url || '',
-          method: nodeData.webhookConfig.method || 'POST',
-        };
-      }
-      if (nodeData.conditionConfig) {
-        formData.conditionConfig = {
-          field: nodeData.conditionConfig.field || '',
-          operator: nodeData.conditionConfig.operator || 'equals',
-          value: nodeData.conditionConfig.value || '',
-        };
-      }
-      if (nodeData.delayConfig) {
-        formData.delayConfig = {
-          duration: nodeData.delayConfig.duration || 1,
-          unit: nodeData.delayConfig.unit || 'hours',
-        };
-      }
+        if (nodeData.emailConfig) {
+          formData.emailConfig = {
+            to: nodeData.emailConfig.to || '',
+            subject: nodeData.emailConfig.subject || '',
+            body: nodeData.emailConfig.body || '',
+          };
+        }
+        if (nodeData.webhookConfig) {
+          formData.webhookConfig = {
+            url: nodeData.webhookConfig.url || '',
+            method: nodeData.webhookConfig.method || 'POST',
+          };
+        }
+        if (nodeData.conditionConfig) {
+          formData.conditionConfig = {
+            field: nodeData.conditionConfig.field || '',
+            operator: nodeData.conditionConfig.operator || 'equals',
+            value: nodeData.conditionConfig.value || '',
+          };
+        }
+        if (nodeData.delayConfig) {
+          formData.delayConfig = {
+            duration: nodeData.delayConfig.duration || 1,
+            unit: nodeData.delayConfig.unit || 'hours',
+          };
+        }
 
-      form.reset(formData);
+        console.log('NodeEditor: setting form data', formData);
+        form.reset(formData);
+      } catch (error) {
+        console.error('NodeEditor: Error processing selectedNode', error);
+      }
     }
   }, [selectedNode, form]);
 
   const onSubmit = (data: FormData) => {
+    console.log('NodeEditor: onSubmit', data);
     if (selectedNode) {
       onUpdateNode(selectedNode.id, data);
     }
@@ -196,6 +210,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   useEffect(() => {
     if (selectedNode && Object.keys(watchedValues).length > 0) {
       const timeoutId = setTimeout(() => {
+        console.log('NodeEditor: auto-updating node', watchedValues);
         onUpdateNode(selectedNode.id, watchedValues);
       }, 300); // Debounce updates
       
@@ -244,10 +259,15 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
     }
   };
 
-  if (!selectedNode) return null;
+  if (!selectedNode) {
+    console.log('NodeEditor: No selectedNode, returning null');
+    return null;
+  }
 
   const nodeData = selectedNode.data as WorkflowNodeData;
   const NodeIcon = getNodeIcon(nodeData.stepType);
+
+  console.log('NodeEditor: Rendering with nodeData', nodeData);
 
   return (
     <>
@@ -325,7 +345,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                             <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select assignee"} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-white z-50">
                           <SelectItem value="">Unassigned</SelectItem>
                           {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
