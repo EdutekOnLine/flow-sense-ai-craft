@@ -33,6 +33,7 @@ import { NodeSuggestions } from './NodeSuggestions';
 import { useStepSuggestions } from '@/hooks/useStepSuggestions';
 import { useWorkflowReviewer } from '@/hooks/useWorkflowReviewer';
 import { WorkflowReview } from './WorkflowReview';
+import { toast as sonnerToast } from 'sonner';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -170,10 +171,10 @@ export default function WorkflowBuilder() {
           }, 100);
         }
         
-        toast.success(`"${workflow.name}" loaded for editing!`);
+        sonnerToast.success(`"${workflow.name}" loaded for editing!`);
       }
     }
-  }, [workflows, reactFlowInstance, toast, handleOpenNodeConfiguration, setNodes, setEdges]);
+  }, [workflows, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges]);
 
   const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
     console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });
