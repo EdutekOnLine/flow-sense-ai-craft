@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -24,8 +23,10 @@ import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
 import { ConditionalEdge } from './ConditionalEdge';
 import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
+import { SaveWorkflowDialog } from './SaveWorkflowDialog';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useToast } from '@/hooks/use-toast';
+import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
 import { FloatingAssistant } from './FloatingAssistant';
 import { NodeSuggestions } from './NodeSuggestions';
@@ -90,9 +91,11 @@ export default function WorkflowBuilder() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
+  const { saveWorkflow } = useSavedWorkflows();
 
   // Add AI Assistant toggle state
   const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
@@ -107,18 +110,6 @@ export default function WorkflowBuilder() {
   
   const [showAssistant, setShowAssistant] = useState(false);
   const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
-
-  const generatePersistentNodeId = useCallback(() => {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
-    return `node-${timestamp}-${random}`;
-  }, []);
-
-  const generatePersistentEdgeId = useCallback((sourceId: string, targetId: string) => {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
-    return `edge-${sourceId}-${targetId}-${timestamp}-${random}`;
-  }, []);
 
   // Function to handle opening configuration for a specific node
   const handleOpenNodeConfiguration = useCallback((nodeId: string) => {
@@ -141,6 +132,25 @@ export default function WorkflowBuilder() {
       }))
     );
   }, [handleOpenNodeConfiguration, setNodes]);
+
+  const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
+    try {
+      const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
+      await saveWorkflow(name, description, nodes, edges, viewport);
+      toast({
+        title: "Workflow Saved",
+        description: `"${name}" has been saved successfully.`,
+      });
+    } catch (error) {
+      console.error('Error saving workflow:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save workflow. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }, [nodes, edges, reactFlowInstance, saveWorkflow, toast]);
 
   const handleAddSuggestedStep = useCallback((suggestion: StepSuggestion) => {
     if (!canCreateWorkflows) {
@@ -599,6 +609,7 @@ export default function WorkflowBuilder() {
             onNewWorkflow={handleNewWorkflow}
             onOpenGenerator={() => setIsGeneratorOpen(true)}
             onOpenReview={handleOpenReview}
+            onSaveWorkflow={() => setIsSaveDialogOpen(true)}
             nodes={nodes}
             edges={edges}
             aiAssistantEnabled={aiAssistantEnabled}
@@ -700,6 +711,15 @@ export default function WorkflowBuilder() {
         workflowName="Current Workflow"
         onApplySuggestion={handleApplySuggestion}
         onDismissSuggestion={handleDismissSuggestion}
+      />
+
+      {/* Save Workflow Dialog */}
+      <SaveWorkflowDialog
+        isOpen={isSaveDialogOpen}
+        onClose={() => setIsSaveDialogOpen(false)}
+        onSave={handleSaveWorkflow}
+        nodes={nodes}
+        edges={edges}
       />
     </WorkflowPermissionGuard>
   );

@@ -89,6 +89,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_workflows: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          edges: Json
+          id: string
+          name: string
+          nodes: Json
+          updated_at: string
+          viewport: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          edges?: Json
+          id?: string
+          name: string
+          nodes?: Json
+          updated_at?: string
+          viewport?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          edges?: Json
+          id?: string
+          name?: string
+          nodes?: Json
+          updated_at?: string
+          viewport?: Json | null
+        }
+        Relationships: []
+      }
       user_invitations: {
         Row: {
           created_at: string

@@ -5,7 +5,8 @@ import {
   FileText, 
   Sparkles,
   MessageSquare,
-  Search
+  Search,
+  Save
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WorkflowExplanation } from './WorkflowExplanation';
@@ -19,6 +20,7 @@ interface WorkflowToolbarProps {
   onNewWorkflow: () => void;
   onOpenGenerator: () => void;
   onOpenReview: () => void;
+  onSaveWorkflow: () => void;
   nodes: Node[];
   edges: Edge[];
   aiAssistantEnabled?: boolean;
@@ -29,6 +31,7 @@ export function WorkflowToolbar({
   onAddNode,
   onNewWorkflow,
   onOpenGenerator,
+  onSaveWorkflow,
   nodes,
   edges,
   aiAssistantEnabled = true,
@@ -55,6 +58,17 @@ export function WorkflowToolbar({
           >
             <Plus className="h-4 w-4" />
             New
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSaveWorkflow}
+            className="flex items-center gap-2"
+            disabled={nodes.length === 0}
+          >
+            <Save className="h-4 w-4" />
+            Save
           </Button>
 
           <div className="h-6 w-px bg-gray-200 mx-2" />

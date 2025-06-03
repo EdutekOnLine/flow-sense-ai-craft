@@ -7,6 +7,7 @@ import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Hi
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
+import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,6 +30,11 @@ export default function DashboardContent() {
       console.error('Failed to start workflow:', error);
       toast.error('Failed to start workflow. Please try again.');
     }
+  };
+
+  const handleOpenWorkflow = (workflowId: string) => {
+    // Navigate to workflow builder with the workflow ID
+    window.location.hash = `workflow-builder?id=${workflowId}`;
   };
 
   const getStatusIcon = (status: string) => {
@@ -149,6 +155,9 @@ export default function DashboardContent() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Saved Workflows */}
+        <SavedWorkflows onOpenWorkflow={handleOpenWorkflow} />
+
         {/* My Assigned Steps (Pending Actions) */}
         <Card>
           <CardHeader>
@@ -186,7 +195,10 @@ export default function DashboardContent() {
             )}
           </CardContent>
         </Card>
+      </div>
 
+      {/* Recently Completed and Workflow History sections */}
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Recently Completed */}
         <Card>
           <CardHeader>
@@ -229,66 +241,66 @@ export default function DashboardContent() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Workflow History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5 text-purple-500" />
-            Workflow History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentAssignments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No workflow history yet</p>
-            ) : (
-              recentAssignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(assignment.status)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm truncate">{assignment.workflow_steps.name}</h4>
-                      <Badge className={getStatusColor(assignment.status)} variant="secondary">
-                        {assignment.status.replace('_', ' ')}
-                      </Badge>
+        {/* Workflow History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-purple-500" />
+              Workflow History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentAssignments.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No workflow history yet</p>
+              ) : (
+                recentAssignments.map((assignment) => (
+                  <div key={assignment.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(assignment.status)}
                     </div>
-                    <p className="text-xs text-gray-600 truncate">
-                      {assignment.workflow_steps.workflows.name}
-                    </p>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-xs text-gray-500">
-                      {assignment.status === 'completed' && assignment.completed_at 
-                        ? `Completed ${formatDistanceToNow(new Date(assignment.completed_at), { addSuffix: true })}`
-                        : `Assigned ${formatDistanceToNow(new Date(assignment.created_at), { addSuffix: true })}`
-                      }
-                    </div>
-                    {assignment.due_date && (
-                      <div className="text-xs text-orange-600">
-                        Due {formatDistanceToNow(new Date(assignment.due_date), { addSuffix: true })}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-sm truncate">{assignment.workflow_steps.name}</h4>
+                        <Badge className={getStatusColor(assignment.status)} variant="secondary">
+                          {assignment.status.replace('_', ' ')}
+                        </Badge>
                       </div>
-                    )}
+                      <p className="text-xs text-gray-600 truncate">
+                        {assignment.workflow_steps.workflows.name}
+                      </p>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">
+                        {assignment.status === 'completed' && assignment.completed_at 
+                          ? `Completed ${formatDistanceToNow(new Date(assignment.completed_at), { addSuffix: true })}`
+                          : `Assigned ${formatDistanceToNow(new Date(assignment.created_at), { addSuffix: true })}`
+                        }
+                      </div>
+                      {assignment.due_date && (
+                        <div className="text-xs text-orange-600">
+                          Due {formatDistanceToNow(new Date(assignment.due_date), { addSuffix: true })}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-          
-          {assignments.length > 5 && (
-            <div className="mt-4 pt-4 border-t">
-              <Button variant="outline" onClick={handleViewAllTasks} className="w-full">
-                View Complete Workflow History ({assignments.length} total assignments)
-              </Button>
+                ))
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {assignments.length > 5 && (
+              <div className="mt-4 pt-4 border-t">
+                <Button variant="outline" onClick={handleViewAllTasks} className="w-full">
+                  View Complete Workflow History ({assignments.length} total assignments)
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
