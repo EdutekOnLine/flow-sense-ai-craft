@@ -22,9 +22,15 @@ export function useSavedWorkflows() {
   const { user } = useAuth();
 
   const fetchWorkflows = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, skipping workflow fetch');
+      setIsLoading(false);
+      return;
+    }
     
+    console.log('Fetching workflows for user:', user.id);
     setIsLoading(true);
+    
     const { data, error } = await supabase
       .from('saved_workflows')
       .select('*')
@@ -33,6 +39,7 @@ export function useSavedWorkflows() {
     if (error) {
       console.error('Error fetching workflows:', error);
     } else {
+      console.log('Fetched workflows:', data);
       // Transform the data to match our interface
       const transformedWorkflows = (data || []).map(workflow => ({
         ...workflow,
@@ -52,23 +59,36 @@ export function useSavedWorkflows() {
     edges: Edge[],
     viewport?: { x: number; y: number; zoom: number }
   ) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      console.error('User not authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('Saving workflow:', { name, description, nodesCount: nodes.length, edgesCount: edges.length });
+
+    const workflowData = {
+      name,
+      description,
+      nodes: nodes as any,
+      edges: edges as any,
+      viewport: viewport as any,
+      created_by: user.id,
+    };
+
+    console.log('Workflow data being saved:', workflowData);
 
     const { data, error } = await supabase
       .from('saved_workflows')
-      .insert({
-        name,
-        description,
-        nodes: nodes as any,
-        edges: edges as any,
-        viewport: viewport as any,
-        created_by: user.id,
-      })
+      .insert(workflowData)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error saving workflow:', error);
+      throw error;
+    }
     
+    console.log('Workflow saved successfully:', data);
     await fetchWorkflows();
     return data;
   };

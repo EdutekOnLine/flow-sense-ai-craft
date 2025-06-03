@@ -29,10 +29,12 @@ export function SaveWorkflowDialog({
 }: SaveWorkflowDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     if (!name.trim()) return;
     
+    setIsSaving(true);
     try {
       await onSave(name.trim(), description.trim());
       setName('');
@@ -40,6 +42,8 @@ export function SaveWorkflowDialog({
       onClose();
     } catch (error) {
       console.error('Error saving workflow:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -63,7 +67,7 @@ export function SaveWorkflowDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter workflow name..."
-              disabled={isLoading}
+              disabled={isSaving || isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -73,20 +77,20 @@ export function SaveWorkflowDialog({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter workflow description..."
-              disabled={isLoading}
+              disabled={isSaving || isLoading}
               rows={3}
             />
           </div>
         </div>
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+          <Button variant="outline" onClick={handleClose} disabled={isSaving || isLoading}>
             Cancel
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={!name.trim() || isLoading}
+            disabled={!name.trim() || isSaving || isLoading}
           >
-            {isLoading ? 'Saving...' : 'Save Workflow'}
+            {isSaving ? 'Saving...' : 'Save Workflow'}
           </Button>
         </div>
       </DialogContent>
