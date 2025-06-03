@@ -24,6 +24,8 @@ export default function AuthPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('invite');
     
+    console.log('Checking for invitation token:', token);
+    
     if (token) {
       setInviteToken(token);
       setShowSignup(true);
@@ -34,6 +36,8 @@ export default function AuthPage() {
 
   const fetchInvitationInfo = async (token: string) => {
     try {
+      console.log('Fetching invitation info for token:', token);
+      
       const { data, error } = await supabase
         .from('user_invitations')
         .select('*')
@@ -41,6 +45,8 @@ export default function AuthPage() {
         .is('used_at', null)
         .gt('expires_at', new Date().toISOString())
         .single();
+
+      console.log('Invitation data:', data, 'Error:', error);
 
       if (error || !data) {
         toast({
@@ -54,6 +60,7 @@ export default function AuthPage() {
       }
 
       setInvitationInfo(data);
+      console.log('Successfully loaded invitation info:', data);
     } catch (error) {
       console.error('Error fetching invitation:', error);
     }
@@ -106,15 +113,20 @@ export default function AuthPage() {
       return;
     }
 
-    const { error } = await signUp(email, password, firstName, lastName);
+    console.log('Attempting signup with invitation bypass');
+
+    // Use bypass email confirmation for invitation-based signups
+    const { error } = await signUp(email, password, firstName, lastName, true);
     
     if (error) {
+      console.error('Signup error:', error);
       toast({
         title: 'Error creating account',
         description: error.message,
         variant: 'destructive',
       });
     } else {
+      console.log('Signup successful for invitation-based user');
       toast({
         title: 'Account created!',
         description: 'Welcome to NeuraFlow. You can now start managing workflows.',
