@@ -117,12 +117,16 @@ export default function WorkflowBuilder() {
     loadWorkflow
   } = useWorkflowPersistence();
 
-  // Track changes to mark workflow as modified
+  // Track changes to mark workflow as modified - but only after initial load
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
-    if (nodes.length > 0 || edges.length > 0) {
+    // Don't mark as changed during initial load or when loading a workflow
+    if (!isInitialLoad && (nodes.length > 0 || edges.length > 0)) {
+      console.log('Marking workflow as changed due to nodes/edges update');
       setHasUnsavedChanges(true);
     }
-  }, [nodes, edges]);
+  }, [nodes, edges, isInitialLoad]);
 
   const generatePersistentNodeId = useCallback(() => {
     const timestamp = Date.now();
@@ -406,8 +410,8 @@ export default function WorkflowBuilder() {
       
       setCurrentWorkflowName(name);
       setCurrentWorkflowDescription(description);
-      setHasUnsavedChanges(false);
-      console.log('Workflow saved successfully');
+      setHasUnsavedChanges(false); // Reset unsaved changes after successful save
+      console.log('Workflow saved successfully, hasUnsavedChanges set to false');
     } catch (error) {
       console.error('Failed to save workflow:', error);
       // Error handling is already done in the saveWorkflow function
@@ -415,6 +419,9 @@ export default function WorkflowBuilder() {
   }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
 
   const handleLoadWorkflow = useCallback(async (workflowId: string) => {
+    console.log('Loading workflow, setting isInitialLoad to true');
+    setIsInitialLoad(true);
+    
     const workflow = await loadWorkflow(workflowId);
     if (workflow) {
       // Preserve persistent IDs from loaded workflow and ensure draggable
@@ -437,6 +444,12 @@ export default function WorkflowBuilder() {
         reactFlowInstance.setViewport(workflow.viewport);
       }
       
+      // Allow changes to be tracked after initial load
+      setTimeout(() => {
+        console.log('Setting isInitialLoad to false after workflow load');
+        setIsInitialLoad(false);
+      }, 100);
+      
       toast({
         title: "Workflow Loaded",
         description: `"${workflow.name}" has been loaded successfully.`,
@@ -445,6 +458,8 @@ export default function WorkflowBuilder() {
   }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance, handleOpenNodeConfiguration]);
 
   const handleNewWorkflow = useCallback(() => {
+    console.log('Creating new workflow, setting isInitialLoad to true');
+    setIsInitialLoad(true);
     setNodes([]);
     setEdges([]);
     setCurrentWorkflowId(null);
@@ -454,6 +469,12 @@ export default function WorkflowBuilder() {
     setSelectedNode(null);
     setIsNodeEditorOpen(false);
     setNodeIdCounter(1);
+    
+    // Allow changes to be tracked after clearing
+    setTimeout(() => {
+      console.log('Setting isInitialLoad to false after new workflow');
+      setIsInitialLoad(false);
+    }, 100);
   }, [setNodes, setEdges, setCurrentWorkflowId]);
 
   const handleWorkflowGenerated = useCallback((result: any) => {
