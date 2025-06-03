@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,8 +23,9 @@ export default function AuthPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('invite');
     
-    console.log('Checking for invitation token:', token);
-    console.log('Full URL:', window.location.href);
+    console.log('AuthPage: Checking for invitation token:', token);
+    console.log('AuthPage: Full URL:', window.location.href);
+    console.log('AuthPage: URL search params:', window.location.search);
     
     if (token) {
       setInviteToken(token);
@@ -37,7 +37,7 @@ export default function AuthPage() {
 
   const fetchInvitationInfo = async (token: string) => {
     try {
-      console.log('Fetching invitation info for token:', token);
+      console.log('AuthPage: Fetching invitation info for token:', token);
       
       const { data, error } = await supabase
         .from('user_invitations')
@@ -47,10 +47,25 @@ export default function AuthPage() {
         .gt('expires_at', new Date().toISOString())
         .single();
 
-      console.log('Invitation data:', data, 'Error:', error);
+      console.log('AuthPage: Invitation query result - data:', data);
+      console.log('AuthPage: Invitation query result - error:', error);
+      console.log('AuthPage: Current timestamp for comparison:', new Date().toISOString());
+
+      if (error) {
+        console.error('AuthPage: Supabase error:', error);
+        
+        // Let's also try a simpler query to see if the invitation exists at all
+        const { data: allInvitations, error: allError } = await supabase
+          .from('user_invitations')
+          .select('*')
+          .eq('invitation_token', token);
+        
+        console.log('AuthPage: All invitations with this token:', allInvitations);
+        console.log('AuthPage: All invitations query error:', allError);
+      }
 
       if (error || !data) {
-        console.error('Invalid invitation:', error);
+        console.error('AuthPage: Invalid invitation - error:', error, 'data:', data);
         toast({
           title: 'Invalid Invitation',
           description: 'This invitation link is invalid or has expired.',
@@ -62,9 +77,9 @@ export default function AuthPage() {
       }
 
       setInvitationInfo(data);
-      console.log('Successfully loaded invitation info:', data);
+      console.log('AuthPage: Successfully loaded invitation info:', data);
     } catch (error) {
-      console.error('Error fetching invitation:', error);
+      console.error('AuthPage: Exception fetching invitation:', error);
     }
   };
 
