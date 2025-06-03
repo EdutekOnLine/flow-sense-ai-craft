@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,9 +38,30 @@ export function useWorkflowAssignments() {
       return;
     }
 
-    console.log('Fetching assignments for user:', user.id);
+    console.log('=== ASSIGNMENT FETCH DEBUG ===');
+    console.log('Current user ID:', user.id);
+    console.log('Current user email:', user.email);
+    
     setIsLoading(true);
     try {
+      // First, let's check if there are ANY assignments in the database
+      const { data: allAssignments, error: allError } = await supabase
+        .from('workflow_step_assignments')
+        .select('*');
+        
+      console.log('Total assignments in database:', allAssignments?.length || 0);
+      console.log('All assignments:', allAssignments);
+      
+      // Check assignments for this specific user
+      const { data: userAssignments, error: userError } = await supabase
+        .from('workflow_step_assignments')
+        .select('*')
+        .eq('assigned_to', user.id);
+        
+      console.log('Assignments for current user:', userAssignments?.length || 0);
+      console.log('User assignments raw:', userAssignments);
+
+      // Now fetch with full join
       const { data, error } = await supabase
         .from('workflow_step_assignments')
         .select(`
@@ -59,8 +79,8 @@ export function useWorkflowAssignments() {
         .eq('assigned_to', user.id)
         .order('created_at', { ascending: false });
 
-      console.log('Raw assignment data:', data);
-      console.log('Assignment fetch error:', error);
+      console.log('Final query result:', data);
+      console.log('Final query error:', error);
 
       if (error) throw error;
 
@@ -70,7 +90,8 @@ export function useWorkflowAssignments() {
         status: item.status as AssignmentStatus
       }));
 
-      console.log('Processed assignments:', typedAssignments);
+      console.log('Processed assignments for dashboard:', typedAssignments);
+      console.log('=== END ASSIGNMENT DEBUG ===');
       setAssignments(typedAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
