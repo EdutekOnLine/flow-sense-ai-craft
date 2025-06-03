@@ -33,7 +33,14 @@ export function useSavedWorkflows() {
     if (error) {
       console.error('Error fetching workflows:', error);
     } else {
-      setWorkflows(data || []);
+      // Transform the data to match our interface
+      const transformedWorkflows = (data || []).map(workflow => ({
+        ...workflow,
+        nodes: workflow.nodes as Node[],
+        edges: workflow.edges as Edge[],
+        viewport: workflow.viewport as { x: number; y: number; zoom: number } | undefined,
+      }));
+      setWorkflows(transformedWorkflows);
     }
     setIsLoading(false);
   };
@@ -52,9 +59,9 @@ export function useSavedWorkflows() {
       .insert({
         name,
         description,
-        nodes,
-        edges,
-        viewport,
+        nodes: nodes as any,
+        edges: edges as any,
+        viewport: viewport as any,
         created_by: user.id,
       })
       .select()
@@ -81,9 +88,9 @@ export function useSavedWorkflows() {
       .update({
         name,
         description,
-        nodes,
-        edges,
-        viewport,
+        nodes: nodes as any,
+        edges: edges as any,
+        viewport: viewport as any,
       })
       .eq('id', id)
       .select()

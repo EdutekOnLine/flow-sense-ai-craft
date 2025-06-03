@@ -111,6 +111,16 @@ export default function WorkflowBuilder() {
   const [showAssistant, setShowAssistant] = useState(false);
   const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
 
+  // Helper functions for generating persistent IDs
+  const generatePersistentNodeId = useCallback(() => {
+    const id = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return id;
+  }, []);
+
+  const generatePersistentEdgeId = useCallback((sourceId: string, targetId: string) => {
+    return `edge-${sourceId}-${targetId}-${Date.now()}`;
+  }, []);
+
   // Function to handle opening configuration for a specific node
   const handleOpenNodeConfiguration = useCallback((nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
