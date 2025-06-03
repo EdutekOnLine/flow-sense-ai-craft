@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Copy, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UserInvitation {
   id: string;
@@ -42,6 +42,7 @@ export default function UserManagement() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   // Fetch existing users
   const { data: users = [] } = useQuery({
@@ -71,9 +72,10 @@ export default function UserManagement() {
     },
   });
 
-  // Create invitation mutation
+  // Create invitation mutation with email sending
   const createInvitation = useMutation({
     mutationFn: async (invitation: typeof inviteForm) => {
+      // First create the invitation in the database
       const { data, error } = await supabase
         .from('user_invitations')
         .insert([{
@@ -86,12 +88,36 @@ export default function UserManagement() {
         .single();
       
       if (error) throw error;
+
+      // Then send the invitation email
+      const emailResponse = await supabase.functions.invoke('send-user-invitation', {
+        body: {
+          email: invitation.email,
+          role: invitation.role,
+          department: invitation.department,
+          invitationToken: data.invitation_token,
+          invitedByName: profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}` 
+            : profile?.email,
+        },
+      });
+
+      if (emailResponse.error) {
+        console.error('Error sending invitation email:', emailResponse.error);
+        // Don't throw here - invitation was created successfully, just email failed
+        toast({
+          title: 'Invitation created but email failed',
+          description: 'You can copy the invitation link manually.',
+          variant: 'destructive',
+        });
+      }
+
       return data;
     },
     onSuccess: (data) => {
       toast({
         title: 'Invitation sent!',
-        description: `Invitation created for ${data.email}`,
+        description: `Invitation email sent to ${data.email}`,
       });
       setInviteForm({ email: '', role: 'employee', department: '' });
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
