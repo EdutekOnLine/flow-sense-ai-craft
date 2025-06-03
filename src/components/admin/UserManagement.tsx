@@ -42,7 +42,7 @@ export default function UserManagement() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   // Fetch existing users
   const { data: users = [] } = useQuery({
@@ -82,12 +82,14 @@ export default function UserManagement() {
           email: invitation.email,
           role: invitation.role,
           department: invitation.department || null,
-          invited_by: (await supabase.auth.getUser()).data.user?.id,
+          invited_by: user?.id, // Use the current user's ID
         }])
         .select()
         .single();
       
       if (error) throw error;
+
+      console.log('Created invitation record:', data);
 
       // Then send the invitation email
       const emailResponse = await supabase.functions.invoke('send-user-invitation', {
@@ -99,8 +101,11 @@ export default function UserManagement() {
           invitedByName: profile?.first_name && profile?.last_name 
             ? `${profile.first_name} ${profile.last_name}` 
             : profile?.email,
+          invitedBy: user?.id, // Pass the current user's ID
         },
       });
+
+      console.log('Email response:', emailResponse);
 
       if (emailResponse.error) {
         console.error('Error sending invitation email:', emailResponse.error);
