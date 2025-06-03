@@ -29,6 +29,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { X, Settings, Clock, Users, Mail, Database, GitBranch, Webhook, FileText, Calendar, Filter, Sparkles } from 'lucide-react';
 import { NodeAIAssistant } from './NodeAIAssistant';
+import { useUsers } from '@/hooks/useUsers';
 
 interface WorkflowNodeData {
   label: string;
@@ -106,6 +107,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   const [formSchema, setFormSchema] = useState(baseFormSchema);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiFieldType, setAIFieldType] = useState<'email' | 'webhook' | 'condition' | 'delay' | 'general'>('general');
+  const { data: users = [], isLoading: isLoadingUsers } = useUsers();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -317,13 +319,24 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assigned To</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter assignee name" 
-                          {...field} 
-                          value={field.value || ''}
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select assignee"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Unassigned</SelectItem>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.first_name && user.last_name 
+                                ? `${user.first_name} ${user.last_name} (${user.email})`
+                                : user.email
+                              }
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
