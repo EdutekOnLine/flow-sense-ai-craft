@@ -30,8 +30,16 @@ export function useWorkflowPersistence() {
     workflowId?: string,
     isReusable?: boolean
   ) => {
+    if (isLoading) {
+      console.log('Save already in progress, skipping...');
+      return;
+    }
+
     setIsLoading(true);
+    
     try {
+      console.log('Starting save operation...', { name, workflowId, nodesCount: nodes.length, edgesCount: edges.length });
+      
       // Ensure all nodes have persistent IDs
       const nodesWithIds = nodes.map(node => ({
         ...node,
@@ -45,6 +53,7 @@ export function useWorkflowPersistence() {
       }));
 
       if (workflowId) {
+        console.log('Updating existing workflow:', workflowId);
         // Update existing workflow
         const { error } = await supabase
           .from('workflow_definitions')
@@ -59,14 +68,25 @@ export function useWorkflowPersistence() {
           })
           .eq('id', workflowId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating workflow:', error);
+          throw error;
+        }
         
+        console.log('Workflow updated successfully');
         toast({
           title: "Workflow Updated",
           description: `"${name}" has been successfully updated.`,
         });
       } else {
+        console.log('Creating new workflow');
         // Create new workflow
+        const { data: userData } = await supabase.auth.getUser();
+        
+        if (!userData.user) {
+          throw new Error('User not authenticated');
+        }
+
         const { data, error } = await supabase
           .from('workflow_definitions')
           .insert([{
@@ -76,13 +96,17 @@ export function useWorkflowPersistence() {
             nodes: nodesWithIds as any,
             edges: edgesWithIds as any,
             viewport: viewport as any,
-            created_by: (await supabase.auth.getUser()).data.user?.id
+            created_by: userData.user.id
           }])
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating workflow:', error);
+          throw error;
+        }
         
+        console.log('Workflow created successfully:', data.id);
         setCurrentWorkflowId(data.id);
         toast({
           title: "Workflow Saved",
@@ -93,13 +117,14 @@ export function useWorkflowPersistence() {
       console.error('Error saving workflow:', error);
       toast({
         title: "Save Failed",
-        description: "Failed to save workflow. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save workflow. Please try again.",
         variant: "destructive",
       });
+      throw error; // Re-throw to let caller handle it
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, isLoading]);
 
   const loadWorkflow = useCallback(async (workflowId: string) => {
     setIsLoading(true);

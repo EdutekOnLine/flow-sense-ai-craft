@@ -227,6 +227,17 @@ export default function WorkflowBuilder() {
 
   const onConnect = useCallback(
     (params: Connection) => {
+      console.log('Connecting nodes:', params);
+      
+      if (!canCreateWorkflows) {
+        toast({
+          title: "Permission Denied",
+          description: "You don't have permission to connect nodes.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Determine edge type based on source node type
       const sourceNode = nodes.find(node => node.id === params.source);
       const sourceNodeData = sourceNode?.data as WorkflowNodeData;
@@ -261,8 +272,9 @@ export default function WorkflowBuilder() {
       };
 
       setEdges((eds) => addEdge(newEdge, eds));
+      console.log('Edge created:', newEdge);
     },
-    [setEdges, nodes, generatePersistentEdgeId]
+    [setEdges, nodes, generatePersistentEdgeId, canCreateWorkflows, toast]
   );
 
   const addNode = useCallback((type: string, label: string, description: string = '') => {
@@ -376,7 +388,7 @@ export default function WorkflowBuilder() {
     setSelectedNode(null);
   }, []);
 
-  const handleSaveWorkflow = useCallback(async (name: string, description?: string) => {
+  const handleSaveWorkflow = useCallback(async (name: string, description?: string, isReusable?: boolean) => {
     if (!canCreateWorkflows && !canEditWorkflows) {
       toast({
         title: "Permission Denied",
@@ -386,12 +398,20 @@ export default function WorkflowBuilder() {
       return;
     }
 
-    const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
-    await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined);
-    
-    setCurrentWorkflowName(name);
-    setCurrentWorkflowDescription(description);
-    setHasUnsavedChanges(false);
+    try {
+      const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
+      console.log('Saving workflow with:', { name, description, isReusable, nodesCount: nodes.length, edgesCount: edges.length });
+      
+      await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined, isReusable);
+      
+      setCurrentWorkflowName(name);
+      setCurrentWorkflowDescription(description);
+      setHasUnsavedChanges(false);
+      console.log('Workflow saved successfully');
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+      // Error handling is already done in the saveWorkflow function
+    }
   }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
 
   const handleLoadWorkflow = useCallback(async (workflowId: string) => {
@@ -660,6 +680,7 @@ export default function WorkflowBuilder() {
             isSaving={isSaving}
             currentWorkflowName={currentWorkflowName}
             currentWorkflowDescription={currentWorkflowDescription}
+            currentWorkflowIsReusable={false}
             hasUnsavedChanges={hasUnsavedChanges}
             isCurrentWorkflowSaved={!!currentWorkflowId}
             nodes={nodes}
