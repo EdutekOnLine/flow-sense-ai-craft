@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,9 +33,18 @@ export function useWorkflowAssignments() {
   const [assignments, setAssignments] = useState<WorkflowAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log('=== WORKFLOW ASSIGNMENTS HOOK DEBUG ===');
+  console.log('Hook initialized, user state:', user);
+  console.log('User ID from hook:', user?.id);
+  console.log('User email from hook:', user?.email);
+
   const fetchAssignments = useCallback(async () => {
+    console.log('=== FETCH ASSIGNMENTS CALLED ===');
+    console.log('User parameter in fetchAssignments:', user);
+    
     if (!user) {
       console.log('No user found, skipping assignment fetch');
+      console.log('User is:', user);
       return;
     }
 
@@ -228,6 +238,9 @@ export function useWorkflowAssignments() {
   }, [assignments, user?.id, toast, fetchAssignments]);
 
   useEffect(() => {
+    console.log('=== ASSIGNMENTS USEEFFECT TRIGGERED ===');
+    console.log('User in useEffect:', user);
+    console.log('About to call fetchAssignments');
     fetchAssignments();
   }, [fetchAssignments]);
 

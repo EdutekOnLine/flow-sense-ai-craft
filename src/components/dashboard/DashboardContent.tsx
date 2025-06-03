@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
@@ -14,13 +15,15 @@ import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 export default function DashboardContent() {
   const { assignments, isLoading: assignmentsLoading } = useWorkflowAssignments();
   const { startableWorkflows, isLoading: workflowsLoading, startWorkflow } = useWorkflowInstances();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { workflows } = useSavedWorkflows();
 
   // Add debugging
+  console.log('=== DASHBOARD CONTENT DEBUG ===');
+  console.log('Dashboard user from useAuth:', user);
+  console.log('Dashboard profile:', profile);
   console.log('Dashboard assignments:', assignments);
   console.log('Dashboard assignmentsLoading:', assignmentsLoading);
-  console.log('Dashboard profile:', profile);
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');
@@ -80,14 +83,18 @@ export default function DashboardContent() {
         </Button>
       </div>
 
-      {/* Debug info - remove this after testing */}
+      {/* Enhanced Debug info */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <h3 className="font-medium text-yellow-800">Debug Info:</h3>
+        <p className="text-sm text-yellow-700">User object: {user ? 'Present' : 'Missing'}</p>
+        <p className="text-sm text-yellow-700">User ID: {user?.id || 'None'}</p>
+        <p className="text-sm text-yellow-700">Profile ID: {profile?.id || 'None'}</p>
+        <p className="text-sm text-yellow-700">Profile email: {profile?.email || 'None'}</p>
         <p className="text-sm text-yellow-700">Total assignments: {assignments.length}</p>
         <p className="text-sm text-yellow-700">Pending: {pendingAssignments.length}</p>
         <p className="text-sm text-yellow-700">In Progress: {inProgressAssignments.length}</p>
         <p className="text-sm text-yellow-700">Completed: {completedAssignments.length}</p>
-        <p className="text-sm text-yellow-700">User ID: {profile?.id}</p>
+        <p className="text-sm text-yellow-700">Assignments loading: {assignmentsLoading ? 'Yes' : 'No'}</p>
       </div>
 
       {/* Startable Workflows Section */}
