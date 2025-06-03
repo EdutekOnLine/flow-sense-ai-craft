@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -23,7 +24,6 @@ import { WorkflowSidebar } from './WorkflowSidebar';
 import { NodeEditor } from './NodeEditor';
 import { ConditionalEdge } from './ConditionalEdge';
 import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
-import { useWorkflowPersistence } from '@/hooks/useWorkflowPersistence';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useToast } from '@/hooks/use-toast';
 import { NaturalLanguageGenerator } from './NaturalLanguageGenerator';
@@ -40,7 +40,6 @@ interface WorkflowNodeData extends Record<string, unknown> {
   assignedTo: string | null;
   estimatedHours: number | null;
   onConfigure?: () => void;
-  // Node type specific configurations
   emailConfig?: {
     to?: string;
     subject?: string;
@@ -90,9 +89,6 @@ export default function WorkflowBuilder() {
   const [nodeIdCounter, setNodeIdCounter] = useState(1);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
-  const [currentWorkflowName, setCurrentWorkflowName] = useState<string | undefined>();
-  const [currentWorkflowDescription, setCurrentWorkflowDescription] = useState<string | undefined>();
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -111,27 +107,6 @@ export default function WorkflowBuilder() {
   
   const [showAssistant, setShowAssistant] = useState(false);
   const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
-
-  const {
-    currentWorkflowId,
-    setCurrentWorkflowId,
-    isLoading: isSaving,
-    saveWorkflow,
-    loadWorkflow
-  } = useWorkflowPersistence();
-
-  // Track changes to mark workflow as modified - but only after initial load
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [isSavingWorkflow, setIsSavingWorkflow] = useState(false);
-  const [isUpdatingNodeConfig, setIsUpdatingNodeConfig] = useState(false);
-  
-  useEffect(() => {
-    // Don't mark as changed during initial load, when loading a workflow, when saving, or when updating node config
-    if (!isInitialLoad && !isSavingWorkflow && !isUpdatingNodeConfig && (nodes.length > 0 || edges.length > 0)) {
-      console.log('Marking workflow as changed due to nodes/edges update');
-      setHasUnsavedChanges(true);
-    }
-  }, [nodes, edges, isInitialLoad, isSavingWorkflow, isUpdatingNodeConfig]);
 
   const generatePersistentNodeId = useCallback(() => {
     const timestamp = Date.now();
@@ -347,9 +322,6 @@ export default function WorkflowBuilder() {
       return;
     }
 
-    console.log('Updating node data for:', nodeId, 'Setting isUpdatingNodeConfig to true');
-    setIsUpdatingNodeConfig(true);
-
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -370,12 +342,6 @@ export default function WorkflowBuilder() {
         return node;
       })
     );
-
-    // Reset the flag after a short delay to allow the effect to run
-    setTimeout(() => {
-      console.log('Setting isUpdatingNodeConfig back to false');
-      setIsUpdatingNodeConfig(false);
-    }, 100);
   }, [setNodes, selectedNode, canEditWorkflows, toast, handleOpenNodeConfiguration]);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
@@ -406,100 +372,13 @@ export default function WorkflowBuilder() {
     setSelectedNode(null);
   }, []);
 
-  const handleSaveWorkflow = useCallback(async (name: string, description?: string, isReusable?: boolean) => {
-    if (!canCreateWorkflows && !canEditWorkflows) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to save workflows.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!reactFlowInstance) {
-      console.error('ReactFlow instance not available');
-      return;
-    }
-
-    console.log('Starting workflow save process');
-    setIsSavingWorkflow(true);
-    
-    try {
-      const viewport = reactFlowInstance.getViewport();
-      console.log('Saving workflow with:', { name, description, isReusable, nodesCount: nodes.length, edgesCount: edges.length });
-      
-      await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined, isReusable);
-      
-      setCurrentWorkflowName(name);
-      setCurrentWorkflowDescription(description);
-      setHasUnsavedChanges(false); // Reset unsaved changes after successful save
-      console.log('Workflow saved successfully, hasUnsavedChanges set to false');
-    } catch (error) {
-      console.error('Failed to save workflow:', error);
-      // Error handling is already done in the saveWorkflow function
-    } finally {
-      setIsSavingWorkflow(false);
-    }
-  }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
-
-  const handleLoadWorkflow = useCallback(async (workflowId: string) => {
-    console.log('Loading workflow, setting isInitialLoad to true');
-    setIsInitialLoad(true);
-    
-    const workflow = await loadWorkflow(workflowId);
-    if (workflow) {
-      // Preserve persistent IDs from loaded workflow and ensure draggable
-      const draggableNodes = workflow.nodes.map(node => ({ 
-        ...node, 
-        draggable: true,
-        data: {
-          ...node.data,
-          onConfigure: () => handleOpenNodeConfiguration(node.id),
-        }
-      }));
-      setNodes(draggableNodes);
-      setEdges(workflow.edges);
-      setCurrentWorkflowName(workflow.name);
-      setCurrentWorkflowDescription(workflow.description);
-      setHasUnsavedChanges(false);
-      
-      // Set viewport
-      if (reactFlowInstance && workflow.viewport) {
-        reactFlowInstance.setViewport(workflow.viewport);
-      }
-      
-      // Allow changes to be tracked after initial load
-      setTimeout(() => {
-        console.log('Setting isInitialLoad to false after workflow load');
-        setIsInitialLoad(false);
-      }, 100);
-      
-      toast({
-        title: "Workflow Loaded",
-        description: `"${workflow.name}" has been loaded successfully.`,
-      });
-    }
-  }, [loadWorkflow, setNodes, setEdges, toast, reactFlowInstance, handleOpenNodeConfiguration]);
-
   const handleNewWorkflow = useCallback(() => {
-    console.log('Creating new workflow, setting isInitialLoad to true');
-    setIsInitialLoad(true);
     setNodes([]);
     setEdges([]);
-    setCurrentWorkflowId(null);
-    setCurrentWorkflowName(undefined);
-    setCurrentWorkflowDescription(undefined);
-    setHasUnsavedChanges(false);
     setSelectedNode(null);
     setIsNodeEditorOpen(false);
     setNodeIdCounter(1);
-    
-    // Allow changes to be tracked after clearing
-    setTimeout(() => {
-      console.log('Setting isInitialLoad to false after new workflow');
-      setIsInitialLoad(false);
-    }, 100);
-  }, [setNodes, setEdges, setCurrentWorkflowId]);
+  }, [setNodes, setEdges]);
 
   const handleWorkflowGenerated = useCallback((result: any) => {
     console.log('Applying generated workflow:', result);
@@ -521,16 +400,6 @@ export default function WorkflowBuilder() {
       }));
       setNodes(draggableNodes);
       setEdges(result.edges);
-      
-      // Set the workflow metadata
-      if (result.title) {
-        setCurrentWorkflowName(result.title);
-      }
-      if (result.description) {
-        setCurrentWorkflowDescription(result.description);
-      }
-      
-      setHasUnsavedChanges(true);
       
       // Fit view to show all generated nodes
       if (reactFlowInstance) {
@@ -587,9 +456,9 @@ export default function WorkflowBuilder() {
   const [showReview, setShowReview] = useState(false);
 
   const handleOpenReview = useCallback(() => {
-    reviewWorkflow(nodes, edges, currentWorkflowName);
+    reviewWorkflow(nodes, edges, "Current Workflow");
     setShowReview(true);
-  }, [reviewWorkflow, nodes, edges, currentWorkflowName]);
+  }, [reviewWorkflow, nodes, edges]);
 
   const handleApplySuggestion = useCallback((suggestion: any) => {
     console.log('Applying suggestion:', suggestion);
@@ -727,17 +596,9 @@ export default function WorkflowBuilder() {
         <div className="flex-1 flex flex-col">
           <WorkflowToolbar 
             onAddNode={addNode}
-            onSave={handleSaveWorkflow}
-            onLoad={handleLoadWorkflow}
             onNewWorkflow={handleNewWorkflow}
             onOpenGenerator={() => setIsGeneratorOpen(true)}
             onOpenReview={handleOpenReview}
-            isSaving={isSaving}
-            currentWorkflowName={currentWorkflowName}
-            currentWorkflowDescription={currentWorkflowDescription}
-            currentWorkflowIsReusable={false}
-            hasUnsavedChanges={hasUnsavedChanges}
-            isCurrentWorkflowSaved={!!currentWorkflowId}
             nodes={nodes}
             edges={edges}
             aiAssistantEnabled={aiAssistantEnabled}
@@ -836,7 +697,7 @@ export default function WorkflowBuilder() {
         onClose={() => setShowReview(false)}
         suggestions={reviewSuggestions}
         isLoading={isReviewing}
-        workflowName={currentWorkflowName}
+        workflowName="Current Workflow"
         onApplySuggestion={handleApplySuggestion}
         onDismissSuggestion={handleDismissSuggestion}
       />
