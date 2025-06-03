@@ -31,8 +31,14 @@ const handler = async (req: Request): Promise<Response> => {
     const departmentText = department ? ` in the ${department} department` : '';
     const inviterText = invitedByName ? ` by ${invitedByName}` : '';
 
+    // Use a more generic from address that works with verified domains
+    const fromAddress = "NeuraFlow <noreply@yourdomain.com>"; // You'll need to replace this with your verified domain
+    
+    console.log("Attempting to send invitation email to:", email);
+    console.log("Using from address:", fromAddress);
+
     const emailResponse = await resend.emails.send({
-      from: "NeuraFlow <onboarding@resend.dev>",
+      from: fromAddress,
       to: [email],
       subject: `You're invited to join NeuraFlow as ${role}`,
       html: `
@@ -71,6 +77,23 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `,
     });
+
+    console.log("Email response:", emailResponse);
+
+    if (emailResponse.error) {
+      console.error("Resend API error:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ 
+          error: "Email sending failed", 
+          details: emailResponse.error,
+          message: "Please verify your domain at resend.com/domains and update the from address in the edge function" 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     console.log("User invitation email sent successfully:", emailResponse);
 
