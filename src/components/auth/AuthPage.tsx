@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -118,6 +117,9 @@ export default function AuthPage() {
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       });
+      
+      // Redirect to dashboard after successful sign in
+      window.location.href = '/';
     }
     
     setIsLoading(false);
@@ -184,8 +186,9 @@ export default function AuthPage() {
         description: 'Welcome to NeuraFlow. You can now start managing workflows.',
       });
       
-      // Clear the invite token from URL
+      // Clear the invite token from URL and redirect to dashboard
       window.history.replaceState({}, document.title, window.location.pathname);
+      window.location.href = '/';
     }
     
     setIsLoading(false);
