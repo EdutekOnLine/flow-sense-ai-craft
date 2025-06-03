@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -119,7 +120,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
     defaultValues: {
       label: '',
       description: '',
-      assignedTo: '',
+      assignedTo: 'unassigned',
       estimatedHours: 0,
     },
   });
@@ -158,7 +159,7 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
         const formData: FormData = {
           label: nodeData.label || '',
           description: nodeData.description || '',
-          assignedTo: nodeData.assignedTo || '',
+          assignedTo: nodeData.assignedTo || 'unassigned',
           estimatedHours: nodeData.estimatedHours || 0,
         };
 
@@ -200,7 +201,12 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   const onSubmit = (data: FormData) => {
     console.log('NodeEditor: onSubmit', data);
     if (selectedNode) {
-      onUpdateNode(selectedNode.id, data);
+      // Convert 'unassigned' back to null when updating the node
+      const updateData = {
+        ...data,
+        assignedTo: data.assignedTo === 'unassigned' ? null : data.assignedTo
+      };
+      onUpdateNode(selectedNode.id, updateData);
     }
   };
 
@@ -211,7 +217,12 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
     if (selectedNode && Object.keys(watchedValues).length > 0) {
       const timeoutId = setTimeout(() => {
         console.log('NodeEditor: auto-updating node', watchedValues);
-        onUpdateNode(selectedNode.id, watchedValues);
+        // Convert 'unassigned' back to null when updating the node
+        const updateData = {
+          ...watchedValues,
+          assignedTo: watchedValues.assignedTo === 'unassigned' ? null : watchedValues.assignedTo
+        };
+        onUpdateNode(selectedNode.id, updateData);
       }, 300); // Debounce updates
       
       return () => clearTimeout(timeoutId);
@@ -339,14 +350,14 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assigned To</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <Select onValueChange={field.onChange} value={field.value || 'unassigned'}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select assignee"} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-white z-50">
-                          <SelectItem value="">Unassigned</SelectItem>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
                           {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.first_name && user.last_name 
