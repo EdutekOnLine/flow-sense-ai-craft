@@ -212,11 +212,12 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
         assignedTo: data.assignedTo === 'unassigned' ? null : data.assignedTo
       };
       
+      console.log('NodeEditor: Saving node changes directly without triggering workflow save');
       await onUpdateNode(selectedNode.id, updateData);
       setHasUnsavedChanges(false);
       
       toast({
-        title: "Changes Saved",
+        title: "Node Updated",
         description: "Node configuration has been updated successfully.",
       });
     } catch (error) {
@@ -236,20 +237,12 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
     saveChanges(data);
   };
 
-  // Watch for form changes and mark as unsaved
+  // Watch for form changes and mark as unsaved - but don't auto-save
   const watchedValues = form.watch();
   
   useEffect(() => {
     if (selectedNode && Object.keys(watchedValues).length > 0) {
       setHasUnsavedChanges(true);
-      
-      // Auto-save with debounce (keep existing behavior)
-      const timeoutId = setTimeout(() => {
-        console.log('NodeEditor: auto-updating node', watchedValues);
-        saveChanges(watchedValues);
-      }, 300);
-      
-      return () => clearTimeout(timeoutId);
     }
   }, [watchedValues, selectedNode]);
 

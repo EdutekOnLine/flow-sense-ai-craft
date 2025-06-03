@@ -119,14 +119,15 @@ export default function WorkflowBuilder() {
 
   // Track changes to mark workflow as modified - but only after initial load
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isSavingWorkflow, setIsSavingWorkflow] = useState(false);
   
   useEffect(() => {
-    // Don't mark as changed during initial load or when loading a workflow
-    if (!isInitialLoad && (nodes.length > 0 || edges.length > 0)) {
+    // Don't mark as changed during initial load or when loading a workflow or when saving
+    if (!isInitialLoad && !isSavingWorkflow && (nodes.length > 0 || edges.length > 0)) {
       console.log('Marking workflow as changed due to nodes/edges update');
       setHasUnsavedChanges(true);
     }
-  }, [nodes, edges, isInitialLoad]);
+  }, [nodes, edges, isInitialLoad, isSavingWorkflow]);
 
   const generatePersistentNodeId = useCallback(() => {
     const timestamp = Date.now();
@@ -402,8 +403,16 @@ export default function WorkflowBuilder() {
       return;
     }
 
+    if (!reactFlowInstance) {
+      console.error('ReactFlow instance not available');
+      return;
+    }
+
+    console.log('Starting workflow save process');
+    setIsSavingWorkflow(true);
+    
     try {
-      const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
+      const viewport = reactFlowInstance.getViewport();
       console.log('Saving workflow with:', { name, description, isReusable, nodesCount: nodes.length, edgesCount: edges.length });
       
       await saveWorkflow(name, nodes, edges, viewport, description, currentWorkflowId || undefined, isReusable);
@@ -415,6 +424,8 @@ export default function WorkflowBuilder() {
     } catch (error) {
       console.error('Failed to save workflow:', error);
       // Error handling is already done in the saveWorkflow function
+    } finally {
+      setIsSavingWorkflow(false);
     }
   }, [saveWorkflow, nodes, edges, currentWorkflowId, reactFlowInstance, canCreateWorkflows, canEditWorkflows, toast]);
 
