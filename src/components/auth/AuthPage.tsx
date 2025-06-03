@@ -25,6 +25,7 @@ export default function AuthPage() {
     const token = urlParams.get('invite');
     
     console.log('Checking for invitation token:', token);
+    console.log('Full URL:', window.location.href);
     
     if (token) {
       setInviteToken(token);
@@ -49,6 +50,7 @@ export default function AuthPage() {
       console.log('Invitation data:', data, 'Error:', error);
 
       if (error || !data) {
+        console.error('Invalid invitation:', error);
         toast({
           title: 'Invalid Invitation',
           description: 'This invitation link is invalid or has expired.',
@@ -74,15 +76,19 @@ export default function AuthPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
+    console.log('Attempting sign in for:', email);
+
     const { error } = await signIn(email, password);
     
     if (error) {
+      console.error('Sign in error:', error);
       toast({
         title: 'Error signing in',
         description: error.message,
         variant: 'destructive',
       });
     } else {
+      console.log('Sign in successful');
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
@@ -102,6 +108,8 @@ export default function AuthPage() {
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
 
+    console.log('Signup form data:', { email, firstName, lastName, inviteToken });
+
     // Validate email matches invitation if using invite token
     if (inviteToken && invitationInfo && email !== invitationInfo.email) {
       toast({
@@ -113,10 +121,10 @@ export default function AuthPage() {
       return;
     }
 
-    console.log('Attempting signup with invitation bypass');
+    console.log('Attempting signup with invitation bypass for:', email);
 
     // Use bypass email confirmation for invitation-based signups
-    const { error } = await signUp(email, password, firstName, lastName, true);
+    const { data, error } = await signUp(email, password, firstName, lastName, true);
     
     if (error) {
       console.error('Signup error:', error);
@@ -126,11 +134,33 @@ export default function AuthPage() {
         variant: 'destructive',
       });
     } else {
-      console.log('Signup successful for invitation-based user');
+      console.log('Signup successful for invitation-based user:', data);
+      
+      // Mark invitation as used
+      if (inviteToken && invitationInfo) {
+        try {
+          const { error: updateError } = await supabase
+            .from('user_invitations')
+            .update({ used_at: new Date().toISOString() })
+            .eq('id', invitationInfo.id);
+          
+          if (updateError) {
+            console.error('Error marking invitation as used:', updateError);
+          } else {
+            console.log('Invitation marked as used successfully');
+          }
+        } catch (updateError) {
+          console.error('Exception marking invitation as used:', updateError);
+        }
+      }
+      
       toast({
         title: 'Account created!',
         description: 'Welcome to NeuraFlow. You can now start managing workflows.',
       });
+      
+      // Clear the invite token from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     setIsLoading(false);

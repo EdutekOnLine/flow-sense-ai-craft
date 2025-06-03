@@ -78,7 +78,8 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, bypassEmailConfirmation?: boolean) => {
-    // For invitation-based signups, we bypass email confirmation
+    console.log('SignUp called with bypass:', bypassEmailConfirmation);
+    
     const signUpOptions: any = {
       email,
       password,
@@ -90,12 +91,18 @@ export function useAuth() {
       }
     };
 
-    // Only add emailRedirectTo if NOT using invitation bypass
+    // For invitation-based signups, we don't set emailRedirectTo at all
+    // This prevents Supabase from trying to send confirmation emails
     if (!bypassEmailConfirmation) {
       signUpOptions.options.emailRedirectTo = `${window.location.origin}/`;
     }
 
+    console.log('Signup options:', signUpOptions);
+
     const { data, error } = await supabase.auth.signUp(signUpOptions);
+    
+    console.log('Signup result:', { data, error });
+    
     return { data, error };
   };
 
