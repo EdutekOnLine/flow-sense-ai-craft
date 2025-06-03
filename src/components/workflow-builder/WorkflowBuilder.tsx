@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -120,14 +121,15 @@ export default function WorkflowBuilder() {
   // Track changes to mark workflow as modified - but only after initial load
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isSavingWorkflow, setIsSavingWorkflow] = useState(false);
+  const [isUpdatingNodeConfig, setIsUpdatingNodeConfig] = useState(false);
   
   useEffect(() => {
-    // Don't mark as changed during initial load or when loading a workflow or when saving
-    if (!isInitialLoad && !isSavingWorkflow && (nodes.length > 0 || edges.length > 0)) {
+    // Don't mark as changed during initial load, when loading a workflow, when saving, or when updating node config
+    if (!isInitialLoad && !isSavingWorkflow && !isUpdatingNodeConfig && (nodes.length > 0 || edges.length > 0)) {
       console.log('Marking workflow as changed due to nodes/edges update');
       setHasUnsavedChanges(true);
     }
-  }, [nodes, edges, isInitialLoad, isSavingWorkflow]);
+  }, [nodes, edges, isInitialLoad, isSavingWorkflow, isUpdatingNodeConfig]);
 
   const generatePersistentNodeId = useCallback(() => {
     const timestamp = Date.now();
@@ -343,6 +345,9 @@ export default function WorkflowBuilder() {
       return;
     }
 
+    console.log('Updating node data for:', nodeId, 'Setting isUpdatingNodeConfig to true');
+    setIsUpdatingNodeConfig(true);
+
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -363,6 +368,12 @@ export default function WorkflowBuilder() {
         return node;
       })
     );
+
+    // Reset the flag after a short delay to allow the effect to run
+    setTimeout(() => {
+      console.log('Setting isUpdatingNodeConfig back to false');
+      setIsUpdatingNodeConfig(false);
+    }, 100);
   }, [setNodes, selectedNode, canEditWorkflows, toast, handleOpenNodeConfiguration]);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
