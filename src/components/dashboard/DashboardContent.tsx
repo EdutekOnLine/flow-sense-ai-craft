@@ -9,13 +9,11 @@ import { Button } from '@/components/ui/button';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 
 export default function DashboardContent() {
   const { assignments, isLoading: assignmentsLoading } = useWorkflowAssignments();
   const { startableWorkflows, isLoading: workflowsLoading, startWorkflow } = useWorkflowInstances();
   const { profile } = useAuth();
-  const navigate = useNavigate();
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');
@@ -33,38 +31,14 @@ export default function DashboardContent() {
   };
 
   const handleOpenWorkflow = (workflowId: string) => {
-    // Navigate to workflow builder with the workflow ID as a URL parameter
-    navigate(`/?tab=workflow-builder&workflowId=${workflowId}`);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-orange-500" />;
-      case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-500" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'skipped':
-        return <XCircle className="h-4 w-4 text-gray-500" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-orange-100 text-orange-800';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'skipped':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    // Navigate to workflow builder tab with the workflow ID as a URL parameter
+    window.location.hash = 'workflow-builder';
+    const url = new URL(window.location.href);
+    url.searchParams.set('workflowId', workflowId);
+    window.history.pushState({}, '', url.toString());
+    
+    // Trigger a page reload to ensure the workflow builder loads with the correct workflow
+    window.location.reload();
   };
 
   const handleViewAllTasks = () => {
@@ -304,3 +278,33 @@ export default function DashboardContent() {
     </div>
   );
 }
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return <Clock className="h-4 w-4 text-orange-500" />;
+    case 'in_progress':
+      return <PlayCircle className="h-4 w-4 text-blue-500" />;
+    case 'completed':
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    case 'skipped':
+      return <XCircle className="h-4 w-4 text-gray-500" />;
+    default:
+      return <Clock className="h-4 w-4" />;
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return 'bg-orange-100 text-orange-800';
+    case 'in_progress':
+      return 'bg-blue-100 text-blue-800';
+    case 'completed':
+      return 'bg-green-100 text-green-800';
+    case 'skipped':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
