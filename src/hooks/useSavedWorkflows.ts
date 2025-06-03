@@ -36,9 +36,9 @@ export function useSavedWorkflows() {
       // Transform the data to match our interface
       const transformedWorkflows = (data || []).map(workflow => ({
         ...workflow,
-        nodes: workflow.nodes as Node[],
-        edges: workflow.edges as Edge[],
-        viewport: workflow.viewport as { x: number; y: number; zoom: number } | undefined,
+        nodes: (workflow.nodes as unknown) as Node[],
+        edges: (workflow.edges as unknown) as Edge[],
+        viewport: (workflow.viewport as unknown) as { x: number; y: number; zoom: number } | undefined,
       }));
       setWorkflows(transformedWorkflows);
     }
