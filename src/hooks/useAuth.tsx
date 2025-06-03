@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +18,11 @@ export function useAuth() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log('=== USE AUTH HOOK DEBUG ===');
+  console.log('Auth hook state - User:', user?.id);
+  console.log('Auth hook state - Profile:', profile?.id);
+  console.log('Auth hook state - Loading:', loading);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -28,18 +32,34 @@ export function useAuth() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('=== PROFILE FETCH ATTEMPT ===');
+          console.log('Fetching profile for user ID:', session.user.id);
+          
           // Fetch user profile
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            setProfile(profileData);
-            setLoading(false);
+            try {
+              const { data: profileData, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              console.log('Profile fetch result:', { profileData, error });
+              
+              if (error) {
+                console.error('Profile fetch error:', error);
+              }
+              
+              setProfile(profileData);
+              setLoading(false);
+            } catch (err) {
+              console.error('Profile fetch exception:', err);
+              setProfile(null);
+              setLoading(false);
+            }
           }, 0);
         } else {
+          console.log('No session user, clearing profile');
           setProfile(null);
           setLoading(false);
         }
@@ -48,20 +68,31 @@ export function useAuth() {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('=== INITIAL PROFILE FETCH ===');
+        console.log('Initial fetch for user ID:', session.user.id);
+        
         supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single()
-          .then(({ data: profileData }) => {
+          .then(({ data: profileData, error }) => {
+            console.log('Initial profile fetch result:', { profileData, error });
+            
+            if (error) {
+              console.error('Initial profile fetch error:', error);
+            }
+            
             setProfile(profileData);
             setLoading(false);
           });
       } else {
+        console.log('No initial session user');
         setLoading(false);
       }
     });
