@@ -16,6 +16,11 @@ const AppContent = () => {
   const { user, loading } = useAuth();
   const [hasInviteToken, setHasInviteToken] = useState(false);
 
+  console.log('=== APP CONTENT DEBUG ===');
+  console.log('App.tsx - User:', user?.id);
+  console.log('App.tsx - Loading:', loading);
+  console.log('App.tsx - hasInviteToken:', hasInviteToken);
+
   useEffect(() => {
     // Check for invitation token in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -26,6 +31,7 @@ const AppContent = () => {
   }, []);
 
   if (loading) {
+    console.log('App showing loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -46,7 +52,7 @@ const AppContent = () => {
   }
 
   // If user is authenticated and no invite token, show dashboard
-  console.log('User authenticated and no invite token, showing Dashboard');
+  console.log('User authenticated and no invite token, showing Dashboard Routes');
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
@@ -55,16 +61,20 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('=== APP COMPONENT RENDERED ===');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
