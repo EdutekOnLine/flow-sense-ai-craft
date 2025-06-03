@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
@@ -9,11 +10,13 @@ import { Button } from '@/components/ui/button';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
 import { toast } from 'sonner';
+import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 
 export default function DashboardContent() {
   const { assignments, isLoading: assignmentsLoading } = useWorkflowAssignments();
   const { startableWorkflows, isLoading: workflowsLoading, startWorkflow } = useWorkflowInstances();
   const { profile } = useAuth();
+  const { workflows } = useSavedWorkflows();
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');
@@ -31,6 +34,13 @@ export default function DashboardContent() {
   };
 
   const handleOpenWorkflow = (workflowId: string) => {
+    // Find the workflow to get its name for the toast
+    const workflow = workflows.find(w => w.id === workflowId);
+    const workflowName = workflow?.name || 'Workflow';
+    
+    // Show toast immediately before navigation
+    toast.success(`"${workflowName}" loaded for editing!`);
+    
     // Navigate to workflow builder tab with the workflow ID as a URL parameter
     window.location.hash = 'workflow-builder';
     const url = new URL(window.location.href);
