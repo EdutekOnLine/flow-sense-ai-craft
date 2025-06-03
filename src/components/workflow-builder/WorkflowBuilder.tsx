@@ -92,10 +92,11 @@ export default function WorkflowBuilder() {
   const [isNodeEditorOpen, setIsNodeEditorOpen] = useState(false);
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
-  const { saveWorkflow } = useSavedWorkflows();
+  const { saveWorkflow, updateWorkflow, workflows } = useSavedWorkflows();
 
   // Add AI Assistant toggle state
   const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
@@ -143,6 +144,40 @@ export default function WorkflowBuilder() {
     );
   }, [handleOpenNodeConfiguration, setNodes]);
 
+  // Load workflow on mount if workflowId is provided
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const workflowId = urlParams.get('workflowId');
+    
+    if (workflowId && workflows.length > 0) {
+      const workflow = workflows.find(w => w.id === workflowId);
+      if (workflow) {
+        console.log('Loading workflow:', workflow);
+        setCurrentWorkflowId(workflowId);
+        setNodes(workflow.nodes.map(node => ({
+          ...node,
+          data: {
+            ...node.data,
+            onConfigure: () => handleOpenNodeConfiguration(node.id),
+          }
+        })));
+        setEdges(workflow.edges);
+        
+        // Apply viewport if available
+        if (workflow.viewport && reactFlowInstance) {
+          setTimeout(() => {
+            reactFlowInstance.setViewport(workflow.viewport);
+          }, 100);
+        }
+        
+        toast({
+          title: "Workflow Loaded",
+          description: `"${workflow.name}" has been loaded for editing.`,
+        });
+      }
+    }
+  }, [workflows, reactFlowInstance, toast, handleOpenNodeConfiguration, setNodes, setEdges]);
+
   const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
     console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });
     
@@ -152,13 +187,26 @@ export default function WorkflowBuilder() {
       console.log('Current nodes:', nodes);
       console.log('Current edges:', edges);
       
-      await saveWorkflow(name, description, nodes, edges, viewport);
-      console.log('Workflow saved successfully in WorkflowBuilder');
-      
-      toast({
-        title: "Workflow Saved",
-        description: `"${name}" has been saved successfully.`,
-      });
+      if (currentWorkflowId) {
+        // Update existing workflow
+        await updateWorkflow(currentWorkflowId, name, description, nodes, edges, viewport);
+        console.log('Workflow updated successfully in WorkflowBuilder');
+        
+        toast({
+          title: "Workflow Updated",
+          description: `"${name}" has been updated successfully.`,
+        });
+      } else {
+        // Save new workflow
+        const savedWorkflow = await saveWorkflow(name, description, nodes, edges, viewport);
+        setCurrentWorkflowId(savedWorkflow.id);
+        console.log('Workflow saved successfully in WorkflowBuilder');
+        
+        toast({
+          title: "Workflow Saved",
+          description: `"${name}" has been saved successfully.`,
+        });
+      }
     } catch (error) {
       console.error('Error in handleSaveWorkflow:', error);
       toast({
@@ -169,7 +217,7 @@ export default function WorkflowBuilder() {
       // Re-throw the error so the dialog can handle it
       throw error;
     }
-  }, [nodes, edges, reactFlowInstance, saveWorkflow, toast]);
+  }, [nodes, edges, reactFlowInstance, saveWorkflow, updateWorkflow, currentWorkflowId, toast]);
 
   const handleAddSuggestedStep = useCallback((suggestion: StepSuggestion) => {
     if (!canCreateWorkflows) {
@@ -407,6 +455,12 @@ export default function WorkflowBuilder() {
     setSelectedNode(null);
     setIsNodeEditorOpen(false);
     setNodeIdCounter(1);
+    setCurrentWorkflowId(null);
+    
+    // Clear URL parameters
+    const url = new URL(window.location.href);
+    url.searchParams.delete('workflowId');
+    window.history.replaceState({}, '', url.toString());
   }, [setNodes, setEdges]);
 
   const handleWorkflowGenerated = useCallback((result: any) => {

@@ -33,8 +33,8 @@ export default function DashboardContent() {
   };
 
   const handleOpenWorkflow = (workflowId: string) => {
-    // Navigate to workflow builder with the workflow ID
-    window.location.hash = `workflow-builder?id=${workflowId}`;
+    // Navigate to workflow builder with the workflow ID as a URL parameter
+    navigate(`/?tab=workflow-builder&workflowId=${workflowId}`);
   };
 
   const getStatusIcon = (status: string) => {
