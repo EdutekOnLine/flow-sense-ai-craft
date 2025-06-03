@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Sheet, 
@@ -28,9 +27,10 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { X, Settings, Clock, Users, Mail, Database, GitBranch, Webhook, FileText, Calendar, Filter, Sparkles } from 'lucide-react';
+import { X, Settings, Clock, Users, Mail, Database, GitBranch, Webhook, FileText, Calendar, Filter, Sparkles, Save } from 'lucide-react';
 import { NodeAIAssistant } from './NodeAIAssistant';
 import { useUsers } from '@/hooks/useUsers';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkflowNodeData {
   label: string;
@@ -109,6 +109,9 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiFieldType, setAIFieldType] = useState<'email' | 'webhook' | 'condition' | 'delay' | 'general'>('general');
   const { data: users = [], isLoading: isLoadingUsers, error: usersError } = useUsers();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   console.log('NodeEditor: selectedNode', selectedNode);
   console.log('NodeEditor: isOpen', isOpen);
@@ -198,36 +201,70 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
     }
   }, [selectedNode, form]);
 
-  const onSubmit = (data: FormData) => {
-    console.log('NodeEditor: onSubmit', data);
-    if (selectedNode) {
+  const saveChanges = async (data: FormData) => {
+    if (!selectedNode) return;
+    
+    setIsSaving(true);
+    try {
       // Convert 'unassigned' back to null when updating the node
       const updateData = {
         ...data,
         assignedTo: data.assignedTo === 'unassigned' ? null : data.assignedTo
       };
-      onUpdateNode(selectedNode.id, updateData);
+      
+      await onUpdateNode(selectedNode.id, updateData);
+      setHasUnsavedChanges(false);
+      
+      toast({
+        title: "Changes Saved",
+        description: "Node configuration has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving node configuration:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Watch for form changes and update immediately
+  const onSubmit = (data: FormData) => {
+    console.log('NodeEditor: onSubmit', data);
+    saveChanges(data);
+  };
+
+  // Watch for form changes and mark as unsaved
   const watchedValues = form.watch();
   
   useEffect(() => {
     if (selectedNode && Object.keys(watchedValues).length > 0) {
+      setHasUnsavedChanges(true);
+      
+      // Auto-save with debounce (keep existing behavior)
       const timeoutId = setTimeout(() => {
         console.log('NodeEditor: auto-updating node', watchedValues);
-        // Convert 'unassigned' back to null when updating the node
-        const updateData = {
-          ...watchedValues,
-          assignedTo: watchedValues.assignedTo === 'unassigned' ? null : watchedValues.assignedTo
-        };
-        onUpdateNode(selectedNode.id, updateData);
-      }, 300); // Debounce updates
+        saveChanges(watchedValues);
+      }, 300);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [watchedValues, selectedNode, onUpdateNode]);
+  }, [watchedValues, selectedNode]);
+
+  // Handle panel close with unsaved changes
+  const handleClose = () => {
+    if (hasUnsavedChanges && !isSaving) {
+      // Save changes before closing
+      const currentValues = form.getValues();
+      saveChanges(currentValues).then(() => {
+        onClose();
+      });
+    } else {
+      onClose();
+    }
+  };
 
   const getNodeIcon = (stepType: string) => {
     const iconMap: Record<string, any> = {
@@ -282,12 +319,15 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
 
   return (
     <>
-      <Sheet open={isOpen} onOpenChange={onClose}>
+      <Sheet open={isOpen} onOpenChange={handleClose}>
         <SheetContent side="right" className="w-96 overflow-y-auto">
           <SheetHeader>
             <div className="flex items-center gap-2">
               <NodeIcon className="h-5 w-5 text-blue-600" />
               <SheetTitle>Configure Node</SheetTitle>
+              {hasUnsavedChanges && (
+                <span className="text-xs text-amber-600 font-medium">• Unsaved changes</span>
+              )}
             </div>
             <SheetDescription>
               Configure the properties for this {nodeData.stepType} step.
@@ -677,6 +717,26 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
                   </div>
                 </div>
               )}
+
+              {/* Save Button */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <Button
+                  type="submit"
+                  disabled={isSaving || !hasUnsavedChanges}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={isSaving}
+                >
+                  Close
+                </Button>
+              </div>
             </form>
           </Form>
         </SheetContent>
