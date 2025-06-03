@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Node, Edge } from '@xyflow/react';
+import { useToast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
   isOpen: boolean;
@@ -30,27 +31,53 @@ export function SaveWorkflowDialog({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a workflow name.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSaving(true);
+    
     try {
+      console.log('Starting save process...');
       await onSave(name.trim(), description.trim());
+      console.log('Save completed successfully');
+      
+      // Reset form and close dialog
       setName('');
       setDescription('');
       onClose();
+      
+      toast({
+        title: "Success",
+        description: `Workflow "${name.trim()}" has been saved successfully.`,
+      });
     } catch (error) {
       console.error('Error saving workflow:', error);
+      toast({
+        title: "Save Failed",
+        description: error instanceof Error ? error.message : "Failed to save workflow. Please try again.",
+        variant: "destructive",
+      });
     } finally {
+      console.log('Resetting saving state...');
       setIsSaving(false);
     }
   };
 
   const handleClose = () => {
-    setName('');
-    setDescription('');
-    onClose();
+    if (!isSaving) {
+      setName('');
+      setDescription('');
+      onClose();
+    }
   };
 
   return (
@@ -83,7 +110,11 @@ export function SaveWorkflowDialog({
           </div>
         </div>
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" onClick={handleClose} disabled={isSaving || isLoading}>
+          <Button 
+            variant="outline" 
+            onClick={handleClose} 
+            disabled={isSaving || isLoading}
+          >
             Cancel
           </Button>
           <Button 

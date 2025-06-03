@@ -144,20 +144,29 @@ export default function WorkflowBuilder() {
   }, [handleOpenNodeConfiguration, setNodes]);
 
   const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
+    console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });
+    
     try {
       const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
+      console.log('Current viewport:', viewport);
+      console.log('Current nodes:', nodes);
+      console.log('Current edges:', edges);
+      
       await saveWorkflow(name, description, nodes, edges, viewport);
+      console.log('Workflow saved successfully in WorkflowBuilder');
+      
       toast({
         title: "Workflow Saved",
         description: `"${name}" has been saved successfully.`,
       });
     } catch (error) {
-      console.error('Error saving workflow:', error);
+      console.error('Error in handleSaveWorkflow:', error);
       toast({
         title: "Save Failed",
         description: "Failed to save workflow. Please try again.",
         variant: "destructive",
       });
+      // Re-throw the error so the dialog can handle it
       throw error;
     }
   }, [nodes, edges, reactFlowInstance, saveWorkflow, toast]);

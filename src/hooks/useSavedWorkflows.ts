@@ -31,25 +31,32 @@ export function useSavedWorkflows() {
     console.log('Fetching workflows for user:', user.id);
     setIsLoading(true);
     
-    const { data, error } = await supabase
-      .from('saved_workflows')
-      .select('*')
-      .order('updated_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('saved_workflows')
+        .select('*')
+        .order('updated_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching workflows:', error);
-    } else {
-      console.log('Fetched workflows:', data);
-      // Transform the data to match our interface
-      const transformedWorkflows = (data || []).map(workflow => ({
-        ...workflow,
-        nodes: (workflow.nodes as unknown) as Node[],
-        edges: (workflow.edges as unknown) as Edge[],
-        viewport: (workflow.viewport as unknown) as { x: number; y: number; zoom: number } | undefined,
-      }));
-      setWorkflows(transformedWorkflows);
+      if (error) {
+        console.error('Error fetching workflows:', error);
+        throw error;
+      } else {
+        console.log('Fetched workflows:', data);
+        // Transform the data to match our interface
+        const transformedWorkflows = (data || []).map(workflow => ({
+          ...workflow,
+          nodes: (workflow.nodes as unknown) as Node[],
+          edges: (workflow.edges as unknown) as Edge[],
+          viewport: (workflow.viewport as unknown) as { x: number; y: number; zoom: number } | undefined,
+        }));
+        setWorkflows(transformedWorkflows);
+      }
+    } catch (error) {
+      console.error('Failed to fetch workflows:', error);
+      setWorkflows([]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const saveWorkflow = async (
@@ -77,20 +84,25 @@ export function useSavedWorkflows() {
 
     console.log('Workflow data being saved:', workflowData);
 
-    const { data, error } = await supabase
-      .from('saved_workflows')
-      .insert(workflowData)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('saved_workflows')
+        .insert(workflowData)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error saving workflow:', error);
+      if (error) {
+        console.error('Error saving workflow:', error);
+        throw error;
+      }
+      
+      console.log('Workflow saved successfully:', data);
+      await fetchWorkflows();
+      return data;
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
       throw error;
     }
-    
-    console.log('Workflow saved successfully:', data);
-    await fetchWorkflows();
-    return data;
   };
 
   const updateWorkflow = async (
@@ -103,34 +115,44 @@ export function useSavedWorkflows() {
   ) => {
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
-      .from('saved_workflows')
-      .update({
-        name,
-        description,
-        nodes: nodes as any,
-        edges: edges as any,
-        viewport: viewport as any,
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('saved_workflows')
+        .update({
+          name,
+          description,
+          nodes: nodes as any,
+          edges: edges as any,
+          viewport: viewport as any,
+        })
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    
-    await fetchWorkflows();
-    return data;
+      if (error) throw error;
+      
+      await fetchWorkflows();
+      return data;
+    } catch (error) {
+      console.error('Failed to update workflow:', error);
+      throw error;
+    }
   };
 
   const deleteWorkflow = async (id: string) => {
-    const { error } = await supabase
-      .from('saved_workflows')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('saved_workflows')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
-    
-    await fetchWorkflows();
+      if (error) throw error;
+      
+      await fetchWorkflows();
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      throw error;
+    }
   };
 
   useEffect(() => {
