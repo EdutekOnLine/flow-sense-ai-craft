@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
@@ -25,8 +26,9 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, role, department, invitationToken, invitedByName }: UserInvitationRequest = await req.json();
 
-    // Use the production URL instead of localhost
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://ihdlldpltlcshmktyidw.supabase.co';
+    // Use the actual application URL from the request origin
+    const origin = req.headers.get('origin') || req.headers.get('referer');
+    const siteUrl = origin || 'https://7b7a74e7-67d3-4b94-84d6-21a3fcf17722.lovableproject.com';
     const inviteUrl = `${siteUrl}/?invite=${invitationToken}`;
     
     const departmentText = department ? ` in the ${department} department` : '';
@@ -37,6 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log("Attempting to send invitation email to:", email);
     console.log("Using from address:", fromAddress);
+    console.log("Invitation URL:", inviteUrl);
 
     const emailResponse = await resend.emails.send({
       from: fromAddress,
