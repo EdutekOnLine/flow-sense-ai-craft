@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,15 @@ export default function AuthPage() {
     try {
       console.log('AuthPage: Fetching invitation info for token:', token);
       
+      // First, let's check all invitations to see what's in the database
+      const { data: allInvitations, error: allError } = await supabase
+        .from('user_invitations')
+        .select('*');
+      
+      console.log('AuthPage: All invitations in database:', allInvitations);
+      console.log('AuthPage: All invitations query error:', allError);
+      
+      // Now try to find the specific invitation
       const { data, error } = await supabase
         .from('user_invitations')
         .select('*')
@@ -55,13 +65,13 @@ export default function AuthPage() {
         console.error('AuthPage: Supabase error:', error);
         
         // Let's also try a simpler query to see if the invitation exists at all
-        const { data: allInvitations, error: allError } = await supabase
+        const { data: specificInvitations, error: specificError } = await supabase
           .from('user_invitations')
           .select('*')
           .eq('invitation_token', token);
         
-        console.log('AuthPage: All invitations with this token:', allInvitations);
-        console.log('AuthPage: All invitations query error:', allError);
+        console.log('AuthPage: All invitations with this token:', specificInvitations);
+        console.log('AuthPage: Specific invitations query error:', specificError);
       }
 
       if (error || !data) {
@@ -287,7 +297,7 @@ export default function AuthPage() {
                       id="signup-email"
                       name="email"
                       type="email"
-                      value={invitationInfo?.email || ''}
+                      defaultValue={invitationInfo?.email || ''}
                       placeholder="Enter your email"
                       required
                       readOnly={!!invitationInfo?.email}
