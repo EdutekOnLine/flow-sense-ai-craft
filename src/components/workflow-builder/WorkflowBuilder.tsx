@@ -170,10 +170,7 @@ export default function WorkflowBuilder() {
           }, 100);
         }
         
-        toast({
-          title: "Workflow Loaded",
-          description: `"${workflow.name}" has been loaded for editing.`,
-        });
+        toast.success(`"${workflow.name}" loaded for editing!`);
       }
     }
   }, [workflows, reactFlowInstance, toast, handleOpenNodeConfiguration, setNodes, setEdges]);

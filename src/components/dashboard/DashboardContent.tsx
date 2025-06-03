@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
@@ -34,13 +33,6 @@ export default function DashboardContent() {
   };
 
   const handleOpenWorkflow = (workflowId: string) => {
-    // Find the workflow to get its name for the toast
-    const workflow = workflows.find(w => w.id === workflowId);
-    const workflowName = workflow?.name || 'Workflow';
-    
-    // Show toast immediately before navigation
-    toast.success(`"${workflowName}" loaded for editing!`);
-    
     // Navigate to workflow builder tab with the workflow ID as a URL parameter
     window.location.hash = 'workflow-builder';
     const url = new URL(window.location.href);
