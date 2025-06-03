@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Save, 
@@ -16,11 +15,13 @@ import { LoadWorkflowDialog } from './LoadWorkflowDialog';
 import { WorkflowExplanation } from './WorkflowExplanation';
 import { useWorkflowExplainer } from '@/hooks/useWorkflowExplainer';
 import { Node, Edge } from '@xyflow/react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface WorkflowToolbarProps {
   onAddNode: (type: string, label: string, description?: string) => void;
-  onSave: (name: string, description?: string, isReusable?: boolean) => Promise<void>;
-  onLoad: (workflowId: string) => Promise<void>;
+  onSave: (name: string, description?: string, isReusable?: boolean) => void;
+  onLoad: (workflowId: string) => void;
   onNewWorkflow: () => void;
   onOpenGenerator: () => void;
   onOpenReview: () => void;
@@ -32,6 +33,8 @@ interface WorkflowToolbarProps {
   isCurrentWorkflowSaved: boolean;
   nodes: Node[];
   edges: Edge[];
+  aiAssistantEnabled?: boolean;
+  onToggleAIAssistant?: (enabled: boolean) => void;
 }
 
 export function WorkflowToolbar({
@@ -47,7 +50,9 @@ export function WorkflowToolbar({
   hasUnsavedChanges,
   isCurrentWorkflowSaved,
   nodes,
-  edges
+  edges,
+  aiAssistantEnabled = true,
+  onToggleAIAssistant,
 }: WorkflowToolbarProps) {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
@@ -71,9 +76,9 @@ export function WorkflowToolbar({
   const explanation = explainWorkflow(nodes, edges);
 
   return (
-    <>
-      <div className="border-b bg-white px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="bg-white border-b border-gray-200 p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
           <Button
             variant="outline"
             size="sm"
@@ -132,13 +137,27 @@ export function WorkflowToolbar({
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          {currentWorkflowName && (
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{currentWorkflowName}</span>
-              {hasUnsavedChanges && <span className="text-orange-500 ml-1">*</span>}
-            </div>
-          )}
+        <div className="flex items-center space-x-6">
+          {/* AI Assistant Toggle */}
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="ai-assistant-toggle" className="text-sm font-medium">
+              AI Assistant
+            </Label>
+            <Switch
+              id="ai-assistant-toggle"
+              checked={aiAssistantEnabled}
+              onCheckedChange={onToggleAIAssistant}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {currentWorkflowName && (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">{currentWorkflowName}</span>
+                {hasUnsavedChanges && <span className="text-orange-500 ml-1">*</span>}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -165,6 +184,6 @@ export function WorkflowToolbar({
         explanation={explanation}
         workflowName={currentWorkflowName}
       />
-    </>
+    </div>
   );
 }

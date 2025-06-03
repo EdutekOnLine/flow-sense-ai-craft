@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -98,6 +97,9 @@ export default function WorkflowBuilder() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
+
+  // Add AI Assistant toggle state
+  const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
 
   // Initialize step suggestions hook
   const {
@@ -380,7 +382,7 @@ export default function WorkflowBuilder() {
     const selectedNodes = params.nodes;
     
     // Handle node selection for suggestions but don't open configuration panel
-    if (selectedNodes.length === 1) {
+    if (selectedNodes.length === 1 && aiAssistantEnabled) {
       const node = selectedNodes[0];
       
       // Generate AI suggestions for the selected node
@@ -397,7 +399,7 @@ export default function WorkflowBuilder() {
       setShowAssistant(false);
       setContextualSuggestionsPosition(null);
     }
-  }, [generateSuggestions, clearSuggestions, nodes, edges]);
+  }, [generateSuggestions, clearSuggestions, nodes, edges, aiAssistantEnabled]);
 
   const closeNodeEditor = useCallback(() => {
     setIsNodeEditorOpen(false);
@@ -708,6 +710,16 @@ export default function WorkflowBuilder() {
     [reactFlowInstance, canCreateWorkflows, generatePersistentNodeId, setNodes, toast, handleOpenNodeConfiguration]
   );
 
+  const handleToggleAIAssistant = useCallback((enabled: boolean) => {
+    setAiAssistantEnabled(enabled);
+    if (!enabled) {
+      // Clear suggestions and hide assistant when disabled
+      clearSuggestions();
+      setShowAssistant(false);
+      setContextualSuggestionsPosition(null);
+    }
+  }, [clearSuggestions]);
+
   return (
     <WorkflowPermissionGuard>
       <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -728,6 +740,8 @@ export default function WorkflowBuilder() {
             isCurrentWorkflowSaved={!!currentWorkflowId}
             nodes={nodes}
             edges={edges}
+            aiAssistantEnabled={aiAssistantEnabled}
+            onToggleAIAssistant={handleToggleAIAssistant}
           />
           <div className="flex-1 relative" ref={reactFlowWrapper}>
             <ReactFlow
@@ -777,8 +791,8 @@ export default function WorkflowBuilder() {
               />
             </ReactFlow>
             
-            {/* Contextual suggestions near selected node */}
-            {contextualSuggestionsPosition && suggestions.length > 0 && (
+            {/* Contextual suggestions near selected node - only show if AI Assistant is enabled */}
+            {aiAssistantEnabled && contextualSuggestionsPosition && suggestions.length > 0 && (
               <NodeSuggestions
                 suggestions={suggestions}
                 position={contextualSuggestionsPosition}
@@ -798,15 +812,17 @@ export default function WorkflowBuilder() {
         </div>
       </div>
       
-      {/* Floating AI Assistant Panel */}
-      <FloatingAssistant
-        suggestions={suggestions}
-        isLoading={isSuggestionsLoading}
-        isVisible={showAssistant}
-        onClose={() => setShowAssistant(false)}
-        onAddSuggestion={handleAddSuggestedStep}
-        selectedNodeLabel={(selectedNode?.data as WorkflowNodeData)?.label}
-      />
+      {/* Floating AI Assistant Panel - only show if AI Assistant is enabled */}
+      {aiAssistantEnabled && (
+        <FloatingAssistant
+          suggestions={suggestions}
+          isLoading={isSuggestionsLoading}
+          isVisible={showAssistant}
+          onClose={() => setShowAssistant(false)}
+          onAddSuggestion={handleAddSuggestedStep}
+          selectedNodeLabel={(selectedNode?.data as WorkflowNodeData)?.label}
+        />
+      )}
       
       <NaturalLanguageGenerator
         isOpen={isGeneratorOpen}
