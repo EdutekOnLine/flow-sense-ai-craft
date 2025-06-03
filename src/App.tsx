@@ -20,6 +20,8 @@ const AppContent = () => {
     // Check for invitation token in URL
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('invite');
+    console.log('Checking for invitation token in App.tsx:', token);
+    console.log('Current URL:', window.location.href);
     setHasInviteToken(!!token);
   }, []);
 
@@ -31,12 +33,20 @@ const AppContent = () => {
     );
   }
 
-  // If user is not authenticated or has an invite token, show auth page
-  if (!user || hasInviteToken) {
+  // If there's an invite token, ALWAYS show auth page (even if user is logged in)
+  if (hasInviteToken) {
+    console.log('Found invite token, showing AuthPage');
+    return <AuthPage />;
+  }
+
+  // If user is not authenticated and no invite token, show auth page
+  if (!user) {
+    console.log('No user and no invite token, showing AuthPage');
     return <AuthPage />;
   }
 
   // If user is authenticated and no invite token, show dashboard
+  console.log('User authenticated and no invite token, showing Dashboard');
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
