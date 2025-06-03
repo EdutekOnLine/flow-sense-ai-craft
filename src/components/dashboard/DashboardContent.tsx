@@ -17,10 +17,22 @@ export default function DashboardContent() {
   const { profile } = useAuth();
   const { workflows } = useSavedWorkflows();
 
+  // Add debugging
+  console.log('Dashboard assignments:', assignments);
+  console.log('Dashboard assignmentsLoading:', assignmentsLoading);
+  console.log('Dashboard profile:', profile);
+
   const pendingAssignments = assignments.filter(a => a.status === 'pending');
   const inProgressAssignments = assignments.filter(a => a.status === 'in_progress');
   const completedAssignments = assignments.filter(a => a.status === 'completed');
   const recentAssignments = assignments.slice(0, 5);
+
+  console.log('Filtered assignments:', {
+    pending: pendingAssignments.length,
+    inProgress: inProgressAssignments.length,
+    completed: completedAssignments.length,
+    total: assignments.length
+  });
 
   const handleStartWorkflow = async (workflowId: string, startData: any) => {
     try {
@@ -66,6 +78,16 @@ export default function DashboardContent() {
           <ArrowRight className="h-4 w-4 mr-2" />
           View All Tasks
         </Button>
+      </div>
+
+      {/* Debug info - remove this after testing */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="font-medium text-yellow-800">Debug Info:</h3>
+        <p className="text-sm text-yellow-700">Total assignments: {assignments.length}</p>
+        <p className="text-sm text-yellow-700">Pending: {pendingAssignments.length}</p>
+        <p className="text-sm text-yellow-700">In Progress: {inProgressAssignments.length}</p>
+        <p className="text-sm text-yellow-700">Completed: {completedAssignments.length}</p>
+        <p className="text-sm text-yellow-700">User ID: {profile?.id}</p>
       </div>
 
       {/* Startable Workflows Section */}
@@ -144,7 +166,12 @@ export default function DashboardContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             {pendingAssignments.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No pending assignments</p>
+              <div className="text-center py-4">
+                <p className="text-gray-500">No pending assignments</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Total assignments loaded: {assignments.length}
+                </p>
+              </div>
             ) : (
               pendingAssignments.slice(0, 3).map((assignment) => (
                 <div key={assignment.id} className="border rounded-lg p-3 hover:bg-gray-50">

@@ -34,8 +34,12 @@ export function useWorkflowAssignments() {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchAssignments = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found, skipping assignment fetch');
+      return;
+    }
 
+    console.log('Fetching assignments for user:', user.id);
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -55,6 +59,9 @@ export function useWorkflowAssignments() {
         .eq('assigned_to', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('Raw assignment data:', data);
+      console.log('Assignment fetch error:', error);
+
       if (error) throw error;
 
       // Type-safe mapping of database data to our interface
@@ -63,6 +70,7 @@ export function useWorkflowAssignments() {
         status: item.status as AssignmentStatus
       }));
 
+      console.log('Processed assignments:', typedAssignments);
       setAssignments(typedAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
