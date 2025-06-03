@@ -98,6 +98,7 @@ export default function WorkflowBuilder() {
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
   const { saveWorkflow, updateWorkflow, workflows } = useSavedWorkflows();
+  const [workflowLoaded, setWorkflowLoaded] = useState(false);
 
   // Add AI Assistant toggle state
   const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
@@ -150,7 +151,7 @@ export default function WorkflowBuilder() {
     const urlParams = new URLSearchParams(window.location.search);
     const workflowId = urlParams.get('workflowId');
     
-    if (workflowId && workflows.length > 0) {
+    if (workflowId && workflows.length > 0 && !workflowLoaded) {
       const workflow = workflows.find(w => w.id === workflowId);
       if (workflow) {
         console.log('Loading workflow:', workflow);
@@ -163,6 +164,7 @@ export default function WorkflowBuilder() {
           }
         })));
         setEdges(workflow.edges);
+        setWorkflowLoaded(true);
         
         // Apply viewport if available
         if (workflow.viewport && reactFlowInstance) {
@@ -174,7 +176,7 @@ export default function WorkflowBuilder() {
         sonnerToast.success(`"${workflow.name}" loaded for editing!`);
       }
     }
-  }, [workflows, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges]);
+  }, [workflows, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges, workflowLoaded]);
 
   const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
     console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });
