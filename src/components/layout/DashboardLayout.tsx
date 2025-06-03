@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -32,16 +31,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const isMainDashboard = location.pathname === '/';
 
   useEffect(() => {
-    // Only set active tab from hash if we're on the main dashboard
+    // Only set active tab from URL if we're on the main dashboard
     if (isMainDashboard) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
       const hash = window.location.hash.slice(1);
-      if (hash) {
+      
+      if (tab) {
+        setActiveTab(tab);
+      } else if (hash) {
         setActiveTab(hash);
       } else {
         setActiveTab('dashboard');
       }
     }
-  }, [isMainDashboard, location.pathname]);
+  }, [isMainDashboard, location.pathname, location.search, location.hash]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -49,7 +53,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    window.location.hash = tabId;
+    // Update URL with search parameter instead of hash
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabId);
+    url.hash = '';
+    window.history.pushState({}, '', url.toString());
   };
 
   const navigationItems = [
