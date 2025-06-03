@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
@@ -26,7 +25,9 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, role, department, invitationToken, invitedByName }: UserInvitationRequest = await req.json();
 
-    const inviteUrl = `${Deno.env.get('SITE_URL') || 'http://localhost:3000'}/?invite=${invitationToken}`;
+    // Use the production URL instead of localhost
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://ihdlldpltlcshmktyidw.supabase.co';
+    const inviteUrl = `${siteUrl}/?invite=${invitationToken}`;
     
     const departmentText = department ? ` in the ${department} department` : '';
     const inviterText = invitedByName ? ` by ${invitedByName}` : '';
