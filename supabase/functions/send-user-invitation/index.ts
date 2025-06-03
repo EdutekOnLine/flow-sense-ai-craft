@@ -31,8 +31,8 @@ const handler = async (req: Request): Promise<Response> => {
     const departmentText = department ? ` in the ${department} department` : '';
     const inviterText = invitedByName ? ` by ${invitedByName}` : '';
 
-    // Use a more generic from address that works with verified domains
-    const fromAddress = "NeuraFlow <noreply@yourdomain.com>"; // You'll need to replace this with your verified domain
+    // Use your verified domain
+    const fromAddress = "NeuraFlow <noreply@eduteksy.com>";
     
     console.log("Attempting to send invitation email to:", email);
     console.log("Using from address:", fromAddress);
