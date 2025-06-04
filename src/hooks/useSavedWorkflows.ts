@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,39 +67,29 @@ export function useSavedWorkflows() {
     }
   }, [user, toast]);
 
-  const createWorkflowSteps = useCallback(async (workflowId: string, nodes: Node[]) => {
+  const createWorkflowStepsOptimized = useCallback(async (workflowId: string, nodes: Node[]) => {
     if (!user) return;
 
     try {
       console.log('Creating workflow steps for workflow:', workflowId);
       
-      // First, check if there's a workflow record in the workflows table
-      const { data: existingWorkflow, error: workflowCheckError } = await supabase
+      // Ensure workflow record exists (upsert)
+      const { error: workflowUpsertError } = await supabase
         .from('workflows')
-        .select('id')
-        .eq('id', workflowId)
-        .single();
+        .upsert({
+          id: workflowId,
+          name: 'Generated from Saved Workflow',
+          description: 'Auto-generated workflow from saved workflow',
+          created_by: user.id,
+          status: 'draft'
+        }, { onConflict: 'id' });
 
-      // If no workflow exists, create one
-      if (workflowCheckError && workflowCheckError.code === 'PGRST116') {
-        console.log('Creating workflow record...');
-        const { error: workflowCreateError } = await supabase
-          .from('workflows')
-          .insert({
-            id: workflowId,
-            name: 'Generated from Saved Workflow',
-            description: 'Auto-generated workflow from saved workflow',
-            created_by: user.id,
-            status: 'draft'
-          });
-
-        if (workflowCreateError) {
-          console.error('Error creating workflow:', workflowCreateError);
-          return;
-        }
+      if (workflowUpsertError) {
+        console.error('Error upserting workflow:', workflowUpsertError);
+        return;
       }
 
-      // Delete existing workflow steps for this workflow to avoid duplicates
+      // Delete existing workflow steps in batch
       const { error: deleteError } = await supabase
         .from('workflow_steps')
         .delete()
@@ -108,23 +99,23 @@ export function useSavedWorkflows() {
         console.error('Error deleting existing steps:', deleteError);
       }
 
-      // Create workflow steps from nodes
-      const stepsToCreate = nodes.map((node, index) => ({
-        workflow_id: workflowId,
-        name: String(node.data?.label || `Step ${index + 1}`),
-        description: String(node.data?.description || ''),
-        step_order: index + 1,
-        assigned_to: node.data?.assignedTo ? String(node.data.assignedTo) : null,
-        estimated_hours: node.data?.estimatedHours ? Number(node.data.estimatedHours) : null,
-        status: 'pending' as const,
-        metadata: {
-          node_id: node.id,
-          step_type: String(node.data?.stepType || 'task'),
-          position: node.position
-        }
-      }));
+      // Create workflow steps from nodes in batch
+      if (nodes.length > 0) {
+        const stepsToCreate = nodes.map((node, index) => ({
+          workflow_id: workflowId,
+          name: String(node.data?.label || `Step ${index + 1}`),
+          description: String(node.data?.description || ''),
+          step_order: index + 1,
+          assigned_to: node.data?.assignedTo ? String(node.data.assignedTo) : null,
+          estimated_hours: node.data?.estimatedHours ? Number(node.data.estimatedHours) : null,
+          status: 'pending' as const,
+          metadata: {
+            node_id: node.id,
+            step_type: String(node.data?.stepType || 'task'),
+            position: node.position
+          }
+        }));
 
-      if (stepsToCreate.length > 0) {
         const { data: createdSteps, error: createError } = await supabase
           .from('workflow_steps')
           .insert(stepsToCreate)
@@ -132,88 +123,50 @@ export function useSavedWorkflows() {
 
         if (createError) {
           console.error('Error creating workflow steps:', createError);
-        } else {
-          console.log('Created workflow steps:', createdSteps);
+          return;
         }
+
+        // Create assignments in batch for assigned nodes
+        const assignedNodes = nodes.filter(node => 
+          node.data?.assignedTo && 
+          node.data.assignedTo !== null &&
+          node.data.assignedTo !== ''
+        );
+
+        if (assignedNodes.length > 0 && createdSteps) {
+          const assignmentsToCreate = createdSteps
+            .filter(step => {
+              const correspondingNode = assignedNodes.find(node => 
+                String(node.data?.label || '') === step.name
+              );
+              return correspondingNode && step.assigned_to;
+            })
+            .map(step => ({
+              workflow_step_id: step.id,
+              assigned_to: step.assigned_to!,
+              assigned_by: user.id,
+              status: 'pending' as const,
+              notes: `Auto-created assignment for step: ${step.name}`
+            }));
+
+          if (assignmentsToCreate.length > 0) {
+            const { error: assignmentError } = await supabase
+              .from('workflow_step_assignments')
+              .insert(assignmentsToCreate);
+
+            if (assignmentError) {
+              console.error('Error creating assignments:', assignmentError);
+            } else {
+              console.log('Created assignments:', assignmentsToCreate.length);
+            }
+          }
+        }
+
+        console.log('Created workflow steps:', createdSteps.length);
       }
 
     } catch (error) {
       console.error('Error creating workflow steps:', error);
-    }
-  }, [user]);
-
-  const createWorkflowStepAssignments = useCallback(async (workflowId: string, nodes: Node[]) => {
-    if (!user) return;
-
-    try {
-      console.log('Creating step assignments for workflow:', workflowId);
-      
-      // Find nodes that have assigned users
-      const assignedNodes = nodes.filter(node => 
-        node.data?.assignedTo && 
-        node.data.assignedTo !== null &&
-        node.data.assignedTo !== ''
-      );
-
-      console.log('Nodes with assignments:', assignedNodes);
-
-      if (assignedNodes.length === 0) {
-        console.log('No assigned nodes found');
-        return;
-      }
-
-      // For each assigned node, we need to find the corresponding workflow step and create an assignment
-      for (const node of assignedNodes) {
-        const assignedUserId = String(node.data.assignedTo);
-        
-        // Find workflow step by looking for a step with matching metadata
-        const { data: existingSteps, error: stepsError } = await supabase
-          .from('workflow_steps')
-          .select('id, assigned_to')
-          .eq('workflow_id', workflowId)
-          .eq('name', String(node.data.label || ''));
-
-        if (stepsError) {
-          console.error('Error finding workflow step:', stepsError);
-          continue;
-        }
-
-        for (const step of existingSteps || []) {
-          // Check if assignment already exists
-          const { data: existingAssignment, error: assignmentCheckError } = await supabase
-            .from('workflow_step_assignments')
-            .select('id')
-            .eq('workflow_step_id', step.id)
-            .single();
-
-          if (assignmentCheckError && assignmentCheckError.code !== 'PGRST116') {
-            console.error('Error checking existing assignment:', assignmentCheckError);
-            continue;
-          }
-
-          if (!existingAssignment) {
-            // Create new assignment
-            const { error: createError } = await supabase
-              .from('workflow_step_assignments')
-              .insert({
-                workflow_step_id: step.id,
-                assigned_to: assignedUserId,
-                assigned_by: user.id,
-                status: 'pending',
-                notes: `Auto-created assignment for step: ${String(node.data.label || '')}`
-              });
-
-            if (createError) {
-              console.error('Error creating assignment:', createError);
-            } else {
-              console.log('Created assignment for step:', step.id, 'to user:', assignedUserId);
-            }
-          }
-        }
-      }
-
-    } catch (error) {
-      console.error('Error creating workflow step assignments:', error);
     }
   }, [user]);
 
@@ -262,11 +215,8 @@ export function useSavedWorkflows() {
         updated_at: data.updated_at,
       };
 
-      // Create workflow steps from nodes
-      await createWorkflowSteps(data.id, nodes);
-
-      // Create workflow step assignments for assigned nodes
-      await createWorkflowStepAssignments(data.id, nodes);
+      // Create workflow steps and assignments in one optimized operation
+      await createWorkflowStepsOptimized(data.id, nodes);
 
       // Refresh the workflows list
       await fetchWorkflows();
@@ -276,7 +226,7 @@ export function useSavedWorkflows() {
       console.error('Error saving workflow:', error);
       throw error;
     }
-  }, [user, fetchWorkflows, createWorkflowSteps, createWorkflowStepAssignments]);
+  }, [user, fetchWorkflows, createWorkflowStepsOptimized]);
 
   const updateWorkflow = useCallback(async (
     id: string,
@@ -310,11 +260,8 @@ export function useSavedWorkflows() {
 
       console.log('Updated workflow successfully:', data);
 
-      // Update workflow steps from nodes
-      await createWorkflowSteps(id, nodes);
-
-      // Update workflow step assignments for assigned nodes
-      await createWorkflowStepAssignments(id, nodes);
+      // Update workflow steps and assignments in one optimized operation
+      await createWorkflowStepsOptimized(id, nodes);
 
       // Refresh the workflows list
       await fetchWorkflows();
@@ -324,7 +271,7 @@ export function useSavedWorkflows() {
       console.error('Error updating workflow:', error);
       throw error;
     }
-  }, [user, fetchWorkflows, createWorkflowSteps, createWorkflowStepAssignments]);
+  }, [user, fetchWorkflows, createWorkflowStepsOptimized]);
 
   const deleteWorkflow = useCallback(async (id: string) => {
     try {
