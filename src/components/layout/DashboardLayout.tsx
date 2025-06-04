@@ -8,15 +8,13 @@ import {
   LogOut, 
   FileText,
   BarChart3,
-  Workflow,
-  Inbox
+  Workflow
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
-import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 interface DashboardLayoutProps {
@@ -54,7 +52,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-inbox', label: 'My Tasks', icon: Inbox, roles: ['admin', 'manager', 'employee'] },
     { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager'] },
     { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
     { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
@@ -68,8 +65,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'workflow-inbox':
-        return <WorkflowInbox />;
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
       case 'workflow-builder':
