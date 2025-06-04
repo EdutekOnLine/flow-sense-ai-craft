@@ -108,15 +108,10 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   const [formSchema, setFormSchema] = useState(baseFormSchema);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiFieldType, setAIFieldType] = useState<'email' | 'webhook' | 'condition' | 'delay' | 'general'>('general');
-  const { data: users = [], isLoading: isLoadingUsers, error: usersError } = useUsers();
+  const { data: users = [], isLoading: isLoadingUsers } = useUsers();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-
-  console.log('NodeEditor: selectedNode', selectedNode);
-  console.log('NodeEditor: isOpen', isOpen);
-  console.log('NodeEditor: users', users);
-  console.log('NodeEditor: usersError', usersError);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -129,12 +124,9 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   });
 
   useEffect(() => {
-    console.log('NodeEditor: useEffect triggered with selectedNode', selectedNode);
-    
     if (selectedNode) {
       try {
         const nodeData = selectedNode.data as WorkflowNodeData;
-        console.log('NodeEditor: nodeData', nodeData);
         
         // Update form schema based on node type
         let extendedSchema = baseFormSchema;
@@ -193,7 +185,6 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
           };
         }
 
-        console.log('NodeEditor: setting form data', formData);
         form.reset(formData);
       } catch (error) {
         console.error('NodeEditor: Error processing selectedNode', error);
@@ -212,7 +203,6 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
         assignedTo: data.assignedTo === 'unassigned' ? null : data.assignedTo
       };
       
-      console.log('NodeEditor: Saving node changes directly without triggering workflow save');
       await onUpdateNode(selectedNode.id, updateData);
       setHasUnsavedChanges(false);
       
@@ -233,7 +223,6 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   };
 
   const onSubmit = (data: FormData) => {
-    console.log('NodeEditor: onSubmit', data);
     saveChanges(data);
   };
 
@@ -301,14 +290,11 @@ export function NodeEditor({ selectedNode, isOpen, onClose, onUpdateNode, availa
   };
 
   if (!selectedNode) {
-    console.log('NodeEditor: No selectedNode, returning null');
     return null;
   }
 
   const nodeData = selectedNode.data as WorkflowNodeData;
   const NodeIcon = getNodeIcon(nodeData.stepType);
-
-  console.log('NodeEditor: Rendering with nodeData', nodeData);
 
   return (
     <>
