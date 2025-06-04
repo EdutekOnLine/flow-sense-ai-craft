@@ -111,15 +111,15 @@ export function useSavedWorkflows() {
       // Create workflow steps from nodes
       const stepsToCreate = nodes.map((node, index) => ({
         workflow_id: workflowId,
-        name: node.data?.label || `Step ${index + 1}`,
-        description: node.data?.description || '',
+        name: String(node.data?.label || `Step ${index + 1}`),
+        description: String(node.data?.description || ''),
         step_order: index + 1,
-        assigned_to: node.data?.assignedTo || null,
-        estimated_hours: node.data?.estimatedHours || null,
-        status: 'pending',
+        assigned_to: node.data?.assignedTo ? String(node.data.assignedTo) : null,
+        estimated_hours: node.data?.estimatedHours ? Number(node.data.estimatedHours) : null,
+        status: 'pending' as const,
         metadata: {
           node_id: node.id,
-          step_type: node.data?.stepType || 'task',
+          step_type: String(node.data?.stepType || 'task'),
           position: node.position
         }
       }));
