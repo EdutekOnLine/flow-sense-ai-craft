@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Node, Edge, Viewport } from '@xyflow/react';
+import { Json } from '@/integrations/supabase/types';
 
 export interface SavedWorkflow {
   id: string;
@@ -39,8 +40,21 @@ export function useSavedWorkflows() {
 
       if (error) throw error;
 
-      setWorkflows(data || []);
-      console.log('Fetched workflows:', data);
+      // Transform the database data to match our SavedWorkflow interface
+      const transformedWorkflows: SavedWorkflow[] = (data || []).map(workflow => ({
+        id: workflow.id,
+        name: workflow.name,
+        description: workflow.description,
+        nodes: Array.isArray(workflow.nodes) ? workflow.nodes as Node[] : [],
+        edges: Array.isArray(workflow.edges) ? workflow.edges as Edge[] : [],
+        viewport: (workflow.viewport as Viewport) || { x: 0, y: 0, zoom: 1 },
+        created_by: workflow.created_by,
+        created_at: workflow.created_at,
+        updated_at: workflow.updated_at,
+      }));
+
+      setWorkflows(transformedWorkflows);
+      console.log('Fetched workflows:', transformedWorkflows);
     } catch (error) {
       console.error('Error fetching workflows:', error);
       toast({
@@ -75,14 +89,14 @@ export function useSavedWorkflows() {
 
       // For each assigned node, we need to find the corresponding workflow step and create an assignment
       for (const node of assignedNodes) {
-        const assignedUserId = node.data.assignedTo;
+        const assignedUserId = String(node.data.assignedTo);
         
         // Find workflow step by looking for a step with matching metadata
         const { data: existingSteps, error: stepsError } = await supabase
           .from('workflow_steps')
           .select('id, assigned_to')
           .eq('workflow_id', workflowId)
-          .eq('name', node.data.label);
+          .eq('name', String(node.data.label || ''));
 
         if (stepsError) {
           console.error('Error finding workflow step:', stepsError);
@@ -111,7 +125,7 @@ export function useSavedWorkflows() {
                 assigned_to: assignedUserId,
                 assigned_by: user.id,
                 status: 'pending',
-                notes: `Auto-created assignment for step: ${node.data.label}`
+                notes: `Auto-created assignment for step: ${String(node.data.label || '')}`
               });
 
             if (createError) {
@@ -148,9 +162,9 @@ export function useSavedWorkflows() {
         .insert({
           name,
           description,
-          nodes,
-          edges,
-          viewport,
+          nodes: nodes as unknown as Json,
+          edges: edges as unknown as Json,
+          viewport: viewport as unknown as Json,
           created_by: user.id,
         })
         .select()
@@ -160,13 +174,26 @@ export function useSavedWorkflows() {
 
       console.log('Saved workflow successfully:', data);
 
+      // Transform the response data
+      const savedWorkflow: SavedWorkflow = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        nodes: Array.isArray(data.nodes) ? data.nodes as Node[] : [],
+        edges: Array.isArray(data.edges) ? data.edges as Edge[] : [],
+        viewport: (data.viewport as Viewport) || { x: 0, y: 0, zoom: 1 },
+        created_by: data.created_by,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
       // Create workflow step assignments for assigned nodes
       await createWorkflowStepAssignments(data.id, nodes);
 
       // Refresh the workflows list
       await fetchWorkflows();
 
-      return data;
+      return savedWorkflow;
     } catch (error) {
       console.error('Error saving workflow:', error);
       throw error;
@@ -193,9 +220,9 @@ export function useSavedWorkflows() {
         .update({
           name,
           description,
-          nodes,
-          edges,
-          viewport,
+          nodes: nodes as unknown as Json,
+          edges: edges as unknown as Json,
+          viewport: viewport as unknown as Json,
         })
         .eq('id', id)
         .select()
