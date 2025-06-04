@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Node, Edge, Viewport } from '@xyflow/react';
 import { Json } from '@/integrations/supabase/types';
+import { toast as sonnerToast } from 'sonner';
 
 export interface SavedWorkflow {
   id: string;
@@ -23,6 +24,7 @@ export function useSavedWorkflows() {
   const { toast } = useToast();
   const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchWorkflows = useCallback(async () => {
     if (!user) {
@@ -68,7 +70,7 @@ export function useSavedWorkflows() {
   }, [user, toast]);
 
   const createWorkflowStepsOptimized = useCallback(async (workflowId: string, nodes: Node[]) => {
-    if (!user) return;
+    if (!user || nodes.length === 0) return;
 
     try {
       console.log('Creating workflow steps for workflow:', workflowId);
@@ -81,7 +83,7 @@ export function useSavedWorkflows() {
           name: 'Generated from Saved Workflow',
           description: 'Auto-generated workflow from saved workflow',
           created_by: user.id,
-          status: 'draft'
+          status: 'draft' as const
         }, { onConflict: 'id' });
 
       if (workflowUpsertError) {
@@ -97,72 +99,75 @@ export function useSavedWorkflows() {
 
       if (deleteError) {
         console.error('Error deleting existing steps:', deleteError);
+        return;
       }
 
-      // Create workflow steps from nodes in batch
-      if (nodes.length > 0) {
-        const stepsToCreate = nodes.map((node, index) => ({
-          workflow_id: workflowId,
-          name: String(node.data?.label || `Step ${index + 1}`),
-          description: String(node.data?.description || ''),
-          step_order: index + 1,
-          assigned_to: node.data?.assignedTo ? String(node.data.assignedTo) : null,
-          estimated_hours: node.data?.estimatedHours ? Number(node.data.estimatedHours) : null,
-          status: 'pending' as const,
-          metadata: {
-            node_id: node.id,
-            step_type: String(node.data?.stepType || 'task'),
-            position: node.position
-          }
-        }));
+      // Create workflow steps from nodes in batch - with proper typings
+      const stepsToCreate = nodes.map((node, index) => ({
+        workflow_id: workflowId,
+        name: String(node.data?.label || `Step ${index + 1}`),
+        description: node.data?.description ? String(node.data.description) : null,
+        step_order: index + 1,
+        assigned_to: node.data?.assignedTo ? String(node.data.assignedTo) : null,
+        estimated_hours: node.data?.estimatedHours ? Number(node.data.estimatedHours) : null,
+        status: 'pending' as const,
+        metadata: {
+          node_id: node.id,
+          step_type: String(node.data?.stepType || 'task'),
+          position: node.position
+        } as Json
+      }));
 
-        const { data: createdSteps, error: createError } = await supabase
+      if (stepsToCreate.length === 0) return;
+
+      // Perform the insert operation with smaller batches to prevent timeout
+      const BATCH_SIZE = 10;
+      let createdSteps: any[] = [];
+
+      for (let i = 0; i < stepsToCreate.length; i += BATCH_SIZE) {
+        const batch = stepsToCreate.slice(i, i + BATCH_SIZE);
+        const { data: batchSteps, error: createError } = await supabase
           .from('workflow_steps')
-          .insert(stepsToCreate)
+          .insert(batch)
           .select();
 
         if (createError) {
-          console.error('Error creating workflow steps:', createError);
-          return;
+          console.error('Error creating workflow steps batch:', createError);
+          continue;
         }
 
-        // Create assignments in batch for assigned nodes
-        const assignedNodes = nodes.filter(node => 
-          node.data?.assignedTo && 
-          node.data.assignedTo !== null &&
-          node.data.assignedTo !== ''
-        );
+        if (batchSteps) {
+          createdSteps = [...createdSteps, ...batchSteps];
+        }
+      }
 
-        if (assignedNodes.length > 0 && createdSteps) {
-          const assignmentsToCreate = createdSteps
-            .filter(step => {
-              const correspondingNode = assignedNodes.find(node => 
-                String(node.data?.label || '') === step.name
-              );
-              return correspondingNode && step.assigned_to;
-            })
-            .map(step => ({
-              workflow_step_id: step.id,
-              assigned_to: step.assigned_to!,
-              assigned_by: user.id,
-              status: 'pending' as const,
-              notes: `Auto-created assignment for step: ${step.name}`
-            }));
+      console.log('Created workflow steps:', createdSteps.length);
 
-          if (assignmentsToCreate.length > 0) {
-            const { error: assignmentError } = await supabase
-              .from('workflow_step_assignments')
-              .insert(assignmentsToCreate);
+      // Create assignments in batch for assigned nodes
+      const assignmentsToCreate = createdSteps
+        .filter(step => step.assigned_to)
+        .map(step => ({
+          workflow_step_id: step.id,
+          assigned_to: step.assigned_to,
+          assigned_by: user.id,
+          status: 'pending' as const,
+          notes: `Auto-created assignment for step: ${step.name}`
+        }));
 
-            if (assignmentError) {
-              console.error('Error creating assignments:', assignmentError);
-            } else {
-              console.log('Created assignments:', assignmentsToCreate.length);
-            }
+      if (assignmentsToCreate.length > 0) {
+        // Process assignments in batches too
+        for (let i = 0; i < assignmentsToCreate.length; i += BATCH_SIZE) {
+          const batch = assignmentsToCreate.slice(i, i + BATCH_SIZE);
+          const { error: assignmentError } = await supabase
+            .from('workflow_step_assignments')
+            .insert(batch);
+
+          if (assignmentError) {
+            console.error('Error creating assignments batch:', assignmentError);
           }
         }
-
-        console.log('Created workflow steps:', createdSteps.length);
+        
+        console.log('Created assignments:', assignmentsToCreate.length);
       }
 
     } catch (error) {
@@ -180,11 +185,17 @@ export function useSavedWorkflows() {
     if (!user) {
       throw new Error('User must be authenticated to save workflows');
     }
+    
+    if (isSaving) {
+      throw new Error('Save operation already in progress');
+    }
 
-    console.log('Saving workflow with nodes:', nodes);
-    console.log('Assigned nodes:', nodes.filter(n => n.data?.assignedTo));
+    setIsSaving(true);
+    sonnerToast.loading('Saving workflow...');
+    console.log('Saving workflow with nodes:', nodes.length);
 
     try {
+      // First just save the workflow visualization data
       const { data, error } = await supabase
         .from('saved_workflows')
         .insert({
@@ -200,8 +211,6 @@ export function useSavedWorkflows() {
 
       if (error) throw error;
 
-      console.log('Saved workflow successfully:', data);
-
       // Transform the response data
       const savedWorkflow: SavedWorkflow = {
         id: data.id,
@@ -215,18 +224,30 @@ export function useSavedWorkflows() {
         updated_at: data.updated_at,
       };
 
-      // Create workflow steps and assignments in one optimized operation
-      await createWorkflowStepsOptimized(data.id, nodes);
-
-      // Refresh the workflows list
-      await fetchWorkflows();
+      // Now in background, process the workflow steps
+      // We don't await this to make the save operation faster
+      setTimeout(() => {
+        createWorkflowStepsOptimized(data.id, nodes)
+          .then(() => {
+            console.log('Workflow steps created successfully');
+            fetchWorkflows();
+            sonnerToast.success('Workflow saved successfully');
+          })
+          .catch(err => {
+            console.error('Error creating workflow steps:', err);
+            sonnerToast.error('Failed to create workflow steps');
+          });
+      }, 100);
 
       return savedWorkflow;
     } catch (error) {
       console.error('Error saving workflow:', error);
+      sonnerToast.error('Failed to save workflow');
       throw error;
+    } finally {
+      setIsSaving(false);
     }
-  }, [user, fetchWorkflows, createWorkflowStepsOptimized]);
+  }, [user, fetchWorkflows, createWorkflowStepsOptimized, isSaving]);
 
   const updateWorkflow = useCallback(async (
     id: string,
@@ -239,10 +260,17 @@ export function useSavedWorkflows() {
     if (!user) {
       throw new Error('User must be authenticated to update workflows');
     }
+    
+    if (isSaving) {
+      throw new Error('Update operation already in progress');
+    }
 
-    console.log('Updating workflow with nodes:', nodes);
+    setIsSaving(true);
+    sonnerToast.loading('Updating workflow...');
+    console.log('Updating workflow with nodes:', nodes.length);
 
     try {
+      // First update the workflow visualization data
       const { data, error } = await supabase
         .from('saved_workflows')
         .update({
@@ -260,18 +288,30 @@ export function useSavedWorkflows() {
 
       console.log('Updated workflow successfully:', data);
 
-      // Update workflow steps and assignments in one optimized operation
-      await createWorkflowStepsOptimized(id, nodes);
-
-      // Refresh the workflows list
-      await fetchWorkflows();
+      // Now in background, process the workflow steps
+      // We don't await this to make the update operation faster
+      setTimeout(() => {
+        createWorkflowStepsOptimized(id, nodes)
+          .then(() => {
+            console.log('Workflow steps updated successfully');
+            fetchWorkflows();
+            sonnerToast.success('Workflow updated successfully');
+          })
+          .catch(err => {
+            console.error('Error updating workflow steps:', err);
+            sonnerToast.error('Failed to update workflow steps');
+          });
+      }, 100);
 
       return data;
     } catch (error) {
       console.error('Error updating workflow:', error);
+      sonnerToast.error('Failed to update workflow');
       throw error;
+    } finally {
+      setIsSaving(false);
     }
-  }, [user, fetchWorkflows, createWorkflowStepsOptimized]);
+  }, [user, fetchWorkflows, createWorkflowStepsOptimized, isSaving]);
 
   const deleteWorkflow = useCallback(async (id: string) => {
     try {
@@ -306,6 +346,7 @@ export function useSavedWorkflows() {
   return {
     workflows,
     isLoading,
+    isSaving,
     saveWorkflow,
     updateWorkflow,
     deleteWorkflow,
