@@ -25,14 +25,9 @@ export function useAuth() {
   console.log('Auth hook state - Loading:', loading);
 
   const fetchProfile = async (userId: string) => {
-    const timeoutId = setTimeout(() => {
-      console.error('Profile fetch timed out after 10 seconds');
-    }, 10000);
-
     try {
       console.log('=== PROFILE FETCH ATTEMPT ===');
       console.log('Fetching profile for user ID:', userId);
-      console.log('Supabase client status:', !!supabase);
       
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -40,30 +35,15 @@ export function useAuth() {
         .eq('id', userId)
         .single();
       
-      clearTimeout(timeoutId);
       console.log('Profile fetch result:', { profileData, error });
       
       if (error) {
-        console.error('Profile fetch error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
-        
-        // If profile doesn't exist, that's ok for now
-        if (error.code === 'PGRST116') {
-          console.log('No profile found - this is normal for new users');
-          return null;
-        }
-        
+        console.error('Profile fetch error:', error);
         return null;
       }
       
-      console.log('Profile fetch successful:', profileData);
       return profileData;
     } catch (err) {
-      clearTimeout(timeoutId);
       console.error('Profile fetch exception:', err);
       return null;
     }
@@ -85,17 +65,9 @@ export function useAuth() {
           console.log('=== PROFILE FETCH FOR AUTH CHANGE ===');
           console.log('Fetching profile for user ID:', currentUser.id);
           
-          try {
-            const profileData = await fetchProfile(currentUser.id);
-            console.log('Setting profile data:', profileData);
-            setProfile(profileData);
-          } catch (err) {
-            console.error('Error in profile fetch:', err);
-            setProfile(null);
-          } finally {
-            console.log('Setting loading to false after profile fetch');
-            setLoading(false);
-          }
+          const profileData = await fetchProfile(currentUser.id);
+          setProfile(profileData);
+          setLoading(false);
         } else {
           console.log('No session user, clearing profile and loading');
           setProfile(null);
@@ -107,7 +79,6 @@ export function useAuth() {
     // Check for existing session
     const initializeAuth = async () => {
       try {
-        console.log('=== INITIAL SESSION CHECK ===');
         const { data: { session }, error } = await supabase.auth.getSession();
         console.log('Initial session check:', session?.user?.id, error);
         
@@ -125,17 +96,10 @@ export function useAuth() {
           console.log('=== INITIAL PROFILE FETCH ===');
           console.log('Initial fetch for user ID:', currentUser.id);
           
-          try {
-            const profileData = await fetchProfile(currentUser.id);
-            console.log('Initial profile data:', profileData);
-            setProfile(profileData);
-          } catch (err) {
-            console.error('Error in initial profile fetch:', err);
-            setProfile(null);
-          }
+          const profileData = await fetchProfile(currentUser.id);
+          setProfile(profileData);
         }
         
-        console.log('=== INITIAL AUTH COMPLETE ===');
         setLoading(false);
       } catch (err) {
         console.error('Error initializing auth:', err);

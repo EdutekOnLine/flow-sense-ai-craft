@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Workflow, Users, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
-import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { SavedWorkflows } from './SavedWorkflows';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
@@ -16,7 +15,6 @@ import UserManagement from '@/components/admin/UserManagement';
 export default function DashboardContent() {
   const { profile } = useAuth();
   const { canCreateWorkflows, canViewWorkflows, userRole } = useWorkflowPermissions();
-  const { startableWorkflows, startWorkflow, isLoading: workflowsLoading } = useWorkflowInstances();
   const [activeTab, setActiveTab] = useState('overview');
 
   console.log('=== DASHBOARD CONTENT DEBUG ===');
@@ -27,20 +25,6 @@ export default function DashboardContent() {
 
   const handleCreateWorkflow = () => {
     setActiveTab('builder');
-  };
-
-  const handleOpenWorkflow = (workflowId: string) => {
-    console.log('Opening workflow:', workflowId);
-    // TODO: Implement workflow opening logic
-  };
-
-  const handleStartWorkflow = async (workflowId: string, startData: any) => {
-    try {
-      await startWorkflow(workflowId, startData);
-      console.log('Workflow started successfully');
-    } catch (error) {
-      console.error('Failed to start workflow:', error);
-    }
   };
 
   return (
@@ -166,7 +150,7 @@ export default function DashboardContent() {
                 <CardTitle>My Saved Workflows</CardTitle>
               </CardHeader>
               <CardContent>
-                <SavedWorkflows onOpenWorkflow={handleOpenWorkflow} />
+                <SavedWorkflows />
               </CardContent>
             </Card>
 
@@ -176,11 +160,7 @@ export default function DashboardContent() {
                 <CardTitle>Available to Start</CardTitle>
               </CardHeader>
               <CardContent>
-                <StartableWorkflows 
-                  workflows={startableWorkflows}
-                  onStartWorkflow={handleStartWorkflow}
-                  isLoading={workflowsLoading}
-                />
+                <StartableWorkflows />
               </CardContent>
             </Card>
           </div>
