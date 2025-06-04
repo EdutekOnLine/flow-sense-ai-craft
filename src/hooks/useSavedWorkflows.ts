@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,6 +65,82 @@ export function useSavedWorkflows() {
       setIsLoading(false);
     }
   }, [user, toast]);
+
+  const createWorkflowSteps = useCallback(async (workflowId: string, nodes: Node[]) => {
+    if (!user) return;
+
+    try {
+      console.log('Creating workflow steps for workflow:', workflowId);
+      
+      // First, check if there's a workflow record in the workflows table
+      const { data: existingWorkflow, error: workflowCheckError } = await supabase
+        .from('workflows')
+        .select('id')
+        .eq('id', workflowId)
+        .single();
+
+      // If no workflow exists, create one
+      if (workflowCheckError && workflowCheckError.code === 'PGRST116') {
+        console.log('Creating workflow record...');
+        const { error: workflowCreateError } = await supabase
+          .from('workflows')
+          .insert({
+            id: workflowId,
+            name: 'Generated from Saved Workflow',
+            description: 'Auto-generated workflow from saved workflow',
+            created_by: user.id,
+            status: 'draft'
+          });
+
+        if (workflowCreateError) {
+          console.error('Error creating workflow:', workflowCreateError);
+          return;
+        }
+      }
+
+      // Delete existing workflow steps for this workflow to avoid duplicates
+      const { error: deleteError } = await supabase
+        .from('workflow_steps')
+        .delete()
+        .eq('workflow_id', workflowId);
+
+      if (deleteError) {
+        console.error('Error deleting existing steps:', deleteError);
+      }
+
+      // Create workflow steps from nodes
+      const stepsToCreate = nodes.map((node, index) => ({
+        workflow_id: workflowId,
+        name: node.data?.label || `Step ${index + 1}`,
+        description: node.data?.description || '',
+        step_order: index + 1,
+        assigned_to: node.data?.assignedTo || null,
+        estimated_hours: node.data?.estimatedHours || null,
+        status: 'pending',
+        metadata: {
+          node_id: node.id,
+          step_type: node.data?.stepType || 'task',
+          position: node.position
+        }
+      }));
+
+      if (stepsToCreate.length > 0) {
+        const { data: createdSteps, error: createError } = await supabase
+          .from('workflow_steps')
+          .insert(stepsToCreate)
+          .select();
+
+        if (createError) {
+          console.error('Error creating workflow steps:', createError);
+        } else {
+          console.log('Created workflow steps:', createdSteps);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error creating workflow steps:', error);
+    }
+  }, [user]);
 
   const createWorkflowStepAssignments = useCallback(async (workflowId: string, nodes: Node[]) => {
     if (!user) return;
@@ -187,6 +262,9 @@ export function useSavedWorkflows() {
         updated_at: data.updated_at,
       };
 
+      // Create workflow steps from nodes
+      await createWorkflowSteps(data.id, nodes);
+
       // Create workflow step assignments for assigned nodes
       await createWorkflowStepAssignments(data.id, nodes);
 
@@ -198,7 +276,7 @@ export function useSavedWorkflows() {
       console.error('Error saving workflow:', error);
       throw error;
     }
-  }, [user, fetchWorkflows, createWorkflowStepAssignments]);
+  }, [user, fetchWorkflows, createWorkflowSteps, createWorkflowStepAssignments]);
 
   const updateWorkflow = useCallback(async (
     id: string,
@@ -232,6 +310,9 @@ export function useSavedWorkflows() {
 
       console.log('Updated workflow successfully:', data);
 
+      // Update workflow steps from nodes
+      await createWorkflowSteps(id, nodes);
+
       // Update workflow step assignments for assigned nodes
       await createWorkflowStepAssignments(id, nodes);
 
@@ -243,7 +324,7 @@ export function useSavedWorkflows() {
       console.error('Error updating workflow:', error);
       throw error;
     }
-  }, [user, fetchWorkflows, createWorkflowStepAssignments]);
+  }, [user, fetchWorkflows, createWorkflowSteps, createWorkflowStepAssignments]);
 
   const deleteWorkflow = useCallback(async (id: string) => {
     try {
