@@ -25,6 +25,10 @@ export function useAuth() {
   console.log('Auth hook state - Loading:', loading);
 
   const fetchProfile = async (userId: string) => {
+    const timeoutId = setTimeout(() => {
+      console.error('Profile fetch timed out after 10 seconds');
+    }, 10000);
+
     try {
       console.log('=== PROFILE FETCH ATTEMPT ===');
       console.log('Fetching profile for user ID:', userId);
@@ -36,6 +40,7 @@ export function useAuth() {
         .eq('id', userId)
         .single();
       
+      clearTimeout(timeoutId);
       console.log('Profile fetch result:', { profileData, error });
       
       if (error) {
@@ -58,6 +63,7 @@ export function useAuth() {
       console.log('Profile fetch successful:', profileData);
       return profileData;
     } catch (err) {
+      clearTimeout(timeoutId);
       console.error('Profile fetch exception:', err);
       return null;
     }
