@@ -135,9 +135,9 @@ export default function DashboardContent() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm mb-1">{assignment.workflow_step?.name}</h4>
-                      {assignment.workflow_step?.description && (
-                        <p className="text-xs text-gray-600 mb-2">{assignment.workflow_step.description}</p>
+                      <h4 className="font-medium text-sm mb-1">{assignment.workflow_steps?.name}</h4>
+                      {assignment.workflow_steps?.description && (
+                        <p className="text-xs text-gray-600 mb-2">{assignment.workflow_steps.description}</p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
