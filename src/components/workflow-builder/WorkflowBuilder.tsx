@@ -39,7 +39,6 @@ interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
   stepType: string;
   description: string;
-  assignedTo: string | null;
   estimatedHours: number | null;
   onConfigure?: () => void;
   emailConfig?: {
