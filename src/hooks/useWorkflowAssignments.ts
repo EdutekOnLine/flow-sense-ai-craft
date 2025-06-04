@@ -27,7 +27,7 @@ interface WorkflowAssignment {
 }
 
 export function useWorkflowAssignments() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [assignments, setAssignments] = useState<WorkflowAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,28 +38,61 @@ export function useWorkflowAssignments() {
       return;
     }
 
-    console.log('=== ASSIGNMENT FETCH DEBUG ===');
+    console.log('=== ENHANCED ASSIGNMENT FETCH DEBUG ===');
     console.log('Current user ID:', user.id);
     console.log('Current user email:', user.email);
+    console.log('Current profile:', profile);
     
     setIsLoading(true);
     try {
-      // First, let's check if there are ANY assignments in the database
+      // Check if user exists in profiles table
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      console.log('User profile from DB:', userProfile);
+      console.log('Profile fetch error:', profileError);
+
+      // Check if there are ANY workflow step assignments in the database
       const { data: allAssignments, error: allError } = await supabase
         .from('workflow_step_assignments')
         .select('*');
         
       console.log('Total assignments in database:', allAssignments?.length || 0);
-      console.log('All assignments:', allAssignments);
+      console.log('Sample assignments:', allAssignments?.slice(0, 3));
       
-      // Check assignments for this specific user
+      // Check assignments by user email (in case there's an ID mismatch)
+      const { data: assignmentsByEmail, error: emailError } = await supabase
+        .from('workflow_step_assignments')
+        .select(`
+          *,
+          profiles!workflow_step_assignments_assigned_to_fkey(email, first_name, last_name)
+        `)
+        .eq('profiles.email', user.email);
+      
+      console.log('Assignments by email lookup:', assignmentsByEmail);
+      console.log('Email lookup error:', emailError);
+
+      // Check assignments for this specific user ID
       const { data: userAssignments, error: userError } = await supabase
         .from('workflow_step_assignments')
         .select('*')
         .eq('assigned_to', user.id);
         
-      console.log('Assignments for current user:', userAssignments?.length || 0);
-      console.log('User assignments raw:', userAssignments);
+      console.log('Direct assignments for user ID:', userAssignments?.length || 0);
+      console.log('Direct user assignments:', userAssignments);
+      console.log('User assignment error:', userError);
+
+      // Check for workflow steps assigned to this user
+      const { data: workflowSteps, error: stepsError } = await supabase
+        .from('workflow_steps')
+        .select('*')
+        .eq('assigned_to', user.id);
+      
+      console.log('Workflow steps assigned to user:', workflowSteps);
+      console.log('Steps error:', stepsError);
 
       // Now fetch with full join
       const { data, error } = await supabase
@@ -82,7 +115,10 @@ export function useWorkflowAssignments() {
       console.log('Final query result:', data);
       console.log('Final query error:', error);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error in main query:', error);
+        throw error;
+      }
 
       // Type-safe mapping of database data to our interface
       const typedAssignments: WorkflowAssignment[] = (data || []).map(item => ({
@@ -91,7 +127,7 @@ export function useWorkflowAssignments() {
       }));
 
       console.log('Processed assignments for dashboard:', typedAssignments);
-      console.log('=== END ASSIGNMENT DEBUG ===');
+      console.log('=== END ENHANCED ASSIGNMENT DEBUG ===');
       setAssignments(typedAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
@@ -103,7 +139,7 @@ export function useWorkflowAssignments() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, toast]);
+  }, [user, profile, toast]);
 
   const updateAssignmentStatus = useCallback(async (
     assignmentId: string, 
