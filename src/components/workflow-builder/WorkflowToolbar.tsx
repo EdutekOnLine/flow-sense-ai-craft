@@ -6,7 +6,8 @@ import {
   Sparkles,
   MessageSquare,
   Search,
-  Save
+  Save,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WorkflowExplanation } from './WorkflowExplanation';
@@ -25,6 +26,7 @@ interface WorkflowToolbarProps {
   edges: Edge[];
   aiAssistantEnabled?: boolean;
   onToggleAIAssistant?: (enabled: boolean) => void;
+  isSaving?: boolean;
 }
 
 export function WorkflowToolbar({
@@ -34,8 +36,9 @@ export function WorkflowToolbar({
   onSaveWorkflow,
   nodes,
   edges,
-  aiAssistantEnabled = true,
+  aiAssistantEnabled = false,
   onToggleAIAssistant,
+  isSaving = false,
 }: WorkflowToolbarProps) {
   const [showExplanation, setShowExplanation] = useState(false);
   const { explainWorkflow } = useWorkflowExplainer();
@@ -55,6 +58,7 @@ export function WorkflowToolbar({
             size="sm"
             onClick={onNewWorkflow}
             className="flex items-center gap-2"
+            disabled={isSaving}
           >
             <Plus className="h-4 w-4" />
             New
@@ -65,10 +69,14 @@ export function WorkflowToolbar({
             size="sm"
             onClick={onSaveWorkflow}
             className="flex items-center gap-2"
-            disabled={nodes.length === 0}
+            disabled={nodes.length === 0 || isSaving}
           >
-            <Save className="h-4 w-4" />
-            Save
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
 
           <div className="h-6 w-px bg-gray-200 mx-2" />
@@ -78,6 +86,7 @@ export function WorkflowToolbar({
             size="sm"
             onClick={onOpenGenerator}
             className="flex items-center gap-2"
+            disabled={isSaving}
           >
             <Sparkles className="h-4 w-4" />
             AI Generate
@@ -88,7 +97,7 @@ export function WorkflowToolbar({
             size="sm"
             onClick={handleExplain}
             className="flex items-center gap-2"
-            disabled={nodes.length === 0}
+            disabled={nodes.length === 0 || isSaving}
           >
             <MessageSquare className="h-4 w-4" />
             Explain Workflow
@@ -105,6 +114,7 @@ export function WorkflowToolbar({
               id="ai-assistant-toggle"
               checked={aiAssistantEnabled}
               onCheckedChange={onToggleAIAssistant}
+              disabled={isSaving}
             />
           </div>
         </div>

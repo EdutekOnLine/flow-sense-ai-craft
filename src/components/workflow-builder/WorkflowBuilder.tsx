@@ -97,11 +97,11 @@ export default function WorkflowBuilder() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
-  const { saveWorkflow, updateWorkflow, workflows } = useSavedWorkflows();
+  const { saveWorkflow, updateWorkflow, workflows, isSaving } = useSavedWorkflows();
   const [workflowLoaded, setWorkflowLoaded] = useState(false);
 
-  // Add AI Assistant toggle state
-  const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
+  // Change AI Assistant to be disabled by default
+  const [aiAssistantEnabled, setAiAssistantEnabled] = useState(false);
 
   // Initialize step suggestions hook
   const {
@@ -194,7 +194,7 @@ export default function WorkflowBuilder() {
         
         toast({
           title: "Workflow Updated",
-          description: `"${name}" has been updated successfully.`,
+          description: `"${name}" has been updated successfully. Steps and assignments are being processed in the background.`,
         });
       } else {
         // Save new workflow
@@ -204,7 +204,7 @@ export default function WorkflowBuilder() {
         
         toast({
           title: "Workflow Saved",
-          description: `"${name}" has been saved successfully.`,
+          description: `"${name}" has been saved successfully. Steps and assignments are being processed in the background.`,
         });
       }
     } catch (error) {
@@ -735,6 +735,16 @@ export default function WorkflowBuilder() {
                 className="bg-white border border-gray-200 rounded"
               />
             </ReactFlow>
+            
+            {/* Show saving indicator overlay */}
+            {isSaving && (
+              <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 shadow-lg flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="text-sm font-medium">Processing workflow steps...</span>
+                </div>
+              </div>
+            )}
             
             {/* Contextual suggestions near selected node - only show if AI Assistant is enabled */}
             {aiAssistantEnabled && contextualSuggestionsPosition && suggestions.length > 0 && (
