@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
+import { CreateAssignmentsButton } from '@/components/workflow/CreateAssignmentsButton';
 import { toast } from 'sonner';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 
@@ -89,6 +90,27 @@ export default function DashboardContent() {
         <p className="text-sm text-yellow-700">Completed: {completedAssignments.length}</p>
         <p className="text-sm text-yellow-700">User ID: {profile?.id}</p>
       </div>
+
+      {/* Manual Assignment Creation Section */}
+      {workflows.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-medium text-blue-800 mb-3">Create Missing Assignments</h3>
+          <p className="text-sm text-blue-700 mb-4">
+            If you have workflows with assigned steps but no assignment records, click below to create them:
+          </p>
+          <div className="flex gap-3">
+            {workflows.map(workflow => (
+              <div key={workflow.id} className="flex items-center gap-2">
+                <span className="text-sm font-medium">{workflow.name}:</span>
+                <CreateAssignmentsButton 
+                  workflowId={workflow.id} 
+                  workflowName={workflow.name}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Startable Workflows Section */}
       {startableWorkflows.length > 0 && (

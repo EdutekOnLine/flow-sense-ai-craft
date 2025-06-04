@@ -1,119 +1,191 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Node, Edge } from '@xyflow/react';
+import { useToast } from '@/hooks/use-toast';
+import { Node, Edge, Viewport } from '@xyflow/react';
 
 export interface SavedWorkflow {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   nodes: Node[];
   edges: Edge[];
-  viewport?: { x: number; y: number; zoom: number };
+  viewport: Viewport;
   created_by: string;
   created_at: string;
   updated_at: string;
 }
 
 export function useSavedWorkflows() {
-  const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchWorkflows = async () => {
+  const fetchWorkflows = useCallback(async () => {
     if (!user) {
       console.log('No user found, skipping workflow fetch');
-      setIsLoading(false);
       return;
     }
-    
+
     console.log('Fetching workflows for user:', user.id);
     setIsLoading(true);
-    
     try {
       const { data, error } = await supabase
         .from('saved_workflows')
         .select('*')
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching workflows:', error);
-        throw error;
-      } else {
-        console.log('Fetched workflows:', data);
-        // Transform the data to match our interface
-        const transformedWorkflows = (data || []).map(workflow => ({
-          ...workflow,
-          nodes: (workflow.nodes as unknown) as Node[],
-          edges: (workflow.edges as unknown) as Edge[],
-          viewport: (workflow.viewport as unknown) as { x: number; y: number; zoom: number } | undefined,
-        }));
-        setWorkflows(transformedWorkflows);
-      }
+      if (error) throw error;
+
+      setWorkflows(data || []);
+      console.log('Fetched workflows:', data);
     } catch (error) {
-      console.error('Failed to fetch workflows:', error);
-      setWorkflows([]);
+      console.error('Error fetching workflows:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load saved workflows",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, toast]);
 
-  const saveWorkflow = async (
+  const createWorkflowStepAssignments = useCallback(async (workflowId: string, nodes: Node[]) => {
+    if (!user) return;
+
+    try {
+      console.log('Creating step assignments for workflow:', workflowId);
+      
+      // Find nodes that have assigned users
+      const assignedNodes = nodes.filter(node => 
+        node.data?.assignedTo && 
+        node.data.assignedTo !== null &&
+        node.data.assignedTo !== ''
+      );
+
+      console.log('Nodes with assignments:', assignedNodes);
+
+      if (assignedNodes.length === 0) {
+        console.log('No assigned nodes found');
+        return;
+      }
+
+      // For each assigned node, we need to find the corresponding workflow step and create an assignment
+      for (const node of assignedNodes) {
+        const assignedUserId = node.data.assignedTo;
+        
+        // Find workflow step by looking for a step with matching metadata
+        const { data: existingSteps, error: stepsError } = await supabase
+          .from('workflow_steps')
+          .select('id, assigned_to')
+          .eq('workflow_id', workflowId)
+          .eq('name', node.data.label);
+
+        if (stepsError) {
+          console.error('Error finding workflow step:', stepsError);
+          continue;
+        }
+
+        for (const step of existingSteps || []) {
+          // Check if assignment already exists
+          const { data: existingAssignment, error: assignmentCheckError } = await supabase
+            .from('workflow_step_assignments')
+            .select('id')
+            .eq('workflow_step_id', step.id)
+            .single();
+
+          if (assignmentCheckError && assignmentCheckError.code !== 'PGRST116') {
+            console.error('Error checking existing assignment:', assignmentCheckError);
+            continue;
+          }
+
+          if (!existingAssignment) {
+            // Create new assignment
+            const { error: createError } = await supabase
+              .from('workflow_step_assignments')
+              .insert({
+                workflow_step_id: step.id,
+                assigned_to: assignedUserId,
+                assigned_by: user.id,
+                status: 'pending',
+                notes: `Auto-created assignment for step: ${node.data.label}`
+              });
+
+            if (createError) {
+              console.error('Error creating assignment:', createError);
+            } else {
+              console.log('Created assignment for step:', step.id, 'to user:', assignedUserId);
+            }
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Error creating workflow step assignments:', error);
+    }
+  }, [user]);
+
+  const saveWorkflow = useCallback(async (
     name: string,
     description: string,
     nodes: Node[],
     edges: Edge[],
-    viewport?: { x: number; y: number; zoom: number }
-  ) => {
+    viewport: Viewport
+  ): Promise<SavedWorkflow> => {
     if (!user) {
-      console.error('User not authenticated');
-      throw new Error('User not authenticated');
+      throw new Error('User must be authenticated to save workflows');
     }
 
-    console.log('Saving workflow:', { name, description, nodesCount: nodes.length, edgesCount: edges.length });
-
-    const workflowData = {
-      name,
-      description,
-      nodes: nodes as any,
-      edges: edges as any,
-      viewport: viewport as any,
-      created_by: user.id,
-    };
-
-    console.log('Workflow data being saved:', workflowData);
+    console.log('Saving workflow with nodes:', nodes);
+    console.log('Assigned nodes:', nodes.filter(n => n.data?.assignedTo));
 
     try {
       const { data, error } = await supabase
         .from('saved_workflows')
-        .insert(workflowData)
+        .insert({
+          name,
+          description,
+          nodes,
+          edges,
+          viewport,
+          created_by: user.id,
+        })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error saving workflow:', error);
-        throw error;
-      }
-      
-      console.log('Workflow saved successfully:', data);
+      if (error) throw error;
+
+      console.log('Saved workflow successfully:', data);
+
+      // Create workflow step assignments for assigned nodes
+      await createWorkflowStepAssignments(data.id, nodes);
+
+      // Refresh the workflows list
       await fetchWorkflows();
+
       return data;
     } catch (error) {
-      console.error('Failed to save workflow:', error);
+      console.error('Error saving workflow:', error);
       throw error;
     }
-  };
+  }, [user, fetchWorkflows, createWorkflowStepAssignments]);
 
-  const updateWorkflow = async (
+  const updateWorkflow = useCallback(async (
     id: string,
     name: string,
     description: string,
     nodes: Node[],
     edges: Edge[],
-    viewport?: { x: number; y: number; zoom: number }
+    viewport: Viewport
   ) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) {
+      throw new Error('User must be authenticated to update workflows');
+    }
+
+    console.log('Updating workflow with nodes:', nodes);
 
     try {
       const { data, error } = await supabase
@@ -121,25 +193,32 @@ export function useSavedWorkflows() {
         .update({
           name,
           description,
-          nodes: nodes as any,
-          edges: edges as any,
-          viewport: viewport as any,
+          nodes,
+          edges,
+          viewport,
         })
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
-      
+
+      console.log('Updated workflow successfully:', data);
+
+      // Update workflow step assignments for assigned nodes
+      await createWorkflowStepAssignments(id, nodes);
+
+      // Refresh the workflows list
       await fetchWorkflows();
+
       return data;
     } catch (error) {
-      console.error('Failed to update workflow:', error);
+      console.error('Error updating workflow:', error);
       throw error;
     }
-  };
+  }, [user, fetchWorkflows, createWorkflowStepAssignments]);
 
-  const deleteWorkflow = async (id: string) => {
+  const deleteWorkflow = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('saved_workflows')
@@ -147,17 +226,27 @@ export function useSavedWorkflows() {
         .eq('id', id);
 
       if (error) throw error;
-      
+
+      // Refresh the workflows list
       await fetchWorkflows();
+
+      toast({
+        title: "Workflow Deleted",
+        description: "The workflow has been deleted successfully.",
+      });
     } catch (error) {
-      console.error('Failed to delete workflow:', error);
-      throw error;
+      console.error('Error deleting workflow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete workflow",
+        variant: "destructive",
+      });
     }
-  };
+  }, [fetchWorkflows, toast]);
 
   useEffect(() => {
     fetchWorkflows();
-  }, [user]);
+  }, [fetchWorkflows]);
 
   return {
     workflows,
