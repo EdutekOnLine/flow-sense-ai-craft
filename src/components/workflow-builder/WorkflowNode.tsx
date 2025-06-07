@@ -24,6 +24,7 @@ import {
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUsers } from '@/hooks/useUsers';
 
 interface WorkflowNodeData extends Record<string, unknown> {
   label: string;
@@ -74,6 +75,7 @@ const stepTypeConfig = {
 
 export const WorkflowNode = memo(({ data, id }: NodeProps) => {
   const { setNodes, setEdges } = useReactFlow();
+  const { data: users } = useUsers();
   const nodeData = data as WorkflowNodeData;
   const config = stepTypeConfig[nodeData.stepType as keyof typeof stepTypeConfig] || stepTypeConfig.task;
   const Icon = config.icon;
@@ -91,6 +93,21 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
     if (nodeData.onConfigure) {
       nodeData.onConfigure();
     }
+  };
+
+  // Get assigned user name instead of ID
+  const getAssignedUserName = () => {
+    if (!nodeData.assignedTo) {
+      return null;
+    }
+    
+    const user = users?.find(u => u.id === nodeData.assignedTo);
+    if (user) {
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+      return fullName || user.email;
+    }
+    
+    return nodeData.assignedTo; // Fallback to ID if user not found
   };
 
   return (
@@ -150,7 +167,7 @@ export const WorkflowNode = memo(({ data, id }: NodeProps) => {
           {nodeData.assignedTo && (
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Users className="h-3 w-3" />
-              <span>{nodeData.assignedTo}</span>
+              <span>{getAssignedUserName()}</span>
             </div>
           )}
           {nodeData.estimatedHours && (
