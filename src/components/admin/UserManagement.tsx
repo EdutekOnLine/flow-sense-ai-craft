@@ -11,6 +11,17 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Copy, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface UserInvitation {
   id: string;
@@ -162,6 +173,35 @@ export default function UserManagement() {
     },
   });
 
+  // Delete user mutation
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: {
+          userId,
+          adminId: user?.id,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'User deleted',
+        description: 'The user has been successfully removed.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error deleting user',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleInviteUser = () => {
     if (!inviteForm.email) {
       toast({
@@ -261,9 +301,44 @@ export default function UserManagement() {
                       <p className="text-xs text-gray-500">{user.department}</p>
                     )}
                   </div>
-                  <Badge className={getRoleBadgeColor(user.role)}>
-                    {user.role.toUpperCase()}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getRoleBadgeColor(user.role)}>
+                      {user.role.toUpperCase()}
+                    </Badge>
+                    {/* Only show delete button if not deleting self and user is not the current user */}
+                    {profile?.id !== user.id && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete {user.first_name} {user.last_name} ({user.email})? 
+                              This action cannot be undone and will permanently remove their account and all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteUser.mutate(user.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteUser.isPending}
+                            >
+                              {deleteUser.isPending ? 'Deleting...' : 'Delete User'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
