@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,6 +16,7 @@ export interface SavedWorkflow {
   created_by: string;
   created_at: string;
   updated_at: string;
+  is_reusable?: boolean;
 }
 
 export function useSavedWorkflows() {
@@ -180,7 +180,8 @@ export function useSavedWorkflows() {
     description: string,
     nodes: Node[],
     edges: Edge[],
-    viewport: Viewport
+    viewport: Viewport,
+    isReusable: boolean = false
   ): Promise<SavedWorkflow> => {
     if (!user) {
       throw new Error('User must be authenticated to save workflows');
@@ -195,7 +196,29 @@ export function useSavedWorkflows() {
     console.log('Saving workflow with nodes:', nodes.length);
 
     try {
-      // First just save the workflow visualization data
+      let savedWorkflowId: string;
+
+      if (isReusable) {
+        // Save to workflow_definitions for reusable workflows
+        const { data: workflowDefData, error: workflowDefError } = await supabase
+          .from('workflow_definitions')
+          .insert({
+            name,
+            description,
+            nodes: nodes as unknown as Json,
+            edges: edges as unknown as Json,
+            viewport: viewport as unknown as Json,
+            created_by: user.id,
+            is_reusable: true,
+          })
+          .select()
+          .single();
+
+        if (workflowDefError) throw workflowDefError;
+        savedWorkflowId = workflowDefData.id;
+      }
+
+      // Always save to saved_workflows for the UI listing
       const { data, error } = await supabase
         .from('saved_workflows')
         .insert({
@@ -222,6 +245,7 @@ export function useSavedWorkflows() {
         created_by: data.created_by,
         created_at: data.created_at,
         updated_at: data.updated_at,
+        is_reusable: isReusable,
       };
 
       // Now in background, process the workflow steps

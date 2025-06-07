@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Node, Edge } from '@xyflow/react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SaveWorkflowDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (name: string, description: string) => Promise<void>;
+  onSave: (name: string, description: string, isReusable: boolean) => Promise<void>;
   nodes: Node[];
   edges: Edge[];
   isLoading?: boolean;
@@ -30,6 +31,7 @@ export function SaveWorkflowDialog({
 }: SaveWorkflowDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isReusable, setIsReusable] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -47,12 +49,13 @@ export function SaveWorkflowDialog({
     
     try {
       console.log('Starting save process...');
-      await onSave(name.trim(), description.trim());
+      await onSave(name.trim(), description.trim(), isReusable);
       console.log('Save completed successfully');
       
       // Reset form and close dialog
       setName('');
       setDescription('');
+      setIsReusable(false);
       onClose();
       
       toast({
@@ -76,6 +79,7 @@ export function SaveWorkflowDialog({
     if (!isSaving) {
       setName('');
       setDescription('');
+      setIsReusable(false);
       onClose();
     }
   };
@@ -107,6 +111,20 @@ export function SaveWorkflowDialog({
               disabled={isSaving || isLoading}
               rows={3}
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="workflow-reusable"
+              checked={isReusable}
+              onCheckedChange={(checked) => setIsReusable(checked as boolean)}
+              disabled={isSaving || isLoading}
+            />
+            <Label htmlFor="workflow-reusable" className="text-sm">
+              Make this workflow reusable
+            </Label>
+          </div>
+          <div className="text-xs text-gray-500">
+            Reusable workflows can be started multiple times by different users. Non-reusable workflows can only be started once.
           </div>
         </div>
         <div className="flex justify-end space-x-2">
