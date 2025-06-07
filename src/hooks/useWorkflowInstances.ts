@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -46,12 +46,16 @@ export function useWorkflowInstances() {
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [startableWorkflows, setStartableWorkflows] = useState<StartableWorkflow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
   const { user } = useAuth();
 
-  const fetchInstances = async () => {
+  const fetchInstances = useCallback(async () => {
     if (!user) return;
 
     try {
+      console.log('=== FETCHING WORKFLOW INSTANCES ===');
+      console.log('User ID:', user.id);
+      
       const { data, error } = await supabase
         .from('workflow_instances')
         .select(`
@@ -61,7 +65,12 @@ export function useWorkflowInstances() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching workflow instances:', error);
+        throw error;
+      }
+      
+      console.log('Fetched workflow instances:', data?.length || 0);
       
       const typedData = (data || []).map(item => ({
         ...item,
@@ -72,13 +81,18 @@ export function useWorkflowInstances() {
     } catch (error) {
       console.error('Error fetching workflow instances:', error);
     }
-  };
+  }, [user]);
 
-  const fetchStartableWorkflows = async () => {
-    if (!user) return;
+  const fetchStartableWorkflows = useCallback(async () => {
+    if (!user) {
+      console.log('No user found, skipping startable workflows fetch');
+      return;
+    }
 
     console.log('=== DEBUGGING STARTABLE WORKFLOWS ===');
     console.log('User ID:', user.id);
+    console.log('User email:', user.email);
+    console.log('Fetch time:', new Date().toISOString());
 
     try {
       const availableWorkflows: StartableWorkflow[] = [];
@@ -88,19 +102,23 @@ export function useWorkflowInstances() {
       const { data: savedWorkflows, error: savedError } = await supabase
         .from('saved_workflows')
         .select('*')
-        .eq('is_reusable', true); // Only get workflows marked as reusable
+        .eq('is_reusable', true);
       
       if (savedError) {
         console.error('Error fetching saved workflows:', savedError);
       } else {
-        console.log('Found reusable saved workflows:', savedWorkflows);
+        console.log('Found reusable saved workflows:', savedWorkflows?.length || 0);
+        console.log('Saved workflows data:', savedWorkflows);
         
         // For each reusable saved workflow, check if user is assigned to the first step via the nodes data
         for (const savedWorkflow of savedWorkflows || []) {
-          console.log(`Processing saved workflow: ${savedWorkflow.name}`);
+          console.log(`\n--- Processing saved workflow: ${savedWorkflow.name} ---`);
+          console.log('Workflow ID:', savedWorkflow.id);
+          console.log('Is reusable:', savedWorkflow.is_reusable);
           
           // Check the nodes directly from the saved workflow to see if user is assigned to first step
           const nodes = savedWorkflow.nodes;
+          console.log('Workflow nodes count:', Array.isArray(nodes) ? nodes.length : 'Not an array');
           console.log('Workflow nodes:', nodes);
           
           // Type guard to ensure nodes is an array
@@ -125,9 +143,10 @@ export function useWorkflowInstances() {
             const assignedTo = firstNode.data.assignedTo;
             console.log('First node assigned to:', assignedTo);
             console.log('Current user ID:', user.id);
+            console.log('Assignment match:', assignedTo === user.id);
             
             if (assignedTo === user.id) {
-              console.log(`User is assigned to first step of workflow: ${savedWorkflow.name}`);
+              console.log(`✅ User IS assigned to first step of workflow: ${savedWorkflow.name}`);
               
               availableWorkflows.push({
                 id: savedWorkflow.id,
@@ -143,14 +162,17 @@ export function useWorkflowInstances() {
               });
               console.log(`Added saved workflow as reusable: ${savedWorkflow.name}`);
             } else {
-              console.log(`User not assigned to first step of ${savedWorkflow.name}`);
+              console.log(`❌ User NOT assigned to first step of ${savedWorkflow.name}`);
+              console.log(`Expected: ${user.id}, Found: ${assignedTo}`);
             }
+          } else {
+            console.log('No valid first node found for workflow:', savedWorkflow.name);
           }
         }
       }
 
       // Get non-reusable workflows where user is assigned to first step and hasn't been started yet
-      console.log('=== CHECKING NON-REUSABLE WORKFLOWS ===');
+      console.log('\n=== CHECKING NON-REUSABLE WORKFLOWS ===');
       const { data: nonReusableWorkflows, error: nonReusableError } = await supabase
         .from('workflows')
         .select(`
@@ -202,17 +224,33 @@ export function useWorkflowInstances() {
         }
       }
 
-      console.log('=== FINAL RESULTS ===');
+      console.log('\n=== FINAL RESULTS ===');
       console.log('Total startable workflows found:', availableWorkflows.length);
-      console.log('Workflows:', availableWorkflows.map(w => ({ name: w.name, reusable: w.is_reusable })));
+      console.log('Workflows:', availableWorkflows.map(w => ({ 
+        name: w.name, 
+        reusable: w.is_reusable,
+        id: w.id 
+      })));
       
       setStartableWorkflows(availableWorkflows);
+      setLastFetchTime(new Date());
     } catch (error) {
       console.error('Error fetching startable workflows:', error);
     }
-  };
+  }, [user]);
 
-  const startWorkflow = async (workflowId: string, startData: any = {}) => {
+  // Manual refresh function
+  const refreshWorkflows = useCallback(async () => {
+    console.log('=== MANUAL REFRESH TRIGGERED ===');
+    setIsLoading(true);
+    try {
+      await Promise.all([fetchInstances(), fetchStartableWorkflows()]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchInstances, fetchStartableWorkflows]);
+
+  const startWorkflow = useCallback(async (workflowId: string, startData: any = {}) => {
     if (!user) return null;
 
     try {
@@ -307,30 +345,39 @@ export function useWorkflowInstances() {
 
       console.log('Workflow instance created:', data);
 
-      await fetchInstances();
-      await fetchStartableWorkflows();
+      await refreshWorkflows();
 
       return data;
     } catch (error) {
       console.error('Error starting workflow:', error);
       throw error;
     }
-  };
+  }, [user, refreshWorkflows]);
 
   useEffect(() => {
+    console.log('=== useWorkflowInstances EFFECT TRIGGERED ===');
+    console.log('User:', user?.id);
+    
     if (user) {
       setIsLoading(true);
       Promise.all([fetchInstances(), fetchStartableWorkflows()]).finally(() => {
         setIsLoading(false);
       });
+    } else {
+      console.log('No user, clearing data');
+      setInstances([]);
+      setStartableWorkflows([]);
+      setIsLoading(false);
     }
-  }, [user]);
+  }, [user, fetchInstances, fetchStartableWorkflows]);
 
   return {
     instances,
     startableWorkflows,
     isLoading,
+    lastFetchTime,
     startWorkflow,
-    refetch: () => Promise.all([fetchInstances(), fetchStartableWorkflows()])
+    refreshWorkflows,
+    refetch: refreshWorkflows
   };
 }
