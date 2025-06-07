@@ -32,33 +32,76 @@ export function DataCleanupButton() {
       console.log('Starting data cleanup...');
 
       // Clean up in the correct order to avoid foreign key constraints
-      const cleanupQueries = [
-        // Delete workflow step assignments first
-        supabase.from('workflow_step_assignments').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        
-        // Delete workflow instances
-        supabase.from('workflow_instances').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        
-        // Delete workflow comments
-        supabase.from('workflow_comments').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        
-        // Delete workflow steps
-        supabase.from('workflow_steps').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        
-        // Delete workflows (but keep saved workflows and templates)
-        supabase.from('workflows').delete().neq('id', '00000000-0000-0000-0000-000000000000'),
-        
-        // Clean up workflow-related notifications
-        supabase.from('notifications').delete().not('workflow_step_id', 'is', null),
-      ];
+      // First delete notifications that reference workflow_step_id
+      console.log('Deleting workflow notifications...');
+      const { error: notificationsError } = await supabase
+        .from('notifications')
+        .delete()
+        .not('workflow_step_id', 'is', null);
 
-      // Execute all cleanup queries
-      for (const query of cleanupQueries) {
-        const { error } = await query;
-        if (error) {
-          console.error('Cleanup error:', error);
-          throw error;
-        }
+      if (notificationsError) {
+        console.error('Error deleting notifications:', notificationsError);
+        throw notificationsError;
+      }
+
+      // Delete workflow step assignments
+      console.log('Deleting workflow step assignments...');
+      const { error: assignmentsError } = await supabase
+        .from('workflow_step_assignments')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (assignmentsError) {
+        console.error('Error deleting assignments:', assignmentsError);
+        throw assignmentsError;
+      }
+
+      // Delete workflow instances
+      console.log('Deleting workflow instances...');
+      const { error: instancesError } = await supabase
+        .from('workflow_instances')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (instancesError) {
+        console.error('Error deleting instances:', instancesError);
+        throw instancesError;
+      }
+
+      // Delete workflow comments
+      console.log('Deleting workflow comments...');
+      const { error: commentsError } = await supabase
+        .from('workflow_comments')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (commentsError) {
+        console.error('Error deleting comments:', commentsError);
+        throw commentsError;
+      }
+
+      // Delete workflow steps
+      console.log('Deleting workflow steps...');
+      const { error: stepsError } = await supabase
+        .from('workflow_steps')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (stepsError) {
+        console.error('Error deleting steps:', stepsError);
+        throw stepsError;
+      }
+
+      // Delete workflows (but keep saved workflows and templates)
+      console.log('Deleting workflows...');
+      const { error: workflowsError } = await supabase
+        .from('workflows')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (workflowsError) {
+        console.error('Error deleting workflows:', workflowsError);
+        throw workflowsError;
       }
 
       console.log('Data cleanup completed successfully');
