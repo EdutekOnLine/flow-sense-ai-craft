@@ -88,8 +88,8 @@ export function useWorkflowInstances() {
     console.log('Found saved workflow:', savedWorkflow);
 
     // Find the first step (node) that has an assigned user
-    // Properly handle the JSON type from Supabase
-    const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes as WorkflowNode[] : [];
+    // Properly handle the JSON type from Supabase with safe casting
+    const nodes = Array.isArray(savedWorkflow.nodes) ? (savedWorkflow.nodes as unknown as WorkflowNode[]) : [];
     const firstAssignedNode = nodes
       .filter((node: WorkflowNode) => node?.data?.assignedTo)
       .sort((a: WorkflowNode, b: WorkflowNode) => (a.position?.y || 0) - (b.position?.y || 0))[0];
