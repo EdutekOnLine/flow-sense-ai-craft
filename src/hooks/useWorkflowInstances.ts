@@ -83,18 +83,19 @@ export function useWorkflowInstances() {
     try {
       const availableWorkflows: StartableWorkflow[] = [];
 
-      // First, get all saved workflows marked as reusable
+      // First, get all saved workflows that are marked as reusable
       console.log('=== CHECKING SAVED_WORKFLOWS FOR REUSABLE ===');
       const { data: savedWorkflows, error: savedError } = await supabase
         .from('saved_workflows')
-        .select('*');
+        .select('*')
+        .eq('is_reusable', true); // Only get workflows marked as reusable
       
       if (savedError) {
         console.error('Error fetching saved workflows:', savedError);
       } else {
-        console.log('Found saved workflows:', savedWorkflows);
+        console.log('Found reusable saved workflows:', savedWorkflows);
         
-        // For each saved workflow, check if user is assigned to the first step via the nodes data
+        // For each reusable saved workflow, check if user is assigned to the first step via the nodes data
         for (const savedWorkflow of savedWorkflows || []) {
           console.log(`Processing saved workflow: ${savedWorkflow.name}`);
           

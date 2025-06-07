@@ -96,6 +96,7 @@ export type Database = {
           description: string | null
           edges: Json
           id: string
+          is_reusable: boolean
           name: string
           nodes: Json
           updated_at: string
@@ -107,6 +108,7 @@ export type Database = {
           description?: string | null
           edges?: Json
           id?: string
+          is_reusable?: boolean
           name: string
           nodes?: Json
           updated_at?: string
@@ -118,6 +120,7 @@ export type Database = {
           description?: string | null
           edges?: Json
           id?: string
+          is_reusable?: boolean
           name?: string
           nodes?: Json
           updated_at?: string
