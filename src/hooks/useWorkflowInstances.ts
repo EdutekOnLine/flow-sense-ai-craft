@@ -96,13 +96,13 @@ export function useWorkflowInstances() {
 
     console.log('First assigned node:', firstAssignedNode);
 
-    // Create a new workflow instance
+    // Create a new workflow instance - set current_step_id to null since we're using custom node IDs
     const { data: newWorkflowInstance, error: instanceError } = await supabase
       .from('workflow_instances')
       .insert({
         workflow_id: savedWorkflowId,
         started_by: user?.id,
-        current_step_id: firstAssignedNode?.id || null,
+        current_step_id: null, // Use null instead of the node ID since it's not a UUID
         start_data: {},
         status: 'active'
       })
