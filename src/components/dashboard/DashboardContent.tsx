@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from './SavedWorkflows';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
+import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +33,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
     refreshWorkflows
   } = useWorkflowInstances();
   
+  const { assignments } = useWorkflowAssignments();
   const { canEditWorkflows } = useWorkflowPermissions();
 
   // Auto-refresh every 30 seconds
@@ -52,8 +55,16 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
     }
   };
 
+  // Calculate accurate statistics
   const activeInstances = instances.filter(i => i.status === 'active');
   const completedInstances = instances.filter(i => i.status === 'completed');
+  const activeAssignments = assignments.filter(a => a.status === 'pending' || a.status === 'in_progress');
+  const availableWorkflows = startableWorkflows.length;
+
+  // Calculate efficiency rate (completed vs total)
+  const totalAssignments = assignments.length;
+  const completedAssignments = assignments.filter(a => a.status === 'completed').length;
+  const efficiencyRate = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -86,7 +97,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-800">{startableWorkflows.length}</div>
+            <div className="text-3xl font-bold text-blue-800">{availableWorkflows}</div>
             <p className="text-blue-600 text-sm mt-1">Ready to start</p>
           </CardContent>
         </Card>
@@ -101,8 +112,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-800">{activeInstances.length}</div>
-            <p className="text-green-600 text-sm mt-1">In progress</p>
+            <div className="text-3xl font-bold text-green-800">{activeAssignments.length}</div>
+            <p className="text-green-600 text-sm mt-1">Waiting for you</p>
           </CardContent>
         </Card>
 
@@ -116,8 +127,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-800">{completedInstances.length}</div>
-            <p className="text-purple-600 text-sm mt-1">This month</p>
+            <div className="text-3xl font-bold text-purple-800">{completedAssignments}</div>
+            <p className="text-purple-600 text-sm mt-1">Tasks finished</p>
           </CardContent>
         </Card>
 
@@ -131,8 +142,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-800">94%</div>
-            <p className="text-orange-600 text-sm mt-1">Success rate</p>
+            <div className="text-3xl font-bold text-orange-800">{efficiencyRate}%</div>
+            <p className="text-orange-600 text-sm mt-1">Completion rate</p>
           </CardContent>
         </Card>
       </div>
@@ -147,9 +158,9 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             <h2 className="text-2xl font-bold text-gray-900">Available Workflows</h2>
             <p className="text-gray-600">Choose from workflows you can start and execute</p>
           </div>
-          {startableWorkflows.length > 0 && (
+          {availableWorkflows > 0 && (
             <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-800 border-blue-200 text-lg px-3 py-1">
-              {startableWorkflows.length}
+              {availableWorkflows}
             </Badge>
           )}
         </div>
@@ -170,9 +181,9 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
             <p className="text-gray-600">Manage your assigned workflow steps</p>
           </div>
-          {activeInstances.length > 0 && (
+          {activeAssignments.length > 0 && (
             <Badge variant="secondary" className="ml-auto bg-green-100 text-green-800 border-green-200 text-lg px-3 py-1">
-              {activeInstances.length}
+              {activeAssignments.length}
             </Badge>
           )}
         </div>

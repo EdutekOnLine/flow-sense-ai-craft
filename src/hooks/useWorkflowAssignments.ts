@@ -108,16 +108,20 @@ export function useWorkflowAssignments() {
           workflowInstance = instanceData[0];
           console.log('Found workflow instance:', workflowInstance);
 
-          // Show assignment if it's the current step OR if it's a completed assignment
-          if (workflowInstance.current_step_id === assignment.workflow_step_id || 
-              assignment.status === 'completed') {
+          // CRITICAL: Only show assignment if it's the current step in the workflow instance
+          if (workflowInstance.current_step_id === assignment.workflow_step_id) {
             shouldShow = true;
-            console.log(`Assignment ${assignment.id} is current step or completed, showing to user`);
+            console.log(`Assignment ${assignment.id} is the current step, showing to user`);
+          } else if (assignment.status === 'completed') {
+            // Show completed assignments for history
+            shouldShow = true;
+            console.log(`Assignment ${assignment.id} is completed, showing for history`);
           } else {
-            console.log(`Assignment ${assignment.id} is not the current step and not completed, hiding from user`);
+            console.log(`Assignment ${assignment.id} is not the current step (current: ${workflowInstance.current_step_id}, assignment: ${assignment.workflow_step_id}), hiding from user`);
           }
         } else {
-          // No active workflow instance - show pending assignments (standalone assignments)
+          // No active workflow instance - this might be a standalone assignment or from a saved workflow
+          // Only show if it's pending or in progress
           if (assignment.status === 'pending' || assignment.status === 'in_progress') {
             shouldShow = true;
             console.log(`Assignment ${assignment.id} has no active instance but is pending/in_progress, showing to user`);
