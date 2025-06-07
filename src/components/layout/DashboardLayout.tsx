@@ -1,4 +1,5 @@
 
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,6 @@ import {
   Workflow,
   Inbox
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
