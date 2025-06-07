@@ -189,8 +189,8 @@ export default function WorkflowBuilder() {
     }
   }, [workflows, workflowId, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges, currentWorkflowId]);
 
-  const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
-    console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });
+  const handleSaveWorkflow = useCallback(async (name: string, description: string, isReusable: boolean) => {
+    console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description, isReusable });
     
     try {
       const viewport = reactFlowInstance?.getViewport() || { x: 0, y: 0, zoom: 1 };
@@ -209,7 +209,7 @@ export default function WorkflowBuilder() {
         });
       } else {
         // Save new workflow
-        const savedWorkflow = await saveWorkflow(name, description, nodes, edges, viewport);
+        const savedWorkflow = await saveWorkflow(name, description, nodes, edges, viewport, isReusable);
         setCurrentWorkflowId(savedWorkflow.id);
         console.log('Workflow saved successfully in WorkflowBuilder');
         
