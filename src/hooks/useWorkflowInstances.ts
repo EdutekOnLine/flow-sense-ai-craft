@@ -73,72 +73,91 @@ export function useWorkflowInstances() {
   const createWorkflowFromSavedWorkflow = async (savedWorkflowId: string) => {
     console.log('Creating workflow from saved workflow:', savedWorkflowId);
     
-    // Get the saved workflow data
-    const { data: savedWorkflow, error: savedError } = await supabase
-      .from('saved_workflows')
-      .select('*')
-      .eq('id', savedWorkflowId)
-      .single();
-
-    if (savedError) {
-      console.error('Error fetching saved workflow:', savedError);
-      throw savedError;
+    if (!user) {
+      throw new Error('User not authenticated');
     }
+    
+    try {
+      // Get the saved workflow data
+      const { data: savedWorkflow, error: savedError } = await supabase
+        .from('saved_workflows')
+        .select('*')
+        .eq('id', savedWorkflowId)
+        .single();
 
-    console.log('Found saved workflow:', savedWorkflow);
-
-    // Find the first step (node) that has an assigned user
-    // Properly handle the JSON type from Supabase with safe casting
-    const nodes = Array.isArray(savedWorkflow.nodes) ? (savedWorkflow.nodes as unknown as WorkflowNode[]) : [];
-    const firstAssignedNode = nodes
-      .filter((node: WorkflowNode) => node?.data?.assignedTo)
-      .sort((a: WorkflowNode, b: WorkflowNode) => (a.position?.y || 0) - (b.position?.y || 0))[0];
-
-    console.log('First assigned node:', firstAssignedNode);
-
-    // Create a new workflow instance - set current_step_id to null since we're using custom node IDs
-    const { data: newWorkflowInstance, error: instanceError } = await supabase
-      .from('workflow_instances')
-      .insert({
-        workflow_id: savedWorkflowId,
-        started_by: user?.id,
-        current_step_id: null, // Use null instead of the node ID since it's not a UUID
-        start_data: {},
-        status: 'active'
-      })
-      .select()
-      .single();
-
-    if (instanceError) {
-      console.error('Error creating workflow instance:', instanceError);
-      throw instanceError;
-    }
-
-    console.log('Created workflow instance:', newWorkflowInstance);
-
-    // If there's a first assigned node, create an assignment for it
-    if (firstAssignedNode && firstAssignedNode.data?.assignedTo) {
-      console.log('Creating assignment for first step:', firstAssignedNode.id);
-      
-      const { error: assignmentError } = await supabase
-        .from('workflow_step_assignments')
-        .insert({
-          workflow_step_id: firstAssignedNode.id,
-          assigned_to: firstAssignedNode.data.assignedTo,
-          assigned_by: user?.id,
-          status: 'pending'
-        });
-
-      if (assignmentError) {
-        console.error('Error creating first step assignment:', assignmentError);
-        // Don't throw here - the workflow instance was created successfully
-        // Just log the error and continue
-      } else {
-        console.log('Successfully created assignment for first step');
+      if (savedError) {
+        console.error('Error fetching saved workflow:', savedError);
+        throw new Error(`Failed to fetch saved workflow: ${savedError.message}`);
       }
-    }
 
-    return newWorkflowInstance.id;
+      console.log('Found saved workflow:', savedWorkflow);
+
+      if (!savedWorkflow) {
+        throw new Error('Saved workflow not found');
+      }
+
+      // Safely handle the nodes data
+      let nodes: WorkflowNode[] = [];
+      if (savedWorkflow.nodes && Array.isArray(savedWorkflow.nodes)) {
+        nodes = savedWorkflow.nodes as unknown as WorkflowNode[];
+      }
+
+      console.log('Parsed nodes:', nodes);
+
+      // Find the first step (node) that has an assigned user
+      const firstAssignedNode = nodes
+        .filter((node: WorkflowNode) => node?.data?.assignedTo)
+        .sort((a: WorkflowNode, b: WorkflowNode) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+
+      console.log('First assigned node:', firstAssignedNode);
+
+      // Create a new workflow instance - set current_step_id to null since we're using custom node IDs
+      const { data: newWorkflowInstance, error: instanceError } = await supabase
+        .from('workflow_instances')
+        .insert({
+          workflow_id: savedWorkflowId,
+          started_by: user.id,
+          current_step_id: null, // Use null instead of the node ID since it's not a UUID
+          start_data: {},
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (instanceError) {
+        console.error('Error creating workflow instance:', instanceError);
+        throw new Error(`Failed to create workflow instance: ${instanceError.message}`);
+      }
+
+      console.log('Created workflow instance:', newWorkflowInstance);
+
+      // If there's a first assigned node, create an assignment for it
+      if (firstAssignedNode && firstAssignedNode.data?.assignedTo) {
+        console.log('Creating assignment for first step:', firstAssignedNode.id);
+        
+        const { error: assignmentError } = await supabase
+          .from('workflow_step_assignments')
+          .insert({
+            workflow_step_id: firstAssignedNode.id,
+            assigned_to: firstAssignedNode.data.assignedTo,
+            assigned_by: user.id,
+            status: 'pending'
+          });
+
+        if (assignmentError) {
+          console.error('Error creating first step assignment:', assignmentError);
+          // Don't throw here - the workflow instance was created successfully
+          // Just log the error and continue
+        } else {
+          console.log('Successfully created assignment for first step');
+        }
+      }
+
+      return newWorkflowInstance.id;
+    } catch (error) {
+      console.error('Error in createWorkflowFromSavedWorkflow:', error);
+      throw error;
+    }
   };
 
   const startWorkflow = useCallback(async (workflowId: string, startData: any = {}) => {
@@ -162,7 +181,8 @@ export function useWorkflowInstances() {
       return { id: instanceId };
     } catch (error) {
       console.error('Error starting workflow:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to start workflow. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start workflow. Please try again.';
+      toast.error(errorMessage);
       throw error;
     }
   }, [user, fetchWorkflowInstances]);
