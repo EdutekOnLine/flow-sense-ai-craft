@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -32,12 +33,12 @@ export function DataCleanupButton() {
       console.log('Starting data cleanup...');
 
       // Clean up in the correct order to avoid foreign key constraints
-      // First delete notifications that reference workflow_step_id
-      console.log('Deleting workflow notifications...');
+      // First delete ALL notifications (to be safe with foreign key references)
+      console.log('Deleting all notifications...');
       const { error: notificationsError } = await supabase
         .from('notifications')
         .delete()
-        .not('workflow_step_id', 'is', null);
+        .neq('id', '00000000-0000-0000-0000-000000000000');
 
       if (notificationsError) {
         console.error('Error deleting notifications:', notificationsError);
