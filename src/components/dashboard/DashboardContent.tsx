@@ -50,6 +50,12 @@ export default function DashboardContent() {
     toast.success('Refreshing workflows...');
   };
 
+  const handleOpenWorkflow = (workflowId: string) => {
+    console.log('Opening workflow:', workflowId);
+    // TODO: Navigate to workflow builder with this workflow
+    toast.info('Opening workflow in builder...');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -97,11 +103,11 @@ export default function DashboardContent() {
         </TabsContent>
 
         <TabsContent value="inbox" className="space-y-6">
-          <WorkflowInbox instances={instances} isLoading={isLoading} />
+          <WorkflowInbox />
         </TabsContent>
 
         <TabsContent value="saved" className="space-y-6">
-          <SavedWorkflows />
+          <SavedWorkflows onOpenWorkflow={handleOpenWorkflow} />
         </TabsContent>
       </Tabs>
     </div>
