@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from './SavedWorkflows';
-import { DataCleanupButton } from '@/components/admin/DataCleanupButton';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -84,12 +83,6 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <p className="text-purple-100 text-lg">Welcome to your workflow command center</p>
               </div>
             </div>
-            {/* Admin cleanup button */}
-            {profile?.role === 'admin' && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <DataCleanupButton />
-              </div>
-            )}
           </div>
         </div>
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
