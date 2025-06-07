@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,8 +51,7 @@ export function useWorkflowAssignments() {
     
     setIsLoading(true);
     try {
-      // First, get assignments that belong to active workflow instances
-      // and where the user's step is the current step OR all previous steps are completed
+      // Get all assignments for the current user with step and workflow details
       const { data, error } = await supabase
         .from('workflow_step_assignments')
         .select(`
@@ -82,13 +82,13 @@ export function useWorkflowAssignments() {
         return;
       }
 
-      // Now filter assignments based on workflow instance progression
-      const filteredAssignments: WorkflowAssignment[] = [];
+      // Process assignments and check for workflow instances
+      const processedAssignments: WorkflowAssignment[] = [];
 
       for (const assignment of data) {
         if (!assignment.workflow_steps) continue;
 
-        // Get the workflow instance for this assignment's workflow
+        // Check if there's an active workflow instance for this assignment's workflow
         const { data: instanceData, error: instanceError } = await supabase
           .from('workflow_instances')
           .select('*')
@@ -99,38 +99,45 @@ export function useWorkflowAssignments() {
 
         if (instanceError) {
           console.error('Error fetching workflow instance:', instanceError);
-          continue;
         }
 
-        // If no active instance exists, skip this assignment
-        if (!instanceData || instanceData.length === 0) {
-          console.log(`No active workflow instance found for workflow ${assignment.workflow_steps.workflow_id}`);
-          continue;
+        let workflowInstance = null;
+        let shouldShow = false;
+
+        if (instanceData && instanceData.length > 0) {
+          workflowInstance = instanceData[0];
+          console.log('Found workflow instance:', workflowInstance);
+
+          // Show assignment if it's the current step OR if it's a completed assignment
+          if (workflowInstance.current_step_id === assignment.workflow_step_id || 
+              assignment.status === 'completed') {
+            shouldShow = true;
+            console.log(`Assignment ${assignment.id} is current step or completed, showing to user`);
+          } else {
+            console.log(`Assignment ${assignment.id} is not the current step and not completed, hiding from user`);
+          }
+        } else {
+          // No active workflow instance - show pending assignments (standalone assignments)
+          if (assignment.status === 'pending' || assignment.status === 'in_progress') {
+            shouldShow = true;
+            console.log(`Assignment ${assignment.id} has no active instance but is pending/in_progress, showing to user`);
+          }
         }
 
-        const workflowInstance = instanceData[0];
-        console.log('Workflow instance:', workflowInstance);
-
-        // Check if this assignment's step is the current step in the workflow instance
-        if (workflowInstance.current_step_id === assignment.workflow_step_id) {
-          console.log(`Assignment ${assignment.id} is the current step, showing to user`);
-          
-          // Type-safe mapping with workflow instance context
+        if (shouldShow) {
           const typedAssignment: WorkflowAssignment = {
             ...assignment,
             status: assignment.status as AssignmentStatus,
             workflow_instance: workflowInstance
           };
           
-          filteredAssignments.push(typedAssignment);
-        } else {
-          console.log(`Assignment ${assignment.id} is not the current step (current: ${workflowInstance.current_step_id}, assignment: ${assignment.workflow_step_id}), hiding from user`);
+          processedAssignments.push(typedAssignment);
         }
       }
 
-      console.log('Filtered assignments for user:', filteredAssignments);
+      console.log('Processed assignments for user:', processedAssignments);
       console.log('=== END WORKFLOW ASSIGNMENT DEBUG ===');
-      setAssignments(filteredAssignments);
+      setAssignments(processedAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
       toast({
@@ -215,29 +222,35 @@ export function useWorkflowAssignments() {
 
       if (updateError) throw updateError;
 
-      // Call the edge function to advance the workflow
-      const { data: functionData, error: functionError } = await supabase.functions.invoke('advance-workflow', {
-        body: {
-          workflowId: assignment.workflow_steps.workflow_id,
-          completedStepId: assignment.workflow_step_id,
-          completedBy: user?.id,
-          completionNotes: completionNotes
-        }
-      });
-
-      if (functionError) {
-        console.error('Error advancing workflow:', functionError);
-        // Don't fail the whole operation if workflow advancement fails
-        toast({
-          title: "Step Completed",
-          description: "Step completed but workflow advancement may have failed. Check with administrator.",
-          variant: "destructive",
+      // Call the edge function to advance the workflow if there's an active instance
+      if (assignment.workflow_instance) {
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('advance-workflow', {
+          body: {
+            workflowId: assignment.workflow_steps.workflow_id,
+            completedStepId: assignment.workflow_step_id,
+            completedBy: user?.id,
+            completionNotes: completionNotes
+          }
         });
+
+        if (functionError) {
+          console.error('Error advancing workflow:', functionError);
+          toast({
+            title: "Step Completed",
+            description: "Step completed but workflow advancement may have failed. Check with administrator.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Workflow advancement result:', functionData);
+          toast({
+            title: "Step Completed",
+            description: "Step completed successfully and workflow has been advanced.",
+          });
+        }
       } else {
-        console.log('Workflow advancement result:', functionData);
         toast({
-          title: "Step Completed",
-          description: "Step completed successfully and workflow has been advanced.",
+          title: "Step Completed", 
+          description: "Step completed successfully.",
         });
       }
 
@@ -272,50 +285,7 @@ export function useWorkflowAssignments() {
   return {
     assignments,
     isLoading,
-    updateAssignmentStatus: useCallback(async (
-      assignmentId: string, 
-      status: AssignmentStatus,
-      notes?: string
-    ) => {
-      try {
-        const updateData: any = { status };
-        
-        if (status === 'completed') {
-          updateData.completed_at = new Date().toISOString();
-        }
-        
-        if (notes !== undefined) {
-          updateData.notes = notes;
-        }
-
-        const { error } = await supabase
-          .from('workflow_step_assignments')
-          .update(updateData)
-          .eq('id', assignmentId);
-
-        if (error) throw error;
-
-        setAssignments(prev => 
-          prev.map(assignment => 
-            assignment.id === assignmentId 
-              ? { ...assignment, ...updateData }
-              : assignment
-          )
-        );
-
-        toast({
-          title: "Status Updated",
-          description: `Assignment marked as ${status.replace('_', ' ')}`,
-        });
-      } catch (error) {
-        console.error('Error updating assignment status:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update assignment status",
-          variant: "destructive",
-        });
-      }
-    }, [toast]),
+    updateAssignmentStatus,
     completeStep,
     refetch: fetchAssignments
   };

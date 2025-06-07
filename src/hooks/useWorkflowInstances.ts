@@ -104,6 +104,8 @@ export function useWorkflowInstances() {
   }, [user]);
 
   const createWorkflowFromSavedWorkflow = async (savedWorkflowId: string) => {
+    console.log('Creating workflow from saved workflow:', savedWorkflowId);
+    
     // Get the saved workflow data
     const { data: savedWorkflow, error: savedError } = await supabase
       .from('saved_workflows')
@@ -111,7 +113,12 @@ export function useWorkflowInstances() {
       .eq('id', savedWorkflowId)
       .single();
 
-    if (savedError) throw savedError;
+    if (savedError) {
+      console.error('Error fetching saved workflow:', savedError);
+      throw savedError;
+    }
+
+    console.log('Found saved workflow:', savedWorkflow);
 
     // Create a new workflow
     const { data: newWorkflow, error: workflowError } = await supabase
@@ -126,12 +133,16 @@ export function useWorkflowInstances() {
       .select()
       .single();
 
-    if (workflowError) throw workflowError;
+    if (workflowError) {
+      console.error('Error creating new workflow:', workflowError);
+      throw workflowError;
+    }
+
+    console.log('Created new workflow:', newWorkflow);
 
     // Create workflow steps from the saved workflow nodes
-    // Ensure nodes is an array before filtering
     const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes : [];
-    const steps = nodes
+    const workflowSteps = nodes
       .filter((node: any) => node?.data?.stepType !== 'trigger') // Skip trigger nodes
       .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0)) // Sort by Y position
       .map((node: any, index: number) => ({
@@ -140,16 +151,50 @@ export function useWorkflowInstances() {
         description: node.data?.description || '',
         step_order: index + 1,
         assigned_to: node.data?.assignedTo || null,
-        status: 'pending' as const, // Use 'as const' to ensure TypeScript treats this as the literal type
+        status: 'pending' as const,
         metadata: node.data?.metadata || {}
       }));
 
-    if (steps.length > 0) {
-      const { error: stepsError } = await supabase
-        .from('workflow_steps')
-        .insert(steps);
+    console.log('Creating workflow steps:', workflowSteps);
 
-      if (stepsError) throw stepsError;
+    if (workflowSteps.length > 0) {
+      const { data: createdSteps, error: stepsError } = await supabase
+        .from('workflow_steps')
+        .insert(workflowSteps)
+        .select();
+
+      if (stepsError) {
+        console.error('Error creating workflow steps:', stepsError);
+        throw stepsError;
+      }
+
+      console.log('Created workflow steps:', createdSteps);
+
+      // Create assignments for steps that have assigned users
+      const stepsWithAssignments = createdSteps?.filter(step => step.assigned_to) || [];
+      
+      if (stepsWithAssignments.length > 0) {
+        const assignments = stepsWithAssignments.map(step => ({
+          workflow_step_id: step.id,
+          assigned_to: step.assigned_to,
+          assigned_by: user?.id,
+          status: 'pending',
+          notes: `Assignment for workflow step: ${step.name}`
+        }));
+
+        console.log('Creating step assignments:', assignments);
+
+        const { error: assignmentError } = await supabase
+          .from('workflow_step_assignments')
+          .insert(assignments);
+
+        if (assignmentError) {
+          console.error('Error creating assignments:', assignmentError);
+          // Don't throw here, assignments can be created later
+        } else {
+          console.log(`Created ${assignments.length} assignments for workflow steps`);
+        }
+      }
     }
 
     return newWorkflow.id;
@@ -159,6 +204,8 @@ export function useWorkflowInstances() {
     if (!user) {
       throw new Error('User not authenticated');
     }
+
+    console.log('Starting workflow:', workflowId);
 
     try {
       let actualWorkflowId = workflowId;
@@ -174,6 +221,7 @@ export function useWorkflowInstances() {
         // This is a saved workflow, create a real workflow from it
         console.log('Converting saved workflow to actual workflow');
         actualWorkflowId = await createWorkflowFromSavedWorkflow(workflowId);
+        console.log('Created actual workflow with ID:', actualWorkflowId);
       }
 
       // Get the first step of the workflow
@@ -186,8 +234,11 @@ export function useWorkflowInstances() {
         .single();
 
       if (stepError && stepError.code !== 'PGRST116') {
+        console.error('Error fetching first step:', stepError);
         throw stepError;
       }
+
+      console.log('First step:', firstStep);
 
       // Create workflow instance
       const { data: instance, error: instanceError } = await supabase
@@ -207,41 +258,17 @@ export function useWorkflowInstances() {
         throw instanceError;
       }
 
-      // Create assignments for all workflow steps that have assigned users
-      const { data: steps, error: stepsError } = await supabase
-        .from('workflow_steps')
-        .select('id, assigned_to, name')
-        .eq('workflow_id', actualWorkflowId)
-        .not('assigned_to', 'is', null);
-
-      if (stepsError) {
-        console.error('Error fetching workflow steps:', stepsError);
-      } else if (steps && steps.length > 0) {
-        const assignments = steps.map(step => ({
-          workflow_step_id: step.id,
-          assigned_to: step.assigned_to,
-          assigned_by: user.id,
-          status: 'pending',
-          notes: `Assignment for workflow step: ${step.name}`
-        }));
-
-        const { error: assignmentError } = await supabase
-          .from('workflow_step_assignments')
-          .insert(assignments);
-
-        if (assignmentError) {
-          console.error('Error creating assignments:', assignmentError);
-        } else {
-          console.log(`Created ${assignments.length} assignments for workflow steps`);
-        }
-      }
+      console.log('Created workflow instance:', instance);
 
       // Refresh the instances
       await fetchWorkflowInstances();
       
+      toast.success(`Workflow "${workflowId}" started successfully!`);
+      
       return instance;
     } catch (error) {
       console.error('Error starting workflow:', error);
+      toast.error('Failed to start workflow. Please try again.');
       throw error;
     }
   }, [user, fetchWorkflowInstances]);
