@@ -98,7 +98,6 @@ export default function WorkflowBuilder() {
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { toast } = useToast();
   const { saveWorkflow, updateWorkflow, workflows, isSaving } = useSavedWorkflows();
-  const [workflowLoaded, setWorkflowLoaded] = useState(false);
 
   // Change AI Assistant to be disabled by default
   const [aiAssistantEnabled, setAiAssistantEnabled] = useState(false);
@@ -146,27 +145,36 @@ export default function WorkflowBuilder() {
     );
   }, [handleOpenNodeConfiguration, setNodes]);
 
-  // Load workflow on mount if workflowId is provided
+  // Load workflow when workflowId changes in URL or workflows are fetched
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const workflowId = urlParams.get('workflowId');
     
-    if (workflowId && workflows.length > 0 && !workflowLoaded) {
+    console.log('WorkflowBuilder useEffect - workflowId:', workflowId);
+    console.log('WorkflowBuilder useEffect - workflows length:', workflows.length);
+    console.log('WorkflowBuilder useEffect - currentWorkflowId:', currentWorkflowId);
+    
+    if (workflowId && workflows.length > 0 && workflowId !== currentWorkflowId) {
       const workflow = workflows.find(w => w.id === workflowId);
+      console.log('Found workflow to load:', workflow);
+      
       if (workflow) {
-        console.log('Loading workflow:', workflow);
+        console.log('Loading workflow:', workflow.name);
         setCurrentWorkflowId(workflowId);
-        setNodes(workflow.nodes.map(node => ({
+        
+        // Load nodes with onConfigure callback
+        const nodesWithCallbacks = workflow.nodes.map(node => ({
           ...node,
           data: {
             ...node.data,
             onConfigure: () => handleOpenNodeConfiguration(node.id),
           }
-        })));
-        setEdges(workflow.edges);
-        setWorkflowLoaded(true);
+        }));
         
-        // Apply viewport if available
+        setNodes(nodesWithCallbacks);
+        setEdges(workflow.edges);
+        
+        // Apply viewport if available and instance is ready
         if (workflow.viewport && reactFlowInstance) {
           setTimeout(() => {
             reactFlowInstance.setViewport(workflow.viewport);
@@ -174,9 +182,11 @@ export default function WorkflowBuilder() {
         }
         
         sonnerToast.success(`"${workflow.name}" loaded for editing!`);
+      } else {
+        console.log('Workflow not found in workflows array');
       }
     }
-  }, [workflows, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges, workflowLoaded]);
+  }, [workflows, workflowId, reactFlowInstance, handleOpenNodeConfiguration, setNodes, setEdges, currentWorkflowId]);
 
   const handleSaveWorkflow = useCallback(async (name: string, description: string) => {
     console.log('WorkflowBuilder.handleSaveWorkflow called with:', { name, description });

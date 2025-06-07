@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -111,14 +110,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
     
     console.log('Opening workflow:', workflowId);
-    // Navigate to workflow builder with the workflow ID
-    setActiveTab('workflow-builder');
-    window.location.hash = 'workflow-builder';
     
-    // Add workflowId to URL for the workflow builder to pick up
+    // First, update the URL with the workflow ID
     const url = new URL(window.location.href);
     url.searchParams.set('workflowId', workflowId);
     window.history.replaceState({}, '', url.toString());
+    
+    // Then switch to workflow builder tab
+    setActiveTab('workflow-builder');
+    window.location.hash = 'workflow-builder';
   };
 
   return (
