@@ -94,8 +94,14 @@ export function useWorkflowInstances() {
           console.log(`Processing saved workflow: ${savedWorkflow.name}`);
           
           // Check the nodes directly from the saved workflow to see if user is assigned to first step
-          const nodes = savedWorkflow.nodes || [];
+          const nodes = savedWorkflow.nodes;
           console.log('Workflow nodes:', nodes);
+          
+          // Type guard to ensure nodes is an array
+          if (!Array.isArray(nodes)) {
+            console.log('Nodes is not an array, skipping workflow');
+            continue;
+          }
           
           // Find the first step (step_order = 1 or the first node)
           const firstNode = nodes.find((node: any) => {
@@ -236,28 +242,32 @@ export function useWorkflowInstances() {
         actualWorkflowId = newWorkflow.id;
 
         // Create workflow steps based on the saved workflow nodes
-        const nodes = savedWorkflow.nodes || [];
-        let stepOrder = 1;
+        const nodes = savedWorkflow.nodes;
         
-        for (const node of nodes) {
-          if (node.data) {
-            const { data: step, error: stepError } = await supabase
-              .from('workflow_steps')
-              .insert({
-                workflow_id: actualWorkflowId,
-                name: node.data.label || 'Step',
-                description: node.data.description || '',
-                step_order: stepOrder++,
-                assigned_to: node.data.assignedTo,
-                metadata: node.data
-              })
-              .select()
-              .single();
+        // Type guard to ensure nodes is an array before iterating
+        if (Array.isArray(nodes)) {
+          let stepOrder = 1;
+          
+          for (const node of nodes) {
+            if (node.data) {
+              const { data: step, error: stepError } = await supabase
+                .from('workflow_steps')
+                .insert({
+                  workflow_id: actualWorkflowId,
+                  name: node.data.label || 'Step',
+                  description: node.data.description || '',
+                  step_order: stepOrder++,
+                  assigned_to: node.data.assignedTo,
+                  metadata: node.data
+                })
+                .select()
+                .single();
 
-            if (stepError) {
-              console.error('Error creating step:', stepError);
-            } else {
-              console.log('Created step:', step);
+              if (stepError) {
+                console.error('Error creating step:', stepError);
+              } else {
+                console.log('Created step:', step);
+              }
             }
           }
         }
