@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -88,15 +89,13 @@ export function useWorkflowInstances() {
       return;
     }
 
-    console.log('=== DEBUGGING STARTABLE WORKFLOWS ===');
+    console.log('=== FETCHING STARTABLE WORKFLOWS ===');
     console.log('User ID:', user.id);
-    console.log('User email:', user.email);
-    console.log('Fetch time:', new Date().toISOString());
 
     try {
       const availableWorkflows: StartableWorkflow[] = [];
 
-      // First, get all saved workflows that are marked as reusable
+      // Check saved workflows that are reusable
       console.log('=== CHECKING SAVED_WORKFLOWS FOR REUSABLE ===');
       const { data: savedWorkflows, error: savedError } = await supabase
         .from('saved_workflows')
@@ -107,26 +106,16 @@ export function useWorkflowInstances() {
         console.error('Error fetching saved workflows:', savedError);
       } else {
         console.log('Found reusable saved workflows:', savedWorkflows?.length || 0);
-        console.log('Saved workflows data:', savedWorkflows);
         
-        // For each reusable saved workflow, check if user is assigned to the first step via the nodes data
+        // For each reusable saved workflow, check if user is assigned to the first step
         for (const savedWorkflow of savedWorkflows || []) {
-          console.log(`\n--- Processing saved workflow: ${savedWorkflow.name} ---`);
-          console.log('Workflow ID:', savedWorkflow.id);
-          console.log('Is reusable:', savedWorkflow.is_reusable);
-          
-          // Check the nodes directly from the saved workflow to see if user is assigned to first step
           const nodes = savedWorkflow.nodes;
-          console.log('Workflow nodes count:', Array.isArray(nodes) ? nodes.length : 'Not an array');
-          console.log('Workflow nodes:', nodes);
           
-          // Type guard to ensure nodes is an array
           if (!Array.isArray(nodes)) {
-            console.log('Nodes is not an array, skipping workflow');
             continue;
           }
           
-          // Find the first step (step_order = 1 or the first node)
+          // Find the first step
           const firstNode = nodes.find((node: any) => {
             if (!isValidNode(node)) return false;
             return node.data && (
@@ -134,19 +123,12 @@ export function useWorkflowInstances() {
               node.data.stepType === 'start' ||
               node.position?.y === Math.min(...nodes.filter(isValidNode).map((n: any) => n.position?.y || 0))
             );
-          }) || nodes.find(isValidNode); // Fallback to first valid node if no trigger found
-          
-          console.log('First node found:', firstNode);
+          }) || nodes.find(isValidNode);
           
           if (firstNode && isValidNode(firstNode) && firstNode.data) {
             const assignedTo = firstNode.data.assignedTo;
-            console.log('First node assigned to:', assignedTo);
-            console.log('Current user ID:', user.id);
-            console.log('Assignment match:', assignedTo === user.id);
             
             if (assignedTo === user.id) {
-              console.log(`✅ User IS assigned to first step of workflow: ${savedWorkflow.name}`);
-              
               availableWorkflows.push({
                 id: savedWorkflow.id,
                 name: savedWorkflow.name,
@@ -159,19 +141,13 @@ export function useWorkflowInstances() {
                   metadata: firstNode.data.metadata || {}
                 }
               });
-              console.log(`Added saved workflow as reusable: ${savedWorkflow.name}`);
-            } else {
-              console.log(`❌ User NOT assigned to first step of ${savedWorkflow.name}`);
-              console.log(`Expected: ${user.id}, Found: ${assignedTo}`);
             }
-          } else {
-            console.log('No valid first node found for workflow:', savedWorkflow.name);
           }
         }
       }
 
-      // NEW: Also check workflows table for reusable workflows where user is assigned to first step
-      console.log('\n=== CHECKING WORKFLOWS TABLE FOR REUSABLE ===');
+      // Check workflows table for reusable workflows where user is assigned to first step
+      console.log('=== CHECKING WORKFLOWS TABLE FOR REUSABLE ===');
       const { data: reusableWorkflows, error: reusableError } = await supabase
         .from('workflows')
         .select(`
@@ -197,13 +173,8 @@ export function useWorkflowInstances() {
         console.error('Error fetching reusable workflows from workflows table:', reusableError);
       } else {
         console.log('Found reusable workflows in workflows table:', reusableWorkflows?.length || 0);
-        console.log('Reusable workflows data:', reusableWorkflows);
 
         for (const workflow of reusableWorkflows || []) {
-          console.log(`\n--- Processing reusable workflow from workflows table: ${workflow.name} ---`);
-          console.log('Workflow ID:', workflow.id);
-          console.log('Is reusable:', workflow.is_reusable);
-          
           availableWorkflows.push({
             id: workflow.id,
             name: workflow.name,
@@ -216,12 +187,11 @@ export function useWorkflowInstances() {
               metadata: workflow.workflow_steps[0].metadata,
             }
           });
-          console.log(`Added reusable workflow from workflows table: ${workflow.name}`);
         }
       }
 
       // Get non-reusable workflows where user is assigned to first step and hasn't been started yet
-      console.log('\n=== CHECKING NON-REUSABLE WORKFLOWS ===');
+      console.log('=== CHECKING NON-REUSABLE WORKFLOWS ===');
       const { data: nonReusableWorkflows, error: nonReusableError } = await supabase
         .from('workflows')
         .select(`
@@ -273,7 +243,7 @@ export function useWorkflowInstances() {
         }
       }
 
-      console.log('\n=== FINAL RESULTS ===');
+      console.log('=== FINAL RESULTS ===');
       console.log('Total startable workflows found:', availableWorkflows.length);
       console.log('Workflows:', availableWorkflows.map(w => ({ 
         name: w.name, 
@@ -318,7 +288,6 @@ export function useWorkflowInstances() {
         console.log('Starting saved workflow:', savedWorkflow.name);
         
         // For saved workflows, we need to create a new workflow instance in the workflows table first
-        // Then create the workflow instance
         const { data: newWorkflow, error: workflowError } = await supabase
           .from('workflows')
           .insert({
@@ -338,7 +307,6 @@ export function useWorkflowInstances() {
         // Create workflow steps based on the saved workflow nodes
         const nodes = savedWorkflow.nodes;
         
-        // Type guard to ensure nodes is an array before iterating
         if (Array.isArray(nodes)) {
           let stepOrder = 1;
           
