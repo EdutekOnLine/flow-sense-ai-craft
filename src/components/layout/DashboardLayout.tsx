@@ -69,22 +69,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   const handleOpenWorkflow = (workflowId: string) => {
-    // Only allow users with edit permissions to open workflows
-    if (!canEditWorkflows) {
-      console.log('User does not have permission to edit workflows');
-      return;
-    }
+    console.log('handleOpenWorkflow called with workflowId:', workflowId);
+    console.log('canEditWorkflows:', canEditWorkflows);
+    console.log('profile?.role:', profile?.role);
     
-    console.log('Opening workflow:', workflowId);
+    // Allow all users to open workflows, not just those who can edit
+    // The WorkflowBuilder component will handle read-only mode based on permissions
+    
+    console.log('Setting workflow ID in URL and switching to workflow builder');
     
     // First, update the URL with the workflow ID
     const url = new URL(window.location.href);
     url.searchParams.set('workflowId', workflowId);
     window.history.replaceState({}, '', url.toString());
     
+    console.log('Updated URL:', url.toString());
+    
     // Then switch to workflow builder tab
     setActiveTab('workflow-builder');
     window.location.hash = 'workflow-builder';
+    
+    console.log('Switched to workflow-builder tab');
   };
 
   const renderContent = () => {
@@ -94,8 +99,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
       case 'workflow-builder':
-        // Prevent employees from accessing workflow builder
-        return canEditWorkflows ? <WorkflowBuilder /> : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
+        // Allow all users to access workflow builder - it will handle permissions internally
+        return <WorkflowBuilder />;
       case 'reports':
         return (
           <div className="text-center py-8">

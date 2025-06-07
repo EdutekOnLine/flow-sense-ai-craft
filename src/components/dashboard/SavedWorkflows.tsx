@@ -32,10 +32,14 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
   };
 
   const handleOpenWorkflow = (workflowId: string) => {
+    console.log('SavedWorkflows handleOpenWorkflow called with:', workflowId);
+    console.log('onOpenWorkflow function exists:', !!onOpenWorkflow);
+    
     if (onOpenWorkflow) {
+      console.log('Calling onOpenWorkflow with workflowId:', workflowId);
       onOpenWorkflow(workflowId);
     } else {
-      console.log('No onOpenWorkflow function provided');
+      console.error('No onOpenWorkflow function provided to SavedWorkflows');
     }
   };
 
@@ -99,7 +103,10 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleOpenWorkflow(workflow.id)}
+                      onClick={() => {
+                        console.log('Open button clicked for workflow:', workflow.id);
+                        handleOpenWorkflow(workflow.id);
+                      }}
                       className="flex items-center gap-1"
                     >
                       <Edit className="h-3 w-3" />
