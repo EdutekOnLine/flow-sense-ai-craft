@@ -26,159 +26,91 @@ export function StartableWorkflows({
     );
   }
 
-  const reusableWorkflows = workflows.filter(w => w.is_reusable);
-  const nonReusableWorkflows = workflows.filter(w => !w.is_reusable);
+  if (workflows.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows available</h3>
+          <p className="text-gray-600">
+            Workflows will appear here when they're created and you're assigned to start them.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Reusable Workflows Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-blue-700">Reusable Workflows</h3>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {reusableWorkflows.length} Available
-          </Badge>
-        </div>
-
-        {reusableWorkflows.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Repeat className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No reusable workflows available</h3>
-              <p className="text-gray-600">
-                Reusable workflows will appear here when they're created and you're assigned to start them.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {reusableWorkflows.map((workflow) => (
-              <Card key={workflow.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1 flex-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base">{workflow.name}</CardTitle>
-                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                          <Repeat className="h-3 w-3 mr-1" />
-                          Reusable
-                        </Badge>
-                      </div>
-                      {workflow.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {workflow.description}
-                        </p>
-                      )}
-                    </div>
-                    <Play className="h-5 w-5 text-blue-600 flex-shrink-0 ml-2" />
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">First Step:</span>
-                    </div>
-                    <div className="bg-blue-50 p-3 rounded-md">
-                      <h4 className="font-medium text-sm">{workflow.start_step.name}</h4>
-                      {workflow.start_step.description && (
-                        <p className="text-xs text-gray-600 mt-1">
-                          {workflow.start_step.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {workflow.start_step.metadata?.inputs?.length > 0 && (
-                    <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                      Requires {workflow.start_step.metadata.inputs.length} input(s)
-                    </div>
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {workflows.map((workflow) => (
+        <Card key={workflow.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500 bg-gradient-to-br from-white to-blue-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg font-semibold text-gray-900">{workflow.name}</CardTitle>
+                  {workflow.is_reusable && (
+                    <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                      <Repeat className="h-3 w-3 mr-1" />
+                      Reusable
+                    </Badge>
                   )}
-
-                  <div className="text-xs text-purple-600 bg-purple-50 p-2 rounded flex items-center gap-1">
-                    <Repeat className="h-3 w-3" />
-                    Can be started multiple times
-                  </div>
-
-                  <div className="pt-2 border-t">
-                    <StartWorkflowDialog
-                      workflow={workflow}
-                      onStartWorkflow={onStartWorkflow}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Non-Reusable Workflows Section */}
-      {nonReusableWorkflows.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-green-700">One-Time Workflows</h3>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              {nonReusableWorkflows.length} Available
-            </Badge>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {nonReusableWorkflows.map((workflow) => (
-              <Card key={workflow.id} className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1 flex-1">
-                      <CardTitle className="text-base">{workflow.name}</CardTitle>
-                      {workflow.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {workflow.description}
-                        </p>
-                      )}
-                    </div>
-                    <Play className="h-5 w-5 text-green-600 flex-shrink-0 ml-2" />
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">First Step:</span>
-                    </div>
-                    <div className="bg-green-50 p-3 rounded-md">
-                      <h4 className="font-medium text-sm">{workflow.start_step.name}</h4>
-                      {workflow.start_step.description && (
-                        <p className="text-xs text-gray-600 mt-1">
-                          {workflow.start_step.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {workflow.start_step.metadata?.inputs?.length > 0 && (
-                    <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                      Requires {workflow.start_step.metadata.inputs.length} input(s)
-                    </div>
+                  {!workflow.is_reusable && (
+                    <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300">
+                      One-time
+                    </Badge>
                   )}
+                </div>
+                {workflow.description && (
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {workflow.description}
+                  </p>
+                )}
+              </div>
+              <Play className="h-6 w-6 text-blue-600 flex-shrink-0 ml-3" />
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span>First Step:</span>
+              </div>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-1">{workflow.start_step.name}</h4>
+                {workflow.start_step.description && (
+                  <p className="text-sm text-blue-700">
+                    {workflow.start_step.description}
+                  </p>
+                )}
+              </div>
+            </div>
 
-                  <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
-                    Can only be started once
-                  </div>
+            <div className="flex flex-wrap gap-2">
+              {workflow.start_step.metadata?.inputs?.length > 0 && (
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-purple-200">
+                  {workflow.start_step.metadata.inputs.length} input(s) required
+                </Badge>
+              )}
+              
+              {workflow.is_reusable && (
+                <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                  <Repeat className="h-3 w-3 mr-1" />
+                  Multi-use
+                </Badge>
+              )}
+            </div>
 
-                  <div className="pt-2 border-t">
-                    <StartWorkflowDialog
-                      workflow={workflow}
-                      onStartWorkflow={onStartWorkflow}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+            <div className="pt-3 border-t border-gray-200">
+              <StartWorkflowDialog
+                workflow={workflow}
+                onStartWorkflow={onStartWorkflow}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
