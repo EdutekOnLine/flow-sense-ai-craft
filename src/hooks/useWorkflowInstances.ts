@@ -78,21 +78,82 @@ export function useWorkflowInstances() {
     try {
       const availableWorkflows: StartableWorkflow[] = [];
 
-      // Check saved_workflows for reusable workflows
-      console.log('=== CHECKING SAVED_WORKFLOWS FOR REUSABLE ===');
-      const { data: reusableSavedWorkflows, error: savedError } = await supabase
-        .from('saved_workflows')
+      // Check workflow_definitions for reusable workflows where user is assigned to first step
+      console.log('=== CHECKING WORKFLOW_DEFINITIONS FOR REUSABLE ===');
+      const { data: reusableDefinitions, error: reusableError } = await supabase
+        .from('workflow_definitions')
         .select('*')
         .eq('is_reusable', true);
       
-      if (savedError) {
-        console.error('Error fetching reusable saved workflows:', savedError);
+      if (reusableError) {
+        console.error('Error fetching reusable workflow definitions:', reusableError);
       } else {
-        console.log('Found reusable saved workflows:', reusableSavedWorkflows);
+        console.log('Found reusable workflow definitions:', reusableDefinitions);
         
-        // For each reusable saved workflow, find corresponding active workflows where user is assigned to first step
-        for (const savedWorkflow of reusableSavedWorkflows || []) {
-          console.log(`Processing reusable saved workflow: ${savedWorkflow.name}`);
+        // For each reusable definition, check if there are corresponding workflows where user is assigned to first step
+        for (const definition of reusableDefinitions || []) {
+          console.log(`Processing reusable definition: ${definition.name}`);
+          
+          // Find workflows based on this definition where user is assigned to first step
+          const { data: workflows, error: workflowError } = await supabase
+            .from('workflows')
+            .select(`
+              id,
+              name,
+              description,
+              workflow_steps!inner(
+                id,
+                name,
+                description,
+                metadata,
+                step_order,
+                workflow_step_assignments!inner(assigned_to)
+              )
+            `)
+            .eq('name', definition.name)
+            .eq('workflow_steps.step_order', 1)
+            .eq('workflow_steps.workflow_step_assignments.assigned_to', user.id)
+            .eq('status', 'active');
+
+          if (workflowError) {
+            console.error(`Error fetching workflows for definition ${definition.name}:`, workflowError);
+          } else {
+            console.log(`Found ${workflows?.length || 0} workflows for definition ${definition.name}`);
+            
+            if (workflows && workflows.length > 0) {
+              // Add this as a startable workflow
+              availableWorkflows.push({
+                id: definition.id,
+                name: definition.name,
+                description: definition.description,
+                is_reusable: true,
+                start_step: {
+                  id: workflows[0].workflow_steps[0].id,
+                  name: workflows[0].workflow_steps[0].name,
+                  description: workflows[0].workflow_steps[0].description,
+                  metadata: workflows[0].workflow_steps[0].metadata,
+                }
+              });
+              console.log(`Added reusable workflow: ${definition.name}`);
+            }
+          }
+        }
+      }
+
+      // Check saved_workflows (treat them as reusable by default for now)
+      console.log('=== CHECKING SAVED_WORKFLOWS ===');
+      const { data: savedWorkflows, error: savedError } = await supabase
+        .from('saved_workflows')
+        .select('*');
+      
+      if (savedError) {
+        console.error('Error fetching saved workflows:', savedError);
+      } else {
+        console.log('Found saved workflows:', savedWorkflows);
+        
+        // For each saved workflow, check if there are corresponding active workflows where user is assigned to first step
+        for (const savedWorkflow of savedWorkflows || []) {
+          console.log(`Processing saved workflow: ${savedWorkflow.name}`);
           
           // Find workflows based on this saved workflow where user is assigned to first step
           const { data: workflows, error: workflowError } = await supabase
@@ -121,27 +182,30 @@ export function useWorkflowInstances() {
             console.log(`Found ${workflows?.length || 0} workflows for saved workflow ${savedWorkflow.name}`);
             
             if (workflows && workflows.length > 0) {
-              // Add this as a startable workflow
-              availableWorkflows.push({
-                id: savedWorkflow.id,
-                name: savedWorkflow.name,
-                description: savedWorkflow.description,
-                is_reusable: true,
-                start_step: {
-                  id: workflows[0].workflow_steps[0].id,
-                  name: workflows[0].workflow_steps[0].name,
-                  description: workflows[0].workflow_steps[0].description,
-                  metadata: workflows[0].workflow_steps[0].metadata,
-                }
-              });
-              console.log(`Added reusable workflow: ${savedWorkflow.name}`);
+              // Check if we already added this workflow from workflow_definitions
+              const alreadyExists = availableWorkflows.some(w => w.name === savedWorkflow.name);
+              if (!alreadyExists) {
+                availableWorkflows.push({
+                  id: savedWorkflow.id,
+                  name: savedWorkflow.name,
+                  description: savedWorkflow.description,
+                  is_reusable: true, // Treat saved workflows as reusable
+                  start_step: {
+                    id: workflows[0].workflow_steps[0].id,
+                    name: workflows[0].workflow_steps[0].name,
+                    description: workflows[0].workflow_steps[0].description,
+                    metadata: workflows[0].workflow_steps[0].metadata,
+                  }
+                });
+                console.log(`Added saved workflow as reusable: ${savedWorkflow.name}`);
+              }
             }
           }
         }
       }
 
       // Get non-reusable workflows
-      console.log('Step 2: Fetching non-reusable workflows...');
+      console.log('=== CHECKING NON-REUSABLE WORKFLOWS ===');
       const { data: nonReusableWorkflows, error: nonReusableError } = await supabase
         .from('workflows')
         .select(`
@@ -211,15 +275,15 @@ export function useWorkflowInstances() {
 
       let actualWorkflowId = workflowId;
 
-      // Check if this is a reusable saved workflow
-      const { data: savedWorkflow, error: savedError } = await supabase
-        .from('saved_workflows')
+      // Check if this is a reusable workflow definition
+      const { data: workflowDefinition, error: definitionError } = await supabase
+        .from('workflow_definitions')
         .select('id, is_reusable, name')
         .eq('id', workflowId)
         .eq('is_reusable', true)
         .maybeSingle();
 
-      if (!savedError && savedWorkflow) {
+      if (!definitionError && workflowDefinition) {
         // Find a corresponding workflow where user is assigned to first step
         const { data: correspondingWorkflow, error: correspondingError } = await supabase
           .from('workflows')
@@ -231,7 +295,7 @@ export function useWorkflowInstances() {
               workflow_step_assignments!inner(assigned_to)
             )
           `)
-          .eq('name', savedWorkflow.name)
+          .eq('name', workflowDefinition.name)
           .eq('workflow_steps.step_order', 1)
           .eq('workflow_steps.workflow_step_assignments.assigned_to', user.id)
           .eq('status', 'active')
@@ -243,6 +307,39 @@ export function useWorkflowInstances() {
         }
 
         actualWorkflowId = correspondingWorkflow.id;
+      } else {
+        // Check if this is a saved workflow
+        const { data: savedWorkflow, error: savedError } = await supabase
+          .from('saved_workflows')
+          .select('id, name')
+          .eq('id', workflowId)
+          .maybeSingle();
+
+        if (!savedError && savedWorkflow) {
+          // Find a corresponding workflow where user is assigned to first step
+          const { data: correspondingWorkflow, error: correspondingError } = await supabase
+            .from('workflows')
+            .select(`
+              id,
+              workflow_steps!inner(
+                id,
+                step_order,
+                workflow_step_assignments!inner(assigned_to)
+              )
+            `)
+            .eq('name', savedWorkflow.name)
+            .eq('workflow_steps.step_order', 1)
+            .eq('workflow_steps.workflow_step_assignments.assigned_to', user.id)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle();
+
+          if (correspondingError || !correspondingWorkflow) {
+            throw new Error('No corresponding workflow found that you can start');
+          }
+
+          actualWorkflowId = correspondingWorkflow.id;
+        }
       }
 
       // Get the first step
