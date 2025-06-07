@@ -21,35 +21,31 @@ export function StartableWorkflows({ workflows, onStartWorkflow, isLoading }: St
     );
   }
 
-  if (workflows.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows available to start</h3>
-          <p className="text-gray-600">
-            You're not assigned to any workflow start steps at the moment.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   const reusableWorkflows = workflows.filter(w => w.is_reusable);
   const nonReusableWorkflows = workflows.filter(w => !w.is_reusable);
 
   return (
     <div className="space-y-6">
       {/* Reusable Workflows Section */}
-      {reusableWorkflows.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-blue-700">Reusable Workflows</h3>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              {reusableWorkflows.length} Available
-            </Badge>
-          </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-blue-700">Reusable Workflows</h3>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            {reusableWorkflows.length} Available
+          </Badge>
+        </div>
 
+        {reusableWorkflows.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Repeat className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No reusable workflows available</h3>
+              <p className="text-gray-600">
+                Reusable workflows will appear here when they're created and you're assigned to start them.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {reusableWorkflows.map((workflow) => (
               <Card key={workflow.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
@@ -110,8 +106,8 @@ export function StartableWorkflows({ workflows, onStartWorkflow, isLoading }: St
               </Card>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Non-Reusable Workflows Section */}
       {nonReusableWorkflows.length > 0 && (
