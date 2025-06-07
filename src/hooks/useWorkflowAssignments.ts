@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -99,6 +98,7 @@ export function useWorkflowAssignments() {
 
         if (instanceError) {
           console.error('Error fetching workflow instance:', instanceError);
+          continue;
         }
 
         let workflowInstance = null;
@@ -120,10 +120,19 @@ export function useWorkflowAssignments() {
             console.log(`Assignment ${assignment.id} is not the current step (current: ${workflowInstance.current_step_id}, assignment: ${assignment.workflow_step_id}), hiding from user`);
           }
         } else {
-          // No active workflow instance - only show if it's pending or in progress
-          if (assignment.status === 'pending' || assignment.status === 'in_progress') {
-            shouldShow = true;
-            console.log(`Assignment ${assignment.id} has no active instance but is pending/in_progress, showing to user`);
+          // No active workflow instance found - this assignment is orphaned
+          console.log(`Assignment ${assignment.id} has no active workflow instance, removing it`);
+          
+          // Clean up orphaned assignment
+          const { error: deleteError } = await supabase
+            .from('workflow_step_assignments')
+            .delete()
+            .eq('id', assignment.id);
+            
+          if (deleteError) {
+            console.error('Error deleting orphaned assignment:', deleteError);
+          } else {
+            console.log(`Deleted orphaned assignment ${assignment.id}`);
           }
         }
 

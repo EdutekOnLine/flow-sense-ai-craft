@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -201,32 +200,10 @@ export function useWorkflowInstances() {
         console.log('Created actual workflow with ID:', actualWorkflowId);
       }
 
-      // For reusable workflows, check if there's already an active instance
-      const { data: workflowData } = await supabase
-        .from('workflows')
-        .select('is_reusable')
-        .eq('id', actualWorkflowId)
-        .single();
-
-      if (workflowData?.is_reusable) {
-        // For reusable workflows, check if there's already an active instance by this user
-        const { data: existingInstance } = await supabase
-          .from('workflow_instances')
-          .select('id, status')
-          .eq('workflow_id', actualWorkflowId)
-          .eq('started_by', user.id)
-          .eq('status', 'active')
-          .single();
-
-        if (existingInstance) {
-          throw new Error('You already have an active instance of this workflow');
-        }
-      }
-
       // Get the first step of the workflow
       const { data: firstStep, error: stepError } = await supabase
         .from('workflow_steps')
-        .select('id')
+        .select('id, assigned_to')
         .eq('workflow_id', actualWorkflowId)
         .order('step_order', { ascending: true })
         .limit(1)
@@ -260,29 +237,22 @@ export function useWorkflowInstances() {
       console.log('Created workflow instance:', instance);
 
       // Create assignment ONLY for the first step
-      if (firstStep) {
-        const { data: firstStepData } = await supabase
-          .from('workflow_steps')
-          .select('assigned_to')
-          .eq('id', firstStep.id)
-          .single();
+      if (firstStep && firstStep.assigned_to) {
+        const { error: assignmentError } = await supabase
+          .from('workflow_step_assignments')
+          .insert({
+            workflow_step_id: firstStep.id,
+            assigned_to: firstStep.assigned_to,
+            assigned_by: user.id,
+            status: 'pending',
+            notes: `Initial assignment for workflow instance: ${instance.id}`
+          });
 
-        if (firstStepData?.assigned_to) {
-          const { error: assignmentError } = await supabase
-            .from('workflow_step_assignments')
-            .insert({
-              workflow_step_id: firstStep.id,
-              assigned_to: firstStepData.assigned_to,
-              assigned_by: user.id,
-              status: 'pending',
-              notes: `Initial assignment for workflow instance: ${instance.id}`
-            });
-
-          if (assignmentError) {
-            console.error('Error creating first step assignment:', assignmentError);
-          } else {
-            console.log('Created assignment for first step only');
-          }
+        if (assignmentError) {
+          console.error('Error creating first step assignment:', assignmentError);
+          throw assignmentError;
+        } else {
+          console.log('Created assignment for first step only');
         }
       }
 

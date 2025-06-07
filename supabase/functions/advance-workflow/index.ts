@@ -37,7 +37,7 @@ serve(async (req) => {
       .eq('status', 'active')
       .single();
 
-    if (instanceError) {
+    if (instanceError || !workflowInstance) {
       console.error('Error fetching workflow instance:', instanceError);
       throw new Error(`No active workflow instance found for workflow ${workflowId}`);
     }
@@ -112,6 +112,7 @@ serve(async (req) => {
 
       if (instanceUpdateError) {
         console.error('Error updating workflow instance:', instanceUpdateError);
+        throw instanceUpdateError;
       }
 
       // Update next step status to pending if it's not already
@@ -124,7 +125,7 @@ serve(async (req) => {
         console.error('Error updating next step status:', nextStepError);
       }
 
-      // Create assignment for the next step ONLY
+      // Create assignment for the next step ONLY if someone is assigned
       if (nextStep.assigned_to) {
         console.log(`Creating assignment for next step assigned to: ${nextStep.assigned_to}`);
         
@@ -140,6 +141,7 @@ serve(async (req) => {
 
         if (assignmentError) {
           console.error('Error creating step assignment:', assignmentError);
+          throw assignmentError;
         } else {
           console.log('Step assignment created successfully for next step');
         }
@@ -160,6 +162,7 @@ serve(async (req) => {
 
       if (instanceCompleteError) {
         console.error('Error updating workflow instance:', instanceCompleteError);
+        throw instanceCompleteError;
       }
 
       // Log workflow completion
