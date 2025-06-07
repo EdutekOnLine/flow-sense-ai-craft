@@ -129,7 +129,8 @@ export function useWorkflowInstances() {
     if (workflowError) throw workflowError;
 
     // Create workflow steps from the saved workflow nodes
-    const nodes = savedWorkflow.nodes || [];
+    // Ensure nodes is an array before filtering
+    const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes : [];
     const steps = nodes
       .filter((node: any) => node?.data?.stepType !== 'trigger') // Skip trigger nodes
       .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0)) // Sort by Y position
