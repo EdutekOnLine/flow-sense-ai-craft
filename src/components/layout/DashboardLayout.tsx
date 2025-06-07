@@ -68,12 +68,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   const handleOpenWorkflow = (workflowId: string) => {
-    console.log('handleOpenWorkflow called with workflowId:', workflowId);
+    console.log('DashboardLayout handleOpenWorkflow called with workflowId:', workflowId);
     console.log('canEditWorkflows:', canEditWorkflows);
     console.log('profile?.role:', profile?.role);
-    
-    // Allow all users to open workflows, not just those who can edit
-    // The WorkflowBuilder component will handle read-only mode based on permissions
     
     console.log('Setting workflow ID in URL and switching to workflow builder');
     
@@ -122,7 +119,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         );
       default:
-        return children || <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
+        return children ? React.cloneElement(children as React.ReactElement, { onOpenWorkflow: handleOpenWorkflow }) : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
     }
   };
 
