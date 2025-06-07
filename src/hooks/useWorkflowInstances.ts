@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -154,7 +153,7 @@ export function useWorkflowInstances() {
         description: node.data?.description || '',
         step_order: index + 1,
         assigned_to: node.data?.assignedTo || null,
-        status: index === 0 ? 'pending' : 'pending',
+        status: 'pending' as const, // Fix: Explicitly type as const to match enum
         metadata: node.data?.metadata || {}
       }));
 
