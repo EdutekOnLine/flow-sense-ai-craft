@@ -24,6 +24,13 @@ interface WorkflowAssignment {
       name: string;
     };
   };
+  workflow_instance?: {
+    id: string;
+    status: string;
+    current_step_id: string | null;
+    started_by: string;
+    created_at: string;
+  };
 }
 
 export function useWorkflowAssignments() {
@@ -38,63 +45,13 @@ export function useWorkflowAssignments() {
       return;
     }
 
-    console.log('=== ENHANCED ASSIGNMENT FETCH DEBUG ===');
+    console.log('=== WORKFLOW ASSIGNMENT FETCH DEBUG ===');
     console.log('Current user ID:', user.id);
-    console.log('Current user email:', user.email);
-    console.log('Current profile:', profile);
     
     setIsLoading(true);
     try {
-      // Check if user exists in profiles table
-      const { data: userProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      console.log('User profile from DB:', userProfile);
-      console.log('Profile fetch error:', profileError);
-
-      // Check if there are ANY workflow step assignments in the database
-      const { data: allAssignments, error: allError } = await supabase
-        .from('workflow_step_assignments')
-        .select('*');
-        
-      console.log('Total assignments in database:', allAssignments?.length || 0);
-      console.log('Sample assignments:', allAssignments?.slice(0, 3));
-      
-      // Check assignments by user email (in case there's an ID mismatch)
-      const { data: assignmentsByEmail, error: emailError } = await supabase
-        .from('workflow_step_assignments')
-        .select(`
-          *,
-          profiles!workflow_step_assignments_assigned_to_fkey(email, first_name, last_name)
-        `)
-        .eq('profiles.email', user.email);
-      
-      console.log('Assignments by email lookup:', assignmentsByEmail);
-      console.log('Email lookup error:', emailError);
-
-      // Check assignments for this specific user ID
-      const { data: userAssignments, error: userError } = await supabase
-        .from('workflow_step_assignments')
-        .select('*')
-        .eq('assigned_to', user.id);
-        
-      console.log('Direct assignments for user ID:', userAssignments?.length || 0);
-      console.log('Direct user assignments:', userAssignments);
-      console.log('User assignment error:', userError);
-
-      // Check for workflow steps assigned to this user
-      const { data: workflowSteps, error: stepsError } = await supabase
-        .from('workflow_steps')
-        .select('*')
-        .eq('assigned_to', user.id);
-      
-      console.log('Workflow steps assigned to user:', workflowSteps);
-      console.log('Steps error:', stepsError);
-
-      // Now fetch with full join
+      // First, get assignments that belong to active workflow instances
+      // and where the user's step is the current step OR all previous steps are completed
       const { data, error } = await supabase
         .from('workflow_step_assignments')
         .select(`
@@ -112,23 +69,68 @@ export function useWorkflowAssignments() {
         .eq('assigned_to', user.id)
         .order('created_at', { ascending: false });
 
-      console.log('Final query result:', data);
-      console.log('Final query error:', error);
-
       if (error) {
-        console.error('Error in main query:', error);
+        console.error('Error fetching assignments:', error);
         throw error;
       }
 
-      // Type-safe mapping of database data to our interface
-      const typedAssignments: WorkflowAssignment[] = (data || []).map(item => ({
-        ...item,
-        status: item.status as AssignmentStatus
-      }));
+      console.log('Raw assignments from database:', data);
 
-      console.log('Processed assignments for dashboard:', typedAssignments);
-      console.log('=== END ENHANCED ASSIGNMENT DEBUG ===');
-      setAssignments(typedAssignments);
+      if (!data || data.length === 0) {
+        console.log('No assignments found for user');
+        setAssignments([]);
+        return;
+      }
+
+      // Now filter assignments based on workflow instance progression
+      const filteredAssignments: WorkflowAssignment[] = [];
+
+      for (const assignment of data) {
+        if (!assignment.workflow_steps) continue;
+
+        // Get the workflow instance for this assignment's workflow
+        const { data: instanceData, error: instanceError } = await supabase
+          .from('workflow_instances')
+          .select('*')
+          .eq('workflow_id', assignment.workflow_steps.workflow_id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (instanceError) {
+          console.error('Error fetching workflow instance:', instanceError);
+          continue;
+        }
+
+        // If no active instance exists, skip this assignment
+        if (!instanceData || instanceData.length === 0) {
+          console.log(`No active workflow instance found for workflow ${assignment.workflow_steps.workflow_id}`);
+          continue;
+        }
+
+        const workflowInstance = instanceData[0];
+        console.log('Workflow instance:', workflowInstance);
+
+        // Check if this assignment's step is the current step in the workflow instance
+        if (workflowInstance.current_step_id === assignment.workflow_step_id) {
+          console.log(`Assignment ${assignment.id} is the current step, showing to user`);
+          
+          // Type-safe mapping with workflow instance context
+          const typedAssignment: WorkflowAssignment = {
+            ...assignment,
+            status: assignment.status as AssignmentStatus,
+            workflow_instance: workflowInstance
+          };
+          
+          filteredAssignments.push(typedAssignment);
+        } else {
+          console.log(`Assignment ${assignment.id} is not the current step (current: ${workflowInstance.current_step_id}, assignment: ${assignment.workflow_step_id}), hiding from user`);
+        }
+      }
+
+      console.log('Filtered assignments for user:', filteredAssignments);
+      console.log('=== END WORKFLOW ASSIGNMENT DEBUG ===');
+      setAssignments(filteredAssignments);
     } catch (error) {
       console.error('Error fetching workflow assignments:', error);
       toast({
@@ -270,7 +272,50 @@ export function useWorkflowAssignments() {
   return {
     assignments,
     isLoading,
-    updateAssignmentStatus,
+    updateAssignmentStatus: useCallback(async (
+      assignmentId: string, 
+      status: AssignmentStatus,
+      notes?: string
+    ) => {
+      try {
+        const updateData: any = { status };
+        
+        if (status === 'completed') {
+          updateData.completed_at = new Date().toISOString();
+        }
+        
+        if (notes !== undefined) {
+          updateData.notes = notes;
+        }
+
+        const { error } = await supabase
+          .from('workflow_step_assignments')
+          .update(updateData)
+          .eq('id', assignmentId);
+
+        if (error) throw error;
+
+        setAssignments(prev => 
+          prev.map(assignment => 
+            assignment.id === assignmentId 
+              ? { ...assignment, ...updateData }
+              : assignment
+          )
+        );
+
+        toast({
+          title: "Status Updated",
+          description: `Assignment marked as ${status.replace('_', ' ')}`,
+        });
+      } catch (error) {
+        console.error('Error updating assignment status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update assignment status",
+          variant: "destructive",
+        });
+      }
+    }, [toast]),
     completeStep,
     refetch: fetchAssignments
   };

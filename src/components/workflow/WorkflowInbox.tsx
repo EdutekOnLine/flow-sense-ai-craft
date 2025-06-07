@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,8 +87,8 @@ export function WorkflowInbox() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
-          <p className="text-gray-600">Manage your assigned workflow steps</p>
+          <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
+          <p className="text-gray-600">Tasks ready for you to work on in active workflows</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="secondary" className="bg-orange-100 text-orange-800">
@@ -119,11 +119,11 @@ export function WorkflowInbox() {
         {filteredAssignments.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No active tasks</h3>
               <p className="text-gray-600">
                 {statusFilter === 'all' 
-                  ? "You don't have any workflow assignments yet."
-                  : `No assignments with status "${statusFilter}".`
+                  ? "You don't have any tasks ready to work on right now. Tasks will appear here when the previous steps in their workflows are completed."
+                  : `No tasks with status "${statusFilter}" are currently ready for you.`
                 }
               </p>
             </CardContent>
@@ -140,6 +140,12 @@ export function WorkflowInbox() {
                     <p className="text-sm text-gray-600">
                       Workflow: {assignment.workflow_steps.workflows.name}
                     </p>
+                    {assignment.workflow_instance && (
+                      <div className="flex items-center gap-2 text-xs text-blue-600">
+                        <Workflow className="h-3 w-3" />
+                        Instance started {formatDistanceToNow(new Date(assignment.workflow_instance.created_at), { addSuffix: true })}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(assignment.status)}
