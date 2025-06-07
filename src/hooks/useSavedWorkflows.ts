@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -87,7 +88,7 @@ export function useSavedWorkflows() {
     }
 
     setIsSaving(true);
-    sonnerToast.loading('Saving workflow...');
+    const loadingToastId = sonnerToast.loading('Saving workflow...');
     console.log('Saving workflow with nodes:', nodes.length);
 
     try {
@@ -124,11 +125,13 @@ export function useSavedWorkflows() {
 
       // Refresh workflows
       await fetchWorkflows();
+      sonnerToast.dismiss(loadingToastId);
       sonnerToast.success('Workflow saved successfully');
 
       return savedWorkflow;
     } catch (error) {
       console.error('Error saving workflow:', error);
+      sonnerToast.dismiss(loadingToastId);
       sonnerToast.error('Failed to save workflow');
       throw error;
     } finally {
@@ -154,7 +157,7 @@ export function useSavedWorkflows() {
     }
 
     setIsSaving(true);
-    sonnerToast.loading('Updating workflow...');
+    const loadingToastId = sonnerToast.loading('Updating workflow...');
     console.log('Updating workflow with nodes:', nodes.length, 'isReusable:', isReusable);
 
     try {
@@ -179,11 +182,13 @@ export function useSavedWorkflows() {
 
       // Refresh workflows
       await fetchWorkflows();
+      sonnerToast.dismiss(loadingToastId);
       sonnerToast.success('Workflow updated successfully');
 
       return data;
     } catch (error) {
       console.error('Error updating workflow:', error);
+      sonnerToast.dismiss(loadingToastId);
       sonnerToast.error('Failed to update workflow');
       throw error;
     } finally {
