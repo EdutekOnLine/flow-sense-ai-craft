@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/hooks/useAuth';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -25,6 +26,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
+  const { canEditWorkflows } = useWorkflowPermissions();
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
 
@@ -73,7 +75,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'users':
         return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent />;
       case 'workflow-builder':
-        return <WorkflowBuilder />;
+        // Prevent employees from accessing workflow builder
+        return canEditWorkflows ? <WorkflowBuilder /> : <DashboardContent />;
       case 'reports':
         return (
           <div className="text-center py-8">
@@ -98,6 +101,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       default:
         return children || <DashboardContent />;
     }
+  };
+
+  const handleOpenWorkflow = (workflowId: string) => {
+    // Only allow users with edit permissions to open workflows
+    if (!canEditWorkflows) {
+      console.log('User does not have permission to edit workflows');
+      return;
+    }
+    
+    console.log('Opening workflow:', workflowId);
+    // Navigate to workflow builder with the workflow ID
+    setActiveTab('workflow-builder');
+    window.location.hash = 'workflow-builder';
+    
+    // Add workflowId to URL for the workflow builder to pick up
+    const url = new URL(window.location.href);
+    url.searchParams.set('workflowId', workflowId);
+    window.history.replaceState({}, '', url.toString());
   };
 
   return (
@@ -152,7 +173,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
         {/* Content */}
-        {renderContent()}
+        {React.cloneElement(renderContent() as React.ReactElement, {
+          onOpenWorkflow: handleOpenWorkflow
+        })}
       </div>
     </div>
   );

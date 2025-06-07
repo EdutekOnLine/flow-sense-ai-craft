@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { Workflow, Edit, Trash2, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -13,6 +14,12 @@ interface SavedWorkflowsProps {
 
 export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
   const { workflows, isLoading, deleteWorkflow } = useSavedWorkflows();
+  const { canEditWorkflows } = useWorkflowPermissions();
+
+  // Don't render for employees who can't edit workflows
+  if (!canEditWorkflows) {
+    return null;
+  }
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
