@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -77,6 +76,43 @@ export function useWorkflowInstances() {
 
     try {
       const availableWorkflows: StartableWorkflow[] = [];
+
+      // FIRST: Let's check what's in workflow_definitions
+      console.log('=== CHECKING WORKFLOW_DEFINITIONS ===');
+      const { data: allWorkflowDefs, error: allDefsError } = await supabase
+        .from('workflow_definitions')
+        .select('*');
+      
+      if (allDefsError) {
+        console.error('Error fetching all workflow definitions:', allDefsError);
+      } else {
+        console.log('All workflow definitions found:', allWorkflowDefs);
+        const reuseWorkflow = allWorkflowDefs?.find(def => def.name === 'reuse');
+        if (reuseWorkflow) {
+          console.log('Found "reuse" workflow definition:', reuseWorkflow);
+          console.log('Is it marked as reusable?', reuseWorkflow.is_reusable);
+        } else {
+          console.log('No "reuse" workflow found in workflow_definitions');
+        }
+      }
+
+      // SECOND: Let's check what's in saved_workflows
+      console.log('=== CHECKING SAVED_WORKFLOWS ===');
+      const { data: allSavedWorkflows, error: savedError } = await supabase
+        .from('saved_workflows')
+        .select('*');
+      
+      if (savedError) {
+        console.error('Error fetching saved workflows:', savedError);
+      } else {
+        console.log('All saved workflows:', allSavedWorkflows);
+        const reuseSavedWorkflow = allSavedWorkflows?.find(sw => sw.name === 'reuse');
+        if (reuseSavedWorkflow) {
+          console.log('Found "reuse" in saved_workflows:', reuseSavedWorkflow);
+        } else {
+          console.log('No "reuse" workflow found in saved_workflows');
+        }
+      }
 
       // 1. Get all reusable workflow definitions
       console.log('Step 1: Fetching reusable workflow definitions...');
