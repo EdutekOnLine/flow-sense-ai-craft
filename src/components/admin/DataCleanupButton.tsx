@@ -32,8 +32,7 @@ export function DataCleanupButton() {
     try {
       console.log('Starting data cleanup...');
 
-      // Clean up in the correct order to avoid foreign key constraints
-      // First delete ALL notifications (to be safe with foreign key references)
+      // Step 1: Delete ALL notifications first (they reference other tables)
       console.log('Deleting all notifications...');
       const { error: notificationsError } = await supabase
         .from('notifications')
@@ -45,7 +44,7 @@ export function DataCleanupButton() {
         throw notificationsError;
       }
 
-      // Delete workflow step assignments
+      // Step 2: Delete workflow step assignments (they reference workflow_steps)
       console.log('Deleting workflow step assignments...');
       const { error: assignmentsError } = await supabase
         .from('workflow_step_assignments')
@@ -57,19 +56,7 @@ export function DataCleanupButton() {
         throw assignmentsError;
       }
 
-      // Delete workflow instances
-      console.log('Deleting workflow instances...');
-      const { error: instancesError } = await supabase
-        .from('workflow_instances')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-
-      if (instancesError) {
-        console.error('Error deleting instances:', instancesError);
-        throw instancesError;
-      }
-
-      // Delete workflow comments
+      // Step 3: Delete workflow comments (they reference workflows)
       console.log('Deleting workflow comments...');
       const { error: commentsError } = await supabase
         .from('workflow_comments')
@@ -81,7 +68,19 @@ export function DataCleanupButton() {
         throw commentsError;
       }
 
-      // Delete workflow steps
+      // Step 4: Delete workflow instances (they reference workflows and workflow_steps)
+      console.log('Deleting workflow instances...');
+      const { error: instancesError } = await supabase
+        .from('workflow_instances')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+
+      if (instancesError) {
+        console.error('Error deleting instances:', instancesError);
+        throw instancesError;
+      }
+
+      // Step 5: Delete workflow steps (they reference workflows)
       console.log('Deleting workflow steps...');
       const { error: stepsError } = await supabase
         .from('workflow_steps')
@@ -93,7 +92,7 @@ export function DataCleanupButton() {
         throw stepsError;
       }
 
-      // Delete workflows (but keep saved workflows and templates)
+      // Step 6: Finally delete workflows (main table)
       console.log('Deleting workflows...');
       const { error: workflowsError } = await supabase
         .from('workflows')
