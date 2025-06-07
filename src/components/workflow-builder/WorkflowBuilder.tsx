@@ -113,6 +113,10 @@ export default function WorkflowBuilder() {
   const [showAssistant, setShowAssistant] = useState(false);
   const [contextualSuggestionsPosition, setContextualSuggestionsPosition] = useState<{ x: number; y: number } | null>(null);
 
+  // Extract workflowId from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const workflowId = urlParams.get('workflowId');
+
   // Helper functions for generating persistent IDs
   const generatePersistentNodeId = useCallback(() => {
     const id = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -147,9 +151,6 @@ export default function WorkflowBuilder() {
 
   // Load workflow when workflowId changes in URL or workflows are fetched
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const workflowId = urlParams.get('workflowId');
-    
     console.log('WorkflowBuilder useEffect - workflowId:', workflowId);
     console.log('WorkflowBuilder useEffect - workflows length:', workflows.length);
     console.log('WorkflowBuilder useEffect - currentWorkflowId:', currentWorkflowId);
