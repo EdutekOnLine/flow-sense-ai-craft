@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -168,6 +167,56 @@ export function useWorkflowInstances() {
           } else {
             console.log('No valid first node found for workflow:', savedWorkflow.name);
           }
+        }
+      }
+
+      // NEW: Also check workflows table for reusable workflows where user is assigned to first step
+      console.log('\n=== CHECKING WORKFLOWS TABLE FOR REUSABLE ===');
+      const { data: reusableWorkflows, error: reusableError } = await supabase
+        .from('workflows')
+        .select(`
+          id,
+          name,
+          description,
+          is_reusable,
+          workflow_steps!inner(
+            id,
+            name,
+            description,
+            metadata,
+            step_order,
+            workflow_step_assignments!inner(assigned_to)
+          )
+        `)
+        .eq('workflow_steps.step_order', 1)
+        .eq('workflow_steps.workflow_step_assignments.assigned_to', user.id)
+        .eq('status', 'active')
+        .eq('is_reusable', true);
+
+      if (reusableError) {
+        console.error('Error fetching reusable workflows from workflows table:', reusableError);
+      } else {
+        console.log('Found reusable workflows in workflows table:', reusableWorkflows?.length || 0);
+        console.log('Reusable workflows data:', reusableWorkflows);
+
+        for (const workflow of reusableWorkflows || []) {
+          console.log(`\n--- Processing reusable workflow from workflows table: ${workflow.name} ---`);
+          console.log('Workflow ID:', workflow.id);
+          console.log('Is reusable:', workflow.is_reusable);
+          
+          availableWorkflows.push({
+            id: workflow.id,
+            name: workflow.name,
+            description: workflow.description,
+            is_reusable: true,
+            start_step: {
+              id: workflow.workflow_steps[0].id,
+              name: workflow.workflow_steps[0].name,
+              description: workflow.workflow_steps[0].description,
+              metadata: workflow.workflow_steps[0].metadata,
+            }
+          });
+          console.log(`Added reusable workflow from workflows table: ${workflow.name}`);
         }
       }
 
