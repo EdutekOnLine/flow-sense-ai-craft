@@ -50,7 +50,7 @@ export function SaveWorkflowDialog({
     setIsSaving(true);
     
     try {
-      console.log('Starting save process...');
+      console.log('Starting save process with isReusable:', isReusable);
       await onSave(name.trim(), description.trim(), isReusable);
       console.log('Save completed successfully');
       
