@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
-import { Workflow, Edit, Trash2, Calendar } from 'lucide-react';
+import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
+import { Workflow, Edit, Trash2, Calendar, Play } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
 interface SavedWorkflowsProps {
   onOpenWorkflow?: (workflowId: string) => void;
+  onStartWorkflow?: (workflowId: string, startData: any) => Promise<void>;
 }
 
-export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
+export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflowsProps) {
   const { workflows, isLoading, deleteWorkflow } = useSavedWorkflows();
   const { canEditWorkflows } = useWorkflowPermissions();
 
@@ -41,6 +44,33 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
     } else {
       console.error('No onOpenWorkflow function provided to SavedWorkflows');
     }
+  };
+
+  // Convert saved workflow to startable workflow format
+  const convertToStartableWorkflow = (savedWorkflow: any): StartableWorkflow => {
+    const nodes = savedWorkflow.nodes || [];
+    
+    // Find the first/start node
+    const startNode = nodes.find((node: any) => {
+      return node?.data && (
+        node.data.stepType === 'trigger' || 
+        node.data.stepType === 'start' ||
+        node.position?.y === Math.min(...nodes.filter((n: any) => n?.position?.y !== undefined).map((n: any) => n.position.y))
+      );
+    }) || nodes[0];
+
+    return {
+      id: savedWorkflow.id,
+      name: savedWorkflow.name,
+      description: savedWorkflow.description,
+      is_reusable: true,
+      start_step: {
+        id: startNode?.id || 'start',
+        name: startNode?.data?.label || 'Start Step',
+        description: startNode?.data?.description || '',
+        metadata: startNode?.data?.metadata || {}
+      }
+    };
   };
 
   if (isLoading) {
@@ -100,6 +130,12 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
+                    {onStartWorkflow && (
+                      <StartWorkflowDialog
+                        workflow={convertToStartableWorkflow(workflow)}
+                        onStartWorkflow={onStartWorkflow}
+                      />
+                    )}
                     <Button
                       variant="outline"
                       size="sm"

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
@@ -195,7 +194,10 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             </div>
           </div>
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-            <SavedWorkflows onOpenWorkflow={onOpenWorkflow} />
+            <SavedWorkflows 
+              onOpenWorkflow={onOpenWorkflow}
+              onStartWorkflow={handleStartWorkflow}
+            />
           </div>
         </div>
       )}
