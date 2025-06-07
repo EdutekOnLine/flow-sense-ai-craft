@@ -44,6 +44,11 @@ serve(async (req) => {
 
     console.log('Found workflow instance:', workflowInstance);
 
+    // Verify this is the current step
+    if (workflowInstance.current_step_id !== completedStepId) {
+      throw new Error('Cannot complete step - this is not the current step in the workflow');
+    }
+
     // Log the step completion
     const { error: logError } = await supabaseClient
       .from('workflow_comments')
@@ -119,34 +124,24 @@ serve(async (req) => {
         console.error('Error updating next step status:', nextStepError);
       }
 
-      // If the next step has an assigned user, create an assignment
+      // Create assignment for the next step ONLY
       if (nextStep.assigned_to) {
-        console.log(`Creating assignment for user: ${nextStep.assigned_to}`);
+        console.log(`Creating assignment for next step assigned to: ${nextStep.assigned_to}`);
         
-        // Check if assignment already exists
-        const { data: existingAssignment } = await supabaseClient
+        const { error: assignmentError } = await supabaseClient
           .from('workflow_step_assignments')
-          .select('id')
-          .eq('workflow_step_id', nextStep.id)
-          .eq('assigned_to', nextStep.assigned_to)
-          .single();
+          .insert({
+            workflow_step_id: nextStep.id,
+            assigned_to: nextStep.assigned_to,
+            assigned_by: completedBy,
+            status: 'pending',
+            due_date: nextStep.metadata?.due_date || null
+          });
 
-        if (!existingAssignment) {
-          const { error: assignmentError } = await supabaseClient
-            .from('workflow_step_assignments')
-            .insert({
-              workflow_step_id: nextStep.id,
-              assigned_to: nextStep.assigned_to,
-              assigned_by: completedBy,
-              status: 'pending',
-              due_date: nextStep.metadata?.due_date || null
-            });
-
-          if (assignmentError) {
-            console.error('Error creating step assignment:', assignmentError);
-          } else {
-            console.log('Step assignment created successfully');
-          }
+        if (assignmentError) {
+          console.error('Error creating step assignment:', assignmentError);
+        } else {
+          console.log('Step assignment created successfully for next step');
         }
       }
     } else {
@@ -165,19 +160,6 @@ serve(async (req) => {
 
       if (instanceCompleteError) {
         console.error('Error updating workflow instance:', instanceCompleteError);
-      }
-
-      // Also mark the workflow as completed
-      const { error: workflowError } = await supabaseClient
-        .from('workflows')
-        .update({ 
-          status: 'completed',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', workflowId);
-
-      if (workflowError) {
-        console.error('Error updating workflow status:', workflowError);
       }
 
       // Log workflow completion

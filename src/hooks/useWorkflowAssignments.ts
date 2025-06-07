@@ -82,13 +82,13 @@ export function useWorkflowAssignments() {
         return;
       }
 
-      // Process assignments and check for workflow instances
+      // Process assignments and filter based on workflow instance status
       const processedAssignments: WorkflowAssignment[] = [];
 
       for (const assignment of data) {
         if (!assignment.workflow_steps) continue;
 
-        // Check if there's an active workflow instance for this assignment's workflow
+        // Get the active workflow instance for this assignment's workflow
         const { data: instanceData, error: instanceError } = await supabase
           .from('workflow_instances')
           .select('*')
@@ -120,8 +120,7 @@ export function useWorkflowAssignments() {
             console.log(`Assignment ${assignment.id} is not the current step (current: ${workflowInstance.current_step_id}, assignment: ${assignment.workflow_step_id}), hiding from user`);
           }
         } else {
-          // No active workflow instance - this might be a standalone assignment or from a saved workflow
-          // Only show if it's pending or in progress
+          // No active workflow instance - only show if it's pending or in progress
           if (assignment.status === 'pending' || assignment.status === 'in_progress') {
             shouldShow = true;
             console.log(`Assignment ${assignment.id} has no active instance but is pending/in_progress, showing to user`);
