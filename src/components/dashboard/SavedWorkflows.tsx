@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
-import { Workflow, Edit, Trash2, Calendar, Play } from 'lucide-react';
+import { Workflow, Edit, Trash2, Calendar, Play, User, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
@@ -50,20 +50,20 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   const convertToStartableWorkflow = (savedWorkflow: any): StartableWorkflow => {
     const nodes = savedWorkflow.nodes || [];
     
-    // Find the first/start node
+    // Find the first/start node with an assigned user
     const startNode = nodes.find((node: any) => {
-      return node?.data && (
+      return node?.data && node.data.assignedTo && (
         node.data.stepType === 'trigger' || 
         node.data.stepType === 'start' ||
         node.position?.y === Math.min(...nodes.filter((n: any) => n?.position?.y !== undefined).map((n: any) => n.position.y))
       );
-    }) || nodes[0];
+    }) || nodes.find((node: any) => node?.data?.assignedTo) || nodes[0];
 
     return {
       id: savedWorkflow.id,
       name: savedWorkflow.name,
       description: savedWorkflow.description,
-      is_reusable: true,
+      is_reusable: savedWorkflow.is_reusable || false,
       start_step: {
         id: startNode?.id || 'start',
         name: startNode?.data?.label || 'Start Step',
@@ -71,6 +71,13 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
         metadata: startNode?.data?.metadata || {}
       }
     };
+  };
+
+  // Get the assigned user for the first step
+  const getAssignedUser = (workflow: any) => {
+    const nodes = workflow.nodes || [];
+    const startNode = nodes.find((node: any) => node?.data?.assignedTo);
+    return startNode?.data?.assignedTo || 'Unassigned';
   };
 
   if (isLoading) {
@@ -115,7 +122,22 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="font-medium text-sm mb-1">{workflow.name}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-sm">{workflow.name}</h4>
+                      <Badge 
+                        variant={workflow.is_reusable ? "default" : "secondary"}
+                        className={workflow.is_reusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
+                      >
+                        {workflow.is_reusable ? (
+                          <>
+                            <Repeat className="h-3 w-3 mr-1" />
+                            Reusable
+                          </>
+                        ) : (
+                          'One-time'
+                        )}
+                      </Badge>
+                    </div>
                     {workflow.description && (
                       <p className="text-xs text-gray-600 mb-2">{workflow.description}</p>
                     )}
@@ -123,6 +145,10 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         Updated {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        Assigned to: {getAssignedUser(workflow)}
                       </div>
                       <Badge variant="secondary" className="text-xs">
                         {workflow.nodes.length} nodes

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,7 +32,6 @@ export interface WorkflowInstance {
 export function useWorkflowInstances() {
   const { user } = useAuth();
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
-  const [startableWorkflows, setStartableWorkflows] = useState<StartableWorkflow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchWorkflowInstances = useCallback(async () => {
@@ -54,57 +54,6 @@ export function useWorkflowInstances() {
     }
   }, [user]);
 
-  const fetchStartableWorkflows = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      // Get all reusable workflows where the user is assigned to the first step
-      const { data: workflows, error: workflowsError } = await supabase
-        .from('workflows')
-        .select(`
-          id,
-          name,
-          description,
-          is_reusable,
-          workflow_steps!inner (
-            id,
-            name,
-            description,
-            step_order,
-            assigned_to,
-            metadata
-          )
-        `)
-        .eq('is_reusable', true)
-        .eq('workflow_steps.step_order', 1)
-        .eq('workflow_steps.assigned_to', user.id)
-        .order('created_at', { ascending: false });
-
-      if (workflowsError) throw workflowsError;
-
-      // Convert to startable workflows format
-      const startable = (workflows || []).map(workflow => {
-        const firstStep = workflow.workflow_steps?.[0];
-        return {
-          id: workflow.id,
-          name: workflow.name,
-          description: workflow.description,
-          is_reusable: workflow.is_reusable,
-          start_step: {
-            id: firstStep?.id || 'start',
-            name: firstStep?.name || 'Start Step',
-            description: firstStep?.description || '',
-            metadata: firstStep?.metadata || {}
-          }
-        };
-      });
-
-      setStartableWorkflows(startable);
-    } catch (error) {
-      console.error('Error fetching startable workflows:', error);
-    }
-  }, [user]);
-
   const createWorkflowFromSavedWorkflow = async (savedWorkflowId: string) => {
     console.log('Creating workflow from saved workflow:', savedWorkflowId);
     
@@ -122,58 +71,26 @@ export function useWorkflowInstances() {
 
     console.log('Found saved workflow:', savedWorkflow);
 
-    // Create a new workflow
-    const { data: newWorkflow, error: workflowError } = await supabase
-      .from('workflows')
+    // Create a new workflow instance directly - no complex workflow steps needed
+    const { data: newWorkflowInstance, error: instanceError } = await supabase
+      .from('workflow_instances')
       .insert({
-        name: savedWorkflow.name,
-        description: savedWorkflow.description,
-        status: 'active',
-        created_by: user?.id,
-        is_reusable: false // Set to false for one-time execution from saved workflow
+        workflow_id: savedWorkflowId, // Use the saved workflow ID directly
+        started_by: user?.id,
+        current_step_id: null, // No step progression needed
+        start_data: {},
+        status: 'active'
       })
       .select()
       .single();
 
-    if (workflowError) {
-      console.error('Error creating new workflow:', workflowError);
-      throw workflowError;
+    if (instanceError) {
+      console.error('Error creating workflow instance:', instanceError);
+      throw instanceError;
     }
 
-    console.log('Created new workflow:', newWorkflow);
-
-    // Create workflow steps from the saved workflow nodes
-    const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes : [];
-    const workflowSteps = nodes
-      .filter((node: any) => node?.data?.stepType !== 'trigger')
-      .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))
-      .map((node: any, index: number) => ({
-        workflow_id: newWorkflow.id,
-        name: node.data?.label || `Step ${index + 1}`,
-        description: node.data?.description || '',
-        step_order: index + 1,
-        assigned_to: node.data?.assignedTo || null,
-        status: 'pending' as const,
-        metadata: node.data?.metadata || {}
-      }));
-
-    console.log('Creating workflow steps:', workflowSteps);
-
-    if (workflowSteps.length > 0) {
-      const { data: createdSteps, error: stepsError } = await supabase
-        .from('workflow_steps')
-        .insert(workflowSteps)
-        .select();
-
-      if (stepsError) {
-        console.error('Error creating workflow steps:', stepsError);
-        throw stepsError;
-      }
-
-      console.log('Created workflow steps:', createdSteps);
-    }
-
-    return newWorkflow.id;
+    console.log('Created workflow instance:', newWorkflowInstance);
+    return newWorkflowInstance.id;
   };
 
   const startWorkflow = useCallback(async (workflowId: string, startData: any = {}) => {
@@ -184,84 +101,17 @@ export function useWorkflowInstances() {
     console.log('Starting workflow:', workflowId);
 
     try {
-      let actualWorkflowId = workflowId;
-
-      // Check if this is a saved workflow
-      const { data: savedWorkflow } = await supabase
-        .from('saved_workflows')
-        .select('id')
-        .eq('id', workflowId)
-        .single();
-
-      if (savedWorkflow) {
-        // This is a saved workflow, create a real workflow from it
-        console.log('Converting saved workflow to actual workflow');
-        actualWorkflowId = await createWorkflowFromSavedWorkflow(workflowId);
-        console.log('Created actual workflow with ID:', actualWorkflowId);
-      }
-
-      // Get the first step of the workflow
-      const { data: firstStep, error: stepError } = await supabase
-        .from('workflow_steps')
-        .select('id, assigned_to')
-        .eq('workflow_id', actualWorkflowId)
-        .order('step_order', { ascending: true })
-        .limit(1)
-        .single();
-
-      if (stepError && stepError.code !== 'PGRST116') {
-        console.error('Error fetching first step:', stepError);
-        throw stepError;
-      }
-
-      console.log('First step:', firstStep);
-
-      // Create workflow instance
-      const { data: instance, error: instanceError } = await supabase
-        .from('workflow_instances')
-        .insert({
-          workflow_id: actualWorkflowId,
-          started_by: user.id,
-          current_step_id: firstStep?.id || null,
-          start_data: startData,
-          status: 'active'
-        })
-        .select()
-        .single();
-
-      if (instanceError) {
-        console.error('Error creating workflow instance:', instanceError);
-        throw instanceError;
-      }
-
-      console.log('Created workflow instance:', instance);
-
-      // Create assignment ONLY for the first step
-      if (firstStep && firstStep.assigned_to) {
-        const { error: assignmentError } = await supabase
-          .from('workflow_step_assignments')
-          .insert({
-            workflow_step_id: firstStep.id,
-            assigned_to: firstStep.assigned_to,
-            assigned_by: user.id,
-            status: 'pending',
-            notes: `Initial assignment for workflow instance: ${instance.id}`
-          });
-
-        if (assignmentError) {
-          console.error('Error creating first step assignment:', assignmentError);
-          throw assignmentError;
-        } else {
-          console.log('Created assignment for first step only');
-        }
-      }
+      // Create workflow instance from saved workflow
+      console.log('Converting saved workflow to workflow instance');
+      const instanceId = await createWorkflowFromSavedWorkflow(workflowId);
+      console.log('Created workflow instance with ID:', instanceId);
 
       // Refresh the instances
       await fetchWorkflowInstances();
       
       toast.success(`Workflow started successfully!`);
       
-      return instance;
+      return { id: instanceId };
     } catch (error) {
       console.error('Error starting workflow:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to start workflow. Please try again.');
@@ -270,11 +120,8 @@ export function useWorkflowInstances() {
   }, [user, fetchWorkflowInstances]);
 
   const refreshWorkflows = useCallback(async () => {
-    await Promise.all([
-      fetchWorkflowInstances(),
-      fetchStartableWorkflows()
-    ]);
-  }, [fetchWorkflowInstances, fetchStartableWorkflows]);
+    await fetchWorkflowInstances();
+  }, [fetchWorkflowInstances]);
 
   useEffect(() => {
     refreshWorkflows();
@@ -282,7 +129,7 @@ export function useWorkflowInstances() {
 
   return {
     instances,
-    startableWorkflows,
+    startableWorkflows: [], // No longer needed
     isLoading,
     startWorkflow,
     refreshWorkflows
