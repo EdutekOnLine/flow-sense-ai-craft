@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from './SavedWorkflows';
+import { DataCleanupButton } from '@/components/admin/DataCleanupButton';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -25,6 +27,7 @@ interface DashboardContentProps {
 }
 
 export default function DashboardContent({ onOpenWorkflow }: DashboardContentProps) {
+  const { profile } = useAuth();
   const { 
     instances, 
     startableWorkflows, 
@@ -71,14 +74,22 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
       {/* Header with colorful gradient */}
       <div className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 rounded-2xl p-8 text-white">
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-              <Activity className="h-8 w-8" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Activity className="h-8 w-8" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold">Dashboard</h1>
+                <p className="text-purple-100 text-lg">Welcome to your workflow command center</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-4xl font-bold">Dashboard</h1>
-              <p className="text-purple-100 text-lg">Welcome to your workflow command center</p>
-            </div>
+            {/* Admin cleanup button */}
+            {profile?.role === 'admin' && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
+                <DataCleanupButton />
+              </div>
+            )}
           </div>
         </div>
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
