@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -143,7 +142,8 @@ export function useSavedWorkflows() {
     description: string,
     nodes: Node[],
     edges: Edge[],
-    viewport: Viewport
+    viewport: Viewport,
+    isReusable: boolean = false
   ) => {
     if (!user) {
       throw new Error('User must be authenticated to update workflows');
@@ -155,10 +155,10 @@ export function useSavedWorkflows() {
 
     setIsSaving(true);
     sonnerToast.loading('Updating workflow...');
-    console.log('Updating workflow with nodes:', nodes.length);
+    console.log('Updating workflow with nodes:', nodes.length, 'isReusable:', isReusable);
 
     try {
-      // Update the workflow visualization data
+      // Update the workflow visualization data including is_reusable
       const { data, error } = await supabase
         .from('saved_workflows')
         .update({
@@ -167,6 +167,7 @@ export function useSavedWorkflows() {
           nodes: nodes as unknown as Json,
           edges: edges as unknown as Json,
           viewport: viewport as unknown as Json,
+          is_reusable: isReusable,
         })
         .eq('id', id)
         .select()

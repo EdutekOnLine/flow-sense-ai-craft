@@ -199,8 +199,8 @@ export default function WorkflowBuilder() {
       console.log('Current edges:', edges);
       
       if (currentWorkflowId) {
-        // Update existing workflow
-        await updateWorkflow(currentWorkflowId, name, description, nodes, edges, viewport);
+        // Update existing workflow - now including isReusable parameter
+        await updateWorkflow(currentWorkflowId, name, description, nodes, edges, viewport, isReusable);
         console.log('Workflow updated successfully in WorkflowBuilder');
         
         toast({
