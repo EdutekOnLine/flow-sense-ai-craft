@@ -32,160 +32,85 @@ export function DataCleanupButton() {
     try {
       console.log('Starting data cleanup...');
 
-      // Step 1: Delete ALL notifications first (they reference other tables)
+      // Step 1: Delete ALL notifications first (including those with workflow_step_id references)
       console.log('Deleting all notifications...');
       
-      // First, get all notification IDs
-      const { data: notifications, error: notificationsFetchError } = await supabase
+      // Delete all notifications regardless of their references
+      const { error: notificationsDeleteError } = await supabase
         .from('notifications')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (notificationsFetchError) {
-        console.error('Error fetching notifications:', notificationsFetchError);
-        throw notificationsFetchError;
+      if (notificationsDeleteError) {
+        console.error('Error deleting notifications:', notificationsDeleteError);
+        throw notificationsDeleteError;
       }
+      console.log('Deleted all notifications');
 
-      // Delete all notifications if any exist
-      if (notifications && notifications.length > 0) {
-        const notificationIds = notifications.map(n => n.id);
-        const { error: notificationsDeleteError } = await supabase
-          .from('notifications')
-          .delete()
-          .in('id', notificationIds);
-
-        if (notificationsDeleteError) {
-          console.error('Error deleting notifications:', notificationsDeleteError);
-          throw notificationsDeleteError;
-        }
-        console.log(`Deleted ${notifications.length} notifications`);
-      } else {
-        console.log('No notifications to delete');
-      }
-
-      // Step 2: Delete workflow step assignments (they reference workflow_steps)
+      // Step 2: Delete workflow step assignments
       console.log('Deleting workflow step assignments...');
-      const { data: assignments, error: assignmentsFetchError } = await supabase
+      const { error: assignmentsDeleteError } = await supabase
         .from('workflow_step_assignments')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (assignmentsFetchError) {
-        console.error('Error fetching assignments:', assignmentsFetchError);
-        throw assignmentsFetchError;
+      if (assignmentsDeleteError) {
+        console.error('Error deleting assignments:', assignmentsDeleteError);
+        throw assignmentsDeleteError;
       }
+      console.log('Deleted all workflow step assignments');
 
-      if (assignments && assignments.length > 0) {
-        const assignmentIds = assignments.map(a => a.id);
-        const { error: assignmentsDeleteError } = await supabase
-          .from('workflow_step_assignments')
-          .delete()
-          .in('id', assignmentIds);
-
-        if (assignmentsDeleteError) {
-          console.error('Error deleting assignments:', assignmentsDeleteError);
-          throw assignmentsDeleteError;
-        }
-        console.log(`Deleted ${assignments.length} assignments`);
-      }
-
-      // Step 3: Delete workflow comments (they reference workflows)
+      // Step 3: Delete workflow comments
       console.log('Deleting workflow comments...');
-      const { data: comments, error: commentsFetchError } = await supabase
+      const { error: commentsDeleteError } = await supabase
         .from('workflow_comments')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (commentsFetchError) {
-        console.error('Error fetching comments:', commentsFetchError);
-        throw commentsFetchError;
+      if (commentsDeleteError) {
+        console.error('Error deleting comments:', commentsDeleteError);
+        throw commentsDeleteError;
       }
+      console.log('Deleted all workflow comments');
 
-      if (comments && comments.length > 0) {
-        const commentIds = comments.map(c => c.id);
-        const { error: commentsDeleteError } = await supabase
-          .from('workflow_comments')
-          .delete()
-          .in('id', commentIds);
-
-        if (commentsDeleteError) {
-          console.error('Error deleting comments:', commentsDeleteError);
-          throw commentsDeleteError;
-        }
-        console.log(`Deleted ${comments.length} comments`);
-      }
-
-      // Step 4: Delete workflow instances (they reference workflows and workflow_steps)
+      // Step 4: Delete workflow instances
       console.log('Deleting workflow instances...');
-      const { data: instances, error: instancesFetchError } = await supabase
+      const { error: instancesDeleteError } = await supabase
         .from('workflow_instances')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (instancesFetchError) {
-        console.error('Error fetching instances:', instancesFetchError);
-        throw instancesFetchError;
+      if (instancesDeleteError) {
+        console.error('Error deleting instances:', instancesDeleteError);
+        throw instancesDeleteError;
       }
+      console.log('Deleted all workflow instances');
 
-      if (instances && instances.length > 0) {
-        const instanceIds = instances.map(i => i.id);
-        const { error: instancesDeleteError } = await supabase
-          .from('workflow_instances')
-          .delete()
-          .in('id', instanceIds);
-
-        if (instancesDeleteError) {
-          console.error('Error deleting instances:', instancesDeleteError);
-          throw instancesDeleteError;
-        }
-        console.log(`Deleted ${instances.length} instances`);
-      }
-
-      // Step 5: Delete workflow steps (they reference workflows)
+      // Step 5: Delete workflow steps
       console.log('Deleting workflow steps...');
-      const { data: steps, error: stepsFetchError } = await supabase
+      const { error: stepsDeleteError } = await supabase
         .from('workflow_steps')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (stepsFetchError) {
-        console.error('Error fetching steps:', stepsFetchError);
-        throw stepsFetchError;
+      if (stepsDeleteError) {
+        console.error('Error deleting steps:', stepsDeleteError);
+        throw stepsDeleteError;
       }
+      console.log('Deleted all workflow steps');
 
-      if (steps && steps.length > 0) {
-        const stepIds = steps.map(s => s.id);
-        const { error: stepsDeleteError } = await supabase
-          .from('workflow_steps')
-          .delete()
-          .in('id', stepIds);
-
-        if (stepsDeleteError) {
-          console.error('Error deleting steps:', stepsDeleteError);
-          throw stepsDeleteError;
-        }
-        console.log(`Deleted ${steps.length} steps`);
-      }
-
-      // Step 6: Finally delete workflows (main table)
+      // Step 6: Finally delete workflows
       console.log('Deleting workflows...');
-      const { data: workflows, error: workflowsFetchError } = await supabase
+      const { error: workflowsDeleteError } = await supabase
         .from('workflows')
-        .select('id');
+        .delete()
+        .not('id', 'is', null);
 
-      if (workflowsFetchError) {
-        console.error('Error fetching workflows:', workflowsFetchError);
-        throw workflowsFetchError;
+      if (workflowsDeleteError) {
+        console.error('Error deleting workflows:', workflowsDeleteError);
+        throw workflowsDeleteError;
       }
-
-      if (workflows && workflows.length > 0) {
-        const workflowIds = workflows.map(w => w.id);
-        const { error: workflowsDeleteError } = await supabase
-          .from('workflows')
-          .delete()
-          .in('id', workflowIds);
-
-        if (workflowsDeleteError) {
-          console.error('Error deleting workflows:', workflowsDeleteError);
-          throw workflowsDeleteError;
-        }
-        console.log(`Deleted ${workflows.length} workflows`);
-      }
+      console.log('Deleted all workflows');
 
       console.log('Data cleanup completed successfully');
       toast.success('All workflow data has been cleaned up successfully!');
