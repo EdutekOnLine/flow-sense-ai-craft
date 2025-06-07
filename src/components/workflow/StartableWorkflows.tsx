@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Play, Clock, FileText, Repeat, RefreshCw } from 'lucide-react';
+import { Play, Clock, FileText, Repeat } from 'lucide-react';
 import { StartWorkflowDialog } from './StartWorkflowDialog';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
@@ -11,16 +11,12 @@ interface StartableWorkflowsProps {
   workflows: StartableWorkflow[];
   onStartWorkflow: (workflowId: string, startData: any) => Promise<void>;
   isLoading?: boolean;
-  lastFetchTime?: Date | null;
-  onRefresh?: () => void;
 }
 
 export function StartableWorkflows({ 
   workflows, 
   onStartWorkflow, 
-  isLoading,
-  lastFetchTime,
-  onRefresh 
+  isLoading
 }: StartableWorkflowsProps) {
   if (isLoading) {
     return (
@@ -35,26 +31,6 @@ export function StartableWorkflows({
 
   return (
     <div className="space-y-6">
-      {/* Debug info and refresh button */}
-      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-        <div className="text-sm text-gray-600">
-          {lastFetchTime && (
-            <span>Last updated: {lastFetchTime.toLocaleTimeString()}</span>
-          )}
-        </div>
-        {onRefresh && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-        )}
-      </div>
-
       {/* Reusable Workflows Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -69,17 +45,9 @@ export function StartableWorkflows({
             <CardContent className="p-8 text-center">
               <Repeat className="h-12 w-12 text-blue-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No reusable workflows available</h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600">
                 Reusable workflows will appear here when they're created and you're assigned to start them.
               </p>
-              <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded">
-                <strong>Debug info:</strong> Found {workflows.length} total startable workflows
-                {workflows.length > 0 && (
-                  <div className="mt-2">
-                    <div>All workflows: {workflows.map(w => `${w.name} (${w.is_reusable ? 'reusable' : 'one-time'})`).join(', ')}</div>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
         ) : (

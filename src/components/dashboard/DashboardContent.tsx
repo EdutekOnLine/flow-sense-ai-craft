@@ -6,8 +6,6 @@ import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from './SavedWorkflows';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DashboardContent() {
@@ -15,7 +13,6 @@ export default function DashboardContent() {
     instances, 
     startableWorkflows, 
     isLoading,
-    lastFetchTime,
     startWorkflow,
     refreshWorkflows
   } = useWorkflowInstances();
@@ -26,7 +23,6 @@ export default function DashboardContent() {
   useEffect(() => {
     if (activeTab === 'startable') {
       const interval = setInterval(() => {
-        console.log('Auto-refreshing startable workflows...');
         refreshWorkflows();
       }, 30000);
 
@@ -44,12 +40,6 @@ export default function DashboardContent() {
     }
   };
 
-  const handleManualRefresh = () => {
-    console.log('Manual refresh triggered from dashboard');
-    refreshWorkflows();
-    toast.success('Refreshing workflows...');
-  };
-
   const handleOpenWorkflow = (workflowId: string) => {
     console.log('Opening workflow:', workflowId);
     // TODO: Navigate to workflow builder with this workflow
@@ -60,15 +50,6 @@ export default function DashboardContent() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <Button
-          variant="outline"
-          onClick={handleManualRefresh}
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh All
-        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -97,8 +78,6 @@ export default function DashboardContent() {
             workflows={startableWorkflows} 
             onStartWorkflow={handleStartWorkflow}
             isLoading={isLoading}
-            lastFetchTime={lastFetchTime}
-            onRefresh={handleManualRefresh}
           />
         </TabsContent>
 
