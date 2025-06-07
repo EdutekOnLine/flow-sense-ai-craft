@@ -37,7 +37,7 @@ export function DataCleanupButton() {
       const { error: notificationsError } = await supabase
         .from('notifications')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (notificationsError) {
         console.error('Error deleting notifications:', notificationsError);
@@ -49,7 +49,7 @@ export function DataCleanupButton() {
       const { error: assignmentsError } = await supabase
         .from('workflow_step_assignments')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (assignmentsError) {
         console.error('Error deleting assignments:', assignmentsError);
@@ -61,7 +61,7 @@ export function DataCleanupButton() {
       const { error: commentsError } = await supabase
         .from('workflow_comments')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (commentsError) {
         console.error('Error deleting comments:', commentsError);
@@ -73,7 +73,7 @@ export function DataCleanupButton() {
       const { error: instancesError } = await supabase
         .from('workflow_instances')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (instancesError) {
         console.error('Error deleting instances:', instancesError);
@@ -85,7 +85,7 @@ export function DataCleanupButton() {
       const { error: stepsError } = await supabase
         .from('workflow_steps')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (stepsError) {
         console.error('Error deleting steps:', stepsError);
@@ -97,7 +97,7 @@ export function DataCleanupButton() {
       const { error: workflowsError } = await supabase
         .from('workflows')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+        .not('id', 'is', null);
 
       if (workflowsError) {
         console.error('Error deleting workflows:', workflowsError);
