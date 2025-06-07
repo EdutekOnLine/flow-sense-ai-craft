@@ -29,6 +29,22 @@ export interface WorkflowInstance {
   completed_at?: string;
 }
 
+// Type for workflow node from saved_workflows
+interface WorkflowNode {
+  id: string;
+  data?: {
+    assignedTo?: string;
+    label?: string;
+    description?: string;
+    metadata?: any;
+    stepType?: string;
+  };
+  position?: {
+    x: number;
+    y: number;
+  };
+}
+
 export function useWorkflowInstances() {
   const { user } = useAuth();
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
@@ -73,10 +89,10 @@ export function useWorkflowInstances() {
 
     // Find the first step (node) that has an assigned user
     // Properly handle the JSON type from Supabase
-    const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes : [];
+    const nodes = Array.isArray(savedWorkflow.nodes) ? savedWorkflow.nodes as WorkflowNode[] : [];
     const firstAssignedNode = nodes
-      .filter((node: any) => node?.data?.assignedTo)
-      .sort((a: any, b: any) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+      .filter((node: WorkflowNode) => node?.data?.assignedTo)
+      .sort((a: WorkflowNode, b: WorkflowNode) => (a.position?.y || 0) - (b.position?.y || 0))[0];
 
     console.log('First assigned node:', firstAssignedNode);
 
@@ -101,7 +117,7 @@ export function useWorkflowInstances() {
     console.log('Created workflow instance:', newWorkflowInstance);
 
     // If there's a first assigned node, create an assignment for it
-    if (firstAssignedNode) {
+    if (firstAssignedNode && firstAssignedNode.data?.assignedTo) {
       console.log('Creating assignment for first step:', firstAssignedNode.id);
       
       const { error: assignmentError } = await supabase
