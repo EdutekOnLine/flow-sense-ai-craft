@@ -140,7 +140,7 @@ export function useWorkflowInstances() {
         description: node.data?.description || '',
         step_order: index + 1,
         assigned_to: node.data?.assignedTo || null,
-        status: index === 0 ? 'pending' : 'pending',
+        status: 'pending' as const, // Use 'as const' to ensure TypeScript treats this as the literal type
         metadata: node.data?.metadata || {}
       }));
 
