@@ -50,26 +50,14 @@ export function DataCleanupButton() {
         .select('id, name');
       console.log('All workflows:', allWorkflows);
 
-      // Check which notifications reference workflow steps
-      if (allNotifications && allWorkflowSteps) {
-        const notificationsWithStepRefs = allNotifications.filter(n => n.workflow_step_id);
-        console.log('Notifications with workflow_step_id references:', notificationsWithStepRefs);
-        
-        const stepIds = allWorkflowSteps.map(s => s.id);
-        const orphanedNotifications = notificationsWithStepRefs.filter(n => 
-          n.workflow_step_id && !stepIds.includes(n.workflow_step_id)
-        );
-        console.log('Orphaned notifications (referencing non-existent steps):', orphanedNotifications);
-      }
-
       console.log('=== STARTING CLEANUP PROCESS ===');
 
-      // Step 1: Delete ALL notifications first (including those with workflow_step_id references)
+      // Step 1: Delete ALL notifications using a range query that will match all rows
       console.log('Deleting all notifications...');
       const { error: notificationsDeleteError, count: notificationsCount } = await supabase
         .from('notifications')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01'); // This will match all notifications
 
       if (notificationsDeleteError) {
         console.error('Error deleting notifications:', notificationsDeleteError);
@@ -77,7 +65,7 @@ export function DataCleanupButton() {
       }
       console.log(`Deleted ${notificationsCount || 0} notifications`);
 
-      // Debug: Verify notifications are gone
+      // Verify notifications are gone
       const { data: remainingNotifications } = await supabase
         .from('notifications')
         .select('id, workflow_step_id');
@@ -88,7 +76,7 @@ export function DataCleanupButton() {
       const { error: assignmentsDeleteError, count: assignmentsCount } = await supabase
         .from('workflow_step_assignments')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01');
 
       if (assignmentsDeleteError) {
         console.error('Error deleting assignments:', assignmentsDeleteError);
@@ -101,7 +89,7 @@ export function DataCleanupButton() {
       const { error: commentsDeleteError, count: commentsCount } = await supabase
         .from('workflow_comments')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01');
 
       if (commentsDeleteError) {
         console.error('Error deleting comments:', commentsDeleteError);
@@ -114,7 +102,7 @@ export function DataCleanupButton() {
       const { error: instancesDeleteError, count: instancesCount } = await supabase
         .from('workflow_instances')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01');
 
       if (instancesDeleteError) {
         console.error('Error deleting instances:', instancesDeleteError);
@@ -125,7 +113,7 @@ export function DataCleanupButton() {
       // Step 5: Delete workflow steps
       console.log('Deleting workflow steps...');
       
-      // Debug: Check notifications again before deleting steps
+      // Final check for notifications before deleting steps
       const { data: notificationsBeforeStepsDelete } = await supabase
         .from('notifications')
         .select('id, workflow_step_id');
@@ -134,7 +122,7 @@ export function DataCleanupButton() {
       const { error: stepsDeleteError, count: stepsCount } = await supabase
         .from('workflow_steps')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01');
 
       if (stepsDeleteError) {
         console.error('Error deleting steps:', stepsDeleteError);
@@ -145,7 +133,7 @@ export function DataCleanupButton() {
       // Step 6: Finally delete workflows
       console.log('Deleting workflows...');
       
-      // Debug: Final check for any remaining references
+      // Final check for any remaining references
       const { data: finalNotifications } = await supabase
         .from('notifications')
         .select('id, workflow_step_id');
@@ -154,7 +142,7 @@ export function DataCleanupButton() {
       const { error: workflowsDeleteError, count: workflowsCount } = await supabase
         .from('workflows')
         .delete()
-        .not('id', 'is', null);
+        .gte('created_at', '1970-01-01');
 
       if (workflowsDeleteError) {
         console.error('Error deleting workflows:', workflowsDeleteError);
