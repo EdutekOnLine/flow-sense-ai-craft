@@ -19,7 +19,11 @@ import {
   Target
 } from 'lucide-react';
 
-export default function DashboardContent() {
+interface DashboardContentProps {
+  onOpenWorkflow?: (workflowId: string) => void;
+}
+
+export default function DashboardContent({ onOpenWorkflow }: DashboardContentProps) {
   const { 
     instances, 
     startableWorkflows, 
@@ -47,11 +51,6 @@ export default function DashboardContent() {
       console.error('Error starting workflow:', error);
       toast.error('Failed to start workflow. Please try again.');
     }
-  };
-
-  const handleOpenWorkflow = (workflowId: string) => {
-    console.log('Opening workflow:', workflowId);
-    toast.info('Opening workflow in builder...');
   };
 
   const activeInstances = instances.filter(i => i.status === 'active');
@@ -196,7 +195,7 @@ export default function DashboardContent() {
             </div>
           </div>
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-            <SavedWorkflows onOpenWorkflow={handleOpenWorkflow} />
+            <SavedWorkflows onOpenWorkflow={onOpenWorkflow} />
           </div>
         </div>
       )}

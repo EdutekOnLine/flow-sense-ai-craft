@@ -9,7 +9,7 @@ import { Workflow, Edit, Trash2, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface SavedWorkflowsProps {
-  onOpenWorkflow: (workflowId: string) => void;
+  onOpenWorkflow?: (workflowId: string) => void;
 }
 
 export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
@@ -28,6 +28,14 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
       } catch (error) {
         console.error('Error deleting workflow:', error);
       }
+    }
+  };
+
+  const handleOpenWorkflow = (workflowId: string) => {
+    if (onOpenWorkflow) {
+      onOpenWorkflow(workflowId);
+    } else {
+      console.log('No onOpenWorkflow function provided');
     }
   };
 
@@ -91,7 +99,7 @@ export function SavedWorkflows({ onOpenWorkflow }: SavedWorkflowsProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onOpenWorkflow(workflow.id)}
+                      onClick={() => handleOpenWorkflow(workflow.id)}
                       className="flex items-center gap-1"
                     >
                       <Edit className="h-3 w-3" />
