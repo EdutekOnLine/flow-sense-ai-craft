@@ -130,20 +130,55 @@ export function useWorkflowInstances() {
 
       console.log('Parsed nodes:', nodes);
 
-      // Find the first step (node) that has an assigned user
-      const firstAssignedNode = nodes
-        .filter((node: WorkflowNode) => node?.data?.assignedTo)
-        .sort((a: WorkflowNode, b: WorkflowNode) => (a.position?.y || 0) - (b.position?.y || 0))[0];
+      // Create workflow steps for each node that has assigned users
+      const workflowSteps = [];
+      let firstStepId = null;
 
-      console.log('First assigned node:', firstAssignedNode);
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (node?.data?.assignedTo) {
+          console.log(`Creating workflow step for node ${node.id}:`, node);
+          
+          const { data: newStep, error: stepError } = await supabase
+            .from('workflow_steps')
+            .insert({
+              id: node.id, // Use the original node ID to maintain references
+              workflow_id: newWorkflow.id,
+              name: node.data.label || `Step ${i + 1}`,
+              description: node.data.description || '',
+              assigned_to: node.data.assignedTo,
+              step_order: i + 1,
+              status: 'pending',
+              metadata: node.data.metadata || {}
+            })
+            .select()
+            .single();
 
-      // Create a new workflow instance - now using the workflow ID we just created
+          if (stepError) {
+            console.error('Error creating workflow step:', stepError);
+            // Continue with other steps even if one fails
+          } else {
+            console.log('Created workflow step:', newStep);
+            workflowSteps.push(newStep);
+            
+            // Set the first step as the current step
+            if (!firstStepId) {
+              firstStepId = newStep.id;
+            }
+          }
+        }
+      }
+
+      console.log('Created workflow steps:', workflowSteps);
+      console.log('First step ID:', firstStepId);
+
+      // Create a new workflow instance with the first step as current
       const { data: newWorkflowInstance, error: instanceError } = await supabase
         .from('workflow_instances')
         .insert({
-          workflow_id: newWorkflow.id, // Use the newly created workflow ID
+          workflow_id: newWorkflow.id,
           started_by: user.id,
-          current_step_id: null,
+          current_step_id: firstStepId,
           start_data: {},
           status: 'active'
         })
@@ -157,25 +192,25 @@ export function useWorkflowInstances() {
 
       console.log('Created workflow instance:', newWorkflowInstance);
 
-      // If there's a first assigned node, create an assignment for it
-      if (firstAssignedNode && firstAssignedNode.data?.assignedTo) {
-        console.log('Creating assignment for first step:', firstAssignedNode.id);
+      // Create assignments for all workflow steps
+      for (const step of workflowSteps) {
+        console.log('Creating assignment for step:', step.id);
         
         const { error: assignmentError } = await supabase
           .from('workflow_step_assignments')
           .insert({
-            workflow_step_id: firstAssignedNode.id,
-            assigned_to: firstAssignedNode.data.assignedTo,
+            workflow_step_id: step.id,
+            assigned_to: step.assigned_to,
             assigned_by: user.id,
-            status: 'pending'
+            status: step.id === firstStepId ? 'pending' : 'pending', // All start as pending
+            notes: `Auto-created assignment for step: ${step.name}`
           });
 
         if (assignmentError) {
-          console.error('Error creating first step assignment:', assignmentError);
-          // Don't throw here - the workflow instance was created successfully
-          // Just log the error and continue
+          console.error('Error creating assignment for step:', step.id, assignmentError);
+          // Continue with other assignments even if one fails
         } else {
-          console.log('Successfully created assignment for first step');
+          console.log('Successfully created assignment for step:', step.id);
         }
       }
 
@@ -194,15 +229,15 @@ export function useWorkflowInstances() {
     console.log('Starting workflow:', workflowId);
 
     try {
-      // Create workflow instance from saved workflow and assign first step
-      console.log('Converting saved workflow to workflow instance with first step assignment');
+      // Create workflow instance from saved workflow and assign steps
+      console.log('Converting saved workflow to workflow instance with step assignments');
       const instanceId = await createWorkflowFromSavedWorkflow(workflowId);
       console.log('Created workflow instance with ID:', instanceId);
 
       // Refresh the instances
       await fetchWorkflowInstances();
       
-      toast.success(`Workflow started successfully! First step has been assigned.`);
+      toast.success(`Workflow started successfully! Tasks have been assigned to team members.`);
       
       return { id: instanceId };
     } catch (error) {

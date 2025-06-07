@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,16 +8,64 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 
 type AssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 export function WorkflowInbox() {
-  const { assignments, isLoading, updateAssignmentStatus, completeStep } = useWorkflowAssignments();
+  const { assignments, isLoading, updateAssignmentStatus, completeStep, refetch } = useWorkflowAssignments();
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [notes, setNotes] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Set up real-time subscription for new assignments
+  useEffect(() => {
+    const channel = supabase
+      .channel('workflow-assignments-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'workflow_step_assignments'
+        },
+        (payload) => {
+          console.log('New assignment created:', payload);
+          // Refresh assignments when a new one is created
+          refetch();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'workflow_step_assignments'
+        },
+        (payload) => {
+          console.log('Assignment updated:', payload);
+          // Refresh assignments when one is updated
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -91,6 +139,16 @@ export function WorkflowInbox() {
           <p className="text-gray-600">Tasks ready for you to work on in active workflows</p>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Badge variant="secondary" className="bg-orange-100 text-orange-800">
             {pendingCount} Pending
           </Badge>
@@ -122,10 +180,20 @@ export function WorkflowInbox() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No active tasks</h3>
               <p className="text-gray-600">
                 {statusFilter === 'all' 
-                  ? "You don't have any tasks ready to work on right now. Tasks will appear here when the previous steps in their workflows are completed."
+                  ? "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you."
                   : `No tasks with status "${statusFilter}" are currently ready for you.`
                 }
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 mt-4"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Check for New Tasks
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -189,7 +257,7 @@ export function WorkflowInbox() {
                           size="sm"
                           variant="outline"
                           className="bg-blue-50 hover:bg-blue-100"
-                          onClick={() => handleStatusUpdate('in_progress')}
+                          onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                         >
                           <PlayCircle className="h-4 w-4 mr-1" />
                           Start Working
