@@ -140,7 +140,7 @@ export function useWorkflowInstances() {
         }
       }
 
-      // Check saved_workflows (treat them as reusable by default for now)
+      // Check saved_workflows - but only show if user is assigned to a corresponding workflow's first step
       console.log('=== CHECKING SAVED_WORKFLOWS ===');
       const { data: savedWorkflows, error: savedError } = await supabase
         .from('saved_workflows')
@@ -204,7 +204,7 @@ export function useWorkflowInstances() {
         }
       }
 
-      // Get non-reusable workflows
+      // Get non-reusable workflows where user is assigned to first step and hasn't been started yet
       console.log('=== CHECKING NON-REUSABLE WORKFLOWS ===');
       const { data: nonReusableWorkflows, error: nonReusableError } = await supabase
         .from('workflows')
