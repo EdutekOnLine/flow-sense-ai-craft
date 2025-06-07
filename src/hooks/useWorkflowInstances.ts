@@ -37,6 +37,11 @@ export interface StartableWorkflow {
   };
 }
 
+// Type guard to check if a value is a valid node object
+const isValidNode = (node: any): node is { id: string; data: any; position?: any } => {
+  return node && typeof node === 'object' && node.data && typeof node.data === 'object';
+};
+
 export function useWorkflowInstances() {
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [startableWorkflows, setStartableWorkflows] = useState<StartableWorkflow[]>([]);
@@ -105,16 +110,17 @@ export function useWorkflowInstances() {
           
           // Find the first step (step_order = 1 or the first node)
           const firstNode = nodes.find((node: any) => {
+            if (!isValidNode(node)) return false;
             return node.data && (
               node.data.stepType === 'trigger' || 
               node.data.stepType === 'start' ||
-              node.position?.y === Math.min(...nodes.map((n: any) => n.position?.y || 0))
+              node.position?.y === Math.min(...nodes.filter(isValidNode).map((n: any) => n.position?.y || 0))
             );
-          }) || nodes[0]; // Fallback to first node if no trigger found
+          }) || nodes.find(isValidNode); // Fallback to first valid node if no trigger found
           
           console.log('First node found:', firstNode);
           
-          if (firstNode && firstNode.data) {
+          if (firstNode && isValidNode(firstNode) && firstNode.data) {
             const assignedTo = firstNode.data.assignedTo;
             console.log('First node assigned to:', assignedTo);
             console.log('Current user ID:', user.id);
@@ -249,7 +255,7 @@ export function useWorkflowInstances() {
           let stepOrder = 1;
           
           for (const node of nodes) {
-            if (node.data) {
+            if (isValidNode(node) && node.data) {
               const { data: step, error: stepError } = await supabase
                 .from('workflow_steps')
                 .insert({
