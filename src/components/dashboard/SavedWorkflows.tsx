@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
+import { useUsers } from '@/hooks/useUsers';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Workflow, Edit, Trash2, Calendar, Play, User, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,6 +19,7 @@ interface SavedWorkflowsProps {
 export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflowsProps) {
   const { workflows, isLoading, deleteWorkflow } = useSavedWorkflows();
   const { canEditWorkflows } = useWorkflowPermissions();
+  const { data: users } = useUsers();
 
   // Don't render for employees who can't edit workflows
   if (!canEditWorkflows) {
@@ -73,11 +75,23 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
     };
   };
 
-  // Get the assigned user for the first step
-  const getAssignedUser = (workflow: any) => {
+  // Get the assigned user name for the first step
+  const getAssignedUserName = (workflow: any) => {
     const nodes = workflow.nodes || [];
     const startNode = nodes.find((node: any) => node?.data?.assignedTo);
-    return startNode?.data?.assignedTo || 'Unassigned';
+    const assignedUserId = startNode?.data?.assignedTo;
+    
+    if (!assignedUserId) {
+      return 'Unassigned';
+    }
+    
+    const user = users?.find(u => u.id === assignedUserId);
+    if (user) {
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+      return fullName || user.email;
+    }
+    
+    return assignedUserId; // Fallback to ID if user not found
   };
 
   if (isLoading) {
@@ -148,7 +162,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                       </div>
                       <div className="flex items-center gap-1">
                         <User className="h-3 w-3" />
-                        Assigned to: {getAssignedUser(workflow)}
+                        Assigned to: {getAssignedUserName(workflow)}
                       </div>
                       <Badge variant="secondary" className="text-xs">
                         {workflow.nodes.length} nodes
