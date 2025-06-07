@@ -58,7 +58,6 @@ export function useWorkflowInstances() {
 
       if (error) throw error;
       
-      // Type assertion to ensure proper typing
       const typedData = (data || []).map(item => ({
         ...item,
         status: item.status as 'active' | 'completed' | 'cancelled' | 'paused'
@@ -73,31 +72,31 @@ export function useWorkflowInstances() {
   const fetchStartableWorkflows = async () => {
     if (!user) return;
 
-    console.log('Fetching startable workflows for user:', user.id);
+    console.log('=== DEBUGGING STARTABLE WORKFLOWS ===');
+    console.log('User ID:', user.id);
 
     try {
       const availableWorkflows: StartableWorkflow[] = [];
 
-      // First, get reusable workflow definitions
+      // 1. Get all reusable workflow definitions
+      console.log('Step 1: Fetching reusable workflow definitions...');
       const { data: reusableWorkflowDefs, error: reusableError } = await supabase
         .from('workflow_definitions')
-        .select(`
-          id,
-          name,
-          description,
-          is_reusable
-        `)
+        .select('*')
         .eq('is_reusable', true);
 
       if (reusableError) {
         console.error('Error fetching reusable workflow definitions:', reusableError);
       } else {
-        console.log('Found reusable workflow definitions:', reusableWorkflowDefs?.length);
+        console.log('Found reusable workflow definitions:', reusableWorkflowDefs?.length || 0);
+        console.log('Reusable definitions:', reusableWorkflowDefs);
 
-        // For each reusable workflow definition, check if there's a corresponding active workflow
-        // that the user can start (i.e., they're assigned to the first step)
+        // 2. For each reusable definition, find corresponding active workflows
         for (const workflowDef of reusableWorkflowDefs || []) {
-          const { data: correspondingWorkflows, error: correspondingError } = await supabase
+          console.log(`Processing definition: ${workflowDef.name}`);
+          
+          // Find workflows based on this definition where user is assigned to first step
+          const { data: workflows, error: workflowError } = await supabase
             .from('workflows')
             .select(`
               id,
@@ -114,29 +113,33 @@ export function useWorkflowInstances() {
             .eq('workflow_steps.workflow_step_assignments.assigned_to', user.id)
             .eq('status', 'active');
 
-          if (!correspondingError && correspondingWorkflows && correspondingWorkflows.length > 0) {
-            console.log(`Found ${correspondingWorkflows.length} corresponding workflows for definition ${workflowDef.name}`);
+          if (workflowError) {
+            console.error(`Error fetching workflows for definition ${workflowDef.name}:`, workflowError);
+          } else {
+            console.log(`Found ${workflows?.length || 0} workflows for definition ${workflowDef.name}`);
             
-            // Add each corresponding workflow as startable
-            for (const workflow of correspondingWorkflows) {
+            if (workflows && workflows.length > 0) {
+              // Add this as a startable workflow
               availableWorkflows.push({
-                id: workflowDef.id, // Use the workflow definition ID
+                id: workflowDef.id,
                 name: workflowDef.name,
                 description: workflowDef.description,
-                is_reusable: workflowDef.is_reusable,
+                is_reusable: true,
                 start_step: {
-                  id: workflow.workflow_steps[0].id,
-                  name: workflow.workflow_steps[0].name,
-                  description: workflow.workflow_steps[0].description,
-                  metadata: workflow.workflow_steps[0].metadata,
+                  id: workflows[0].workflow_steps[0].id,
+                  name: workflows[0].workflow_steps[0].name,
+                  description: workflows[0].workflow_steps[0].description,
+                  metadata: workflows[0].workflow_steps[0].metadata,
                 }
               });
+              console.log(`Added reusable workflow: ${workflowDef.name}`);
             }
           }
         }
       }
 
-      // Then get non-reusable workflows where user is assigned to first step
+      // 3. Get non-reusable workflows
+      console.log('Step 3: Fetching non-reusable workflows...');
       const { data: nonReusableWorkflows, error: nonReusableError } = await supabase
         .from('workflows')
         .select(`
@@ -161,9 +164,9 @@ export function useWorkflowInstances() {
       if (nonReusableError) {
         console.error('Error fetching non-reusable workflows:', nonReusableError);
       } else {
-        console.log('Found non-reusable workflows:', nonReusableWorkflows?.length);
+        console.log('Found non-reusable workflows:', nonReusableWorkflows?.length || 0);
 
-        // Check which non-reusable workflows haven't been started yet
+        // Check which haven't been started yet
         for (const workflow of nonReusableWorkflows || []) {
           const { data: existingInstance } = await supabase
             .from('workflow_instances')
@@ -171,13 +174,12 @@ export function useWorkflowInstances() {
             .eq('workflow_id', workflow.id)
             .limit(1);
 
-          // Only include if no instance exists yet
           if (!existingInstance || existingInstance.length === 0) {
             availableWorkflows.push({
               id: workflow.id,
               name: workflow.name,
               description: workflow.description,
-              is_reusable: workflow.is_reusable,
+              is_reusable: false,
               start_step: {
                 id: workflow.workflow_steps[0].id,
                 name: workflow.workflow_steps[0].name,
@@ -189,7 +191,10 @@ export function useWorkflowInstances() {
         }
       }
 
+      console.log('=== FINAL RESULTS ===');
       console.log('Total startable workflows found:', availableWorkflows.length);
+      console.log('Workflows:', availableWorkflows.map(w => ({ name: w.name, reusable: w.is_reusable })));
+      
       setStartableWorkflows(availableWorkflows);
     } catch (error) {
       console.error('Error fetching startable workflows:', error);
@@ -202,8 +207,6 @@ export function useWorkflowInstances() {
     try {
       console.log('Starting workflow:', workflowId);
 
-      // For reusable workflows, we need to find the actual workflow ID to start
-      // (not the workflow definition ID)
       let actualWorkflowId = workflowId;
 
       // Check if this is a reusable workflow definition
@@ -215,7 +218,7 @@ export function useWorkflowInstances() {
         .maybeSingle();
 
       if (!defError && workflowDef) {
-        // This is a reusable workflow definition, find a corresponding workflow
+        // Find a corresponding workflow where user is assigned to first step
         const { data: correspondingWorkflow, error: correspondingError } = await supabase
           .from('workflows')
           .select(`
@@ -239,7 +242,7 @@ export function useWorkflowInstances() {
         actualWorkflowId = correspondingWorkflow.id;
       }
 
-      // Get the first step of the actual workflow
+      // Get the first step
       const { data: firstStep, error: stepError } = await supabase
         .from('workflow_steps')
         .select('id')
@@ -249,7 +252,7 @@ export function useWorkflowInstances() {
 
       if (stepError) throw stepError;
 
-      // Create the workflow instance
+      // Create instance
       const { data, error } = await supabase
         .from('workflow_instances')
         .insert({
@@ -266,7 +269,6 @@ export function useWorkflowInstances() {
 
       console.log('Workflow instance created:', data);
 
-      // Refresh the instances list
       await fetchInstances();
       await fetchStartableWorkflows();
 
