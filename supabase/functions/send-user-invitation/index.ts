@@ -85,9 +85,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Invitation record created successfully:", invitationData);
 
-    // Use your custom domain - check origin first, then fallback to your custom domain
-    const origin = req.headers.get('origin') || req.headers.get('referer');
-    const siteUrl = origin || 'https://neuraflowai.app';
+    // Always use your custom domain for invitations
+    const siteUrl = 'https://neuraflowai.app';
     const inviteUrl = `${siteUrl}/?invite=${invitationToken}`;
     
     const departmentText = department ? ` in the ${department} department` : '';
