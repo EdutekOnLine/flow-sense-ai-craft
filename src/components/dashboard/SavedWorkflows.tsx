@@ -7,7 +7,7 @@ import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useUsers } from '@/hooks/useUsers';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
-import { Workflow, Edit, Trash2, Calendar, Play, User, Repeat } from 'lucide-react';
+import { Workflow, Edit, Trash2, Calendar, User, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
