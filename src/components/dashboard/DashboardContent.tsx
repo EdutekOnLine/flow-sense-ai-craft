@@ -137,52 +137,56 @@ export default function DashboardContent() {
       </div>
 
       {/* Main Content Sections */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Available Workflows - Takes 2 columns */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Available Workflows</h2>
-              <p className="text-gray-600">Choose from workflows you can start and execute</p>
-            </div>
-            {startableWorkflows.length > 0 && (
-              <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-800 border-blue-200 text-lg px-3 py-1">
-                {startableWorkflows.length}
-              </Badge>
-            )}
-          </div>
-          <StartableWorkflows 
-            workflows={startableWorkflows} 
-            onStartWorkflow={handleStartWorkflow}
-            isLoading={isLoading}
-          />
-        </div>
-
-        {/* Sidebar with Tasks and Saved Workflows */}
-        <div className="space-y-6">
-          {/* My Tasks Section */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-green-500 rounded-lg">
-                <Target className="h-5 w-5 text-white" />
+      <div className="grid lg:grid-cols-4 gap-8">
+        {/* Main Content - Takes 3 columns */}
+        <div className="lg:col-span-3 space-y-8">
+          {/* Available Workflows Section */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-900">My Active Tasks</h3>
-                {activeInstances.length > 0 && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-                    {activeInstances.length}
-                  </Badge>
-                )}
+                <h2 className="text-2xl font-bold text-gray-900">Available Workflows</h2>
+                <p className="text-gray-600">Choose from workflows you can start and execute</p>
               </div>
+              {startableWorkflows.length > 0 && (
+                <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-800 border-blue-200 text-lg px-3 py-1">
+                  {startableWorkflows.length}
+                </Badge>
+              )}
             </div>
-            <div className="max-h-96 overflow-y-auto">
+            <StartableWorkflows 
+              workflows={startableWorkflows} 
+              onStartWorkflow={handleStartWorkflow}
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* My Active Tasks Section */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
+                <p className="text-gray-600">Manage your assigned workflow steps</p>
+              </div>
+              {activeInstances.length > 0 && (
+                <Badge variant="secondary" className="ml-auto bg-green-100 text-green-800 border-green-200 text-lg px-3 py-1">
+                  {activeInstances.length}
+                </Badge>
+              )}
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
               <WorkflowInbox />
             </div>
           </div>
+        </div>
 
+        {/* Sidebar - Takes 1 column */}
+        <div className="space-y-6">
           {/* Saved Workflows Section */}
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
             <div className="flex items-center gap-3 mb-4">
