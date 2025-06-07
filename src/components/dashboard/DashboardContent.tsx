@@ -4,6 +4,7 @@ import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { StartableWorkflows } from '@/components/workflow/StartableWorkflows';
 import { SavedWorkflows } from './SavedWorkflows';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -26,6 +27,8 @@ export default function DashboardContent() {
     startWorkflow,
     refreshWorkflows
   } = useWorkflowInstances();
+  
+  const { canEditWorkflows } = useWorkflowPermissions();
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -136,69 +139,67 @@ export default function DashboardContent() {
         </Card>
       </div>
 
-      {/* Main Content Sections */}
-      <div className="grid lg:grid-cols-4 gap-8">
-        {/* Main Content - Takes 3 columns */}
-        <div className="lg:col-span-3 space-y-8">
-          {/* Available Workflows Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Available Workflows</h2>
-                <p className="text-gray-600">Choose from workflows you can start and execute</p>
-              </div>
-              {startableWorkflows.length > 0 && (
-                <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-800 border-blue-200 text-lg px-3 py-1">
-                  {startableWorkflows.length}
-                </Badge>
-              )}
-            </div>
-            <StartableWorkflows 
-              workflows={startableWorkflows} 
-              onStartWorkflow={handleStartWorkflow}
-              isLoading={isLoading}
-            />
+      {/* Available Workflows Section */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <Sparkles className="h-6 w-6 text-white" />
           </div>
-
-          {/* My Active Tasks Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-                <Target className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
-                <p className="text-gray-600">Manage your assigned workflow steps</p>
-              </div>
-              {activeInstances.length > 0 && (
-                <Badge variant="secondary" className="ml-auto bg-green-100 text-green-800 border-green-200 text-lg px-3 py-1">
-                  {activeInstances.length}
-                </Badge>
-              )}
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-              <WorkflowInbox />
-            </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Available Workflows</h2>
+            <p className="text-gray-600">Choose from workflows you can start and execute</p>
           </div>
+          {startableWorkflows.length > 0 && (
+            <Badge variant="secondary" className="ml-auto bg-blue-100 text-blue-800 border-blue-200 text-lg px-3 py-1">
+              {startableWorkflows.length}
+            </Badge>
+          )}
         </div>
+        <StartableWorkflows 
+          workflows={startableWorkflows} 
+          onStartWorkflow={handleStartWorkflow}
+          isLoading={isLoading}
+        />
+      </div>
 
-        {/* Sidebar - Takes 1 column */}
+      {/* My Active Tasks Section */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+            <Target className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
+            <p className="text-gray-600">Manage your assigned workflow steps</p>
+          </div>
+          {activeInstances.length > 0 && (
+            <Badge variant="secondary" className="ml-auto bg-green-100 text-green-800 border-green-200 text-lg px-3 py-1">
+              {activeInstances.length}
+            </Badge>
+          )}
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+          <WorkflowInbox />
+        </div>
+      </div>
+
+      {/* Saved Workflows Section - Only show for users who can edit workflows */}
+      {canEditWorkflows && (
         <div className="space-y-6">
-          {/* Saved Workflows Section */}
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-500 rounded-lg">
-                <Workflow className="h-5 w-5 text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-purple-900">My Saved Workflows</h3>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+              <Workflow className="h-6 w-6 text-white" />
             </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">My Saved Workflows</h2>
+              <p className="text-gray-600">Manage and edit your saved workflow templates</p>
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
             <SavedWorkflows onOpenWorkflow={handleOpenWorkflow} />
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
