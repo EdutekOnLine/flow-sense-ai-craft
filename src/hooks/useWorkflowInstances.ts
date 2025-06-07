@@ -96,6 +96,32 @@ export function useWorkflowInstances() {
         throw new Error('Saved workflow not found');
       }
 
+      // First, create a workflow entry in the workflows table
+      const { data: newWorkflow, error: workflowError } = await supabase
+        .from('workflows')
+        .insert({
+          name: savedWorkflow.name,
+          description: savedWorkflow.description,
+          created_by: user.id,
+          status: 'active',
+          is_reusable: savedWorkflow.is_reusable || false,
+          metadata: {
+            original_saved_workflow_id: savedWorkflowId,
+            nodes: savedWorkflow.nodes,
+            edges: savedWorkflow.edges,
+            viewport: savedWorkflow.viewport
+          }
+        })
+        .select()
+        .single();
+
+      if (workflowError) {
+        console.error('Error creating workflow:', workflowError);
+        throw new Error(`Failed to create workflow: ${workflowError.message}`);
+      }
+
+      console.log('Created workflow:', newWorkflow);
+
       // Safely handle the nodes data
       let nodes: WorkflowNode[] = [];
       if (savedWorkflow.nodes && Array.isArray(savedWorkflow.nodes)) {
@@ -111,13 +137,13 @@ export function useWorkflowInstances() {
 
       console.log('First assigned node:', firstAssignedNode);
 
-      // Create a new workflow instance - set current_step_id to null since we're using custom node IDs
+      // Create a new workflow instance - now using the workflow ID we just created
       const { data: newWorkflowInstance, error: instanceError } = await supabase
         .from('workflow_instances')
         .insert({
-          workflow_id: savedWorkflowId,
+          workflow_id: newWorkflow.id, // Use the newly created workflow ID
           started_by: user.id,
-          current_step_id: null, // Use null instead of the node ID since it's not a UUID
+          current_step_id: null,
           start_data: {},
           status: 'active'
         })
