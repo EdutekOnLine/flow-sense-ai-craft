@@ -85,9 +85,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Invitation record created successfully:", invitationData);
 
-    // Use the actual application URL from the request origin
+    // Use your custom domain - check origin first, then fallback to your custom domain
     const origin = req.headers.get('origin') || req.headers.get('referer');
-    const siteUrl = origin || 'https://7b7a74e7-67d3-4b94-84d6-21a3fcf17722.lovableproject.com';
+    const siteUrl = origin || 'https://neuraflowai.app';
     const inviteUrl = `${siteUrl}/?invite=${invitationToken}`;
     
     const departmentText = department ? ` in the ${department} department` : '';
@@ -137,6 +137,12 @@ const handler = async (req: Request): Promise<Response> => {
             Best regards,<br>
             The NeuraFlow Team
           </p>
+          
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px;">
+              Visit us at <a href="https://neuraflowai.app" style="color: #2563eb;">neuraflowai.app</a>
+            </p>
+          </div>
         </div>
       `,
     });
@@ -176,7 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        status: 500,
+      status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
