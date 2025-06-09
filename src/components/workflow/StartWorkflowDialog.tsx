@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Rocket, Loader2 } from 'lucide-react';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
+import { useTranslation } from 'react-i18next';
 
 interface StartWorkflowDialogProps {
   workflow: StartableWorkflow;
@@ -18,6 +19,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
   const [isOpen, setIsOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const { t } = useTranslation();
 
   // Check if the start step requires inputs
   const requiredInputs = workflow.start_step.metadata?.inputs || [];
@@ -109,7 +111,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
       ) : (
         <Rocket className="h-4 w-4 mr-2" />
       )}
-      {isStarting ? 'Launching...' : 'Launch Workflow'}
+      {isStarting ? t('workflow.launching') : t('workflow.launchWorkflow')}
     </Button>
   );
 
@@ -131,7 +133,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
         ) : (
           <Rocket className="h-4 w-4 mr-2" />
         )}
-        {isStarting ? 'Launching...' : 'Launch Workflow'}
+        {isStarting ? t('workflow.launching') : t('workflow.launchWorkflow')}
       </Button>
     );
   }
@@ -144,20 +146,20 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Launch {workflow.name}</DialogTitle>
+          <DialogTitle>{t('workflow.launch')} {workflow.name}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 pt-4">
           <div className="text-sm text-gray-600">
             {workflow.description && <p className="mb-4">{workflow.description}</p>}
-            <p><strong>First Step:</strong> {workflow.start_step.name}</p>
+            <p><strong>{t('workflow.firstStep')}:</strong> {workflow.start_step.name}</p>
             {workflow.start_step.description && (
               <p className="text-xs mt-1">{workflow.start_step.description}</p>
             )}
           </div>
 
           <div className="space-y-4">
-            <h4 className="font-medium">Required Information</h4>
+            <h4 className="font-medium">{t('workflow.requiredInformation')}</h4>
             {requiredInputs.map(renderInputField)}
           </div>
 
@@ -167,7 +169,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
               onClick={() => setIsOpen(false)}
               disabled={isStarting}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleStart}
@@ -179,7 +181,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
               ) : (
                 <Rocket className="h-4 w-4 mr-2" />
               )}
-              {isStarting ? 'Launching...' : 'Launch Workflow'}
+              {isStarting ? t('workflow.launching') : t('workflow.launchWorkflow')}
             </Button>
           </div>
         </div>

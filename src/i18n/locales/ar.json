@@ -56,7 +56,9 @@
     "noPendingTasks": "لا توجد مهام معلقة",
     "allCaughtUp": "لقد أنجزت كل شيء!",
     "workflowsMoved": "تم نقل سير العمل إلى \"سير العمل المحفوظة\"",
-    "workflowsMovedDescription": "تتم إدارة جميع سير العمل الآن في قسم \"سير العمل المحفوظة\"."
+    "workflowsMovedDescription": "تتم إدارة جميع سير العمل الآن في قسم \"سير العمل المحفوظة\".",
+    "noTasksMessage": "ليس لديك أي مهام جاهزة للعمل عليها في الوقت الحالي. ستظهر المهام هنا عند بدء سير العمل وإسنادها إليك.",
+    "refreshTasks": "البحث عن مهام جديدة"
   },
   "workflow": {
     "launch": "تشغيل",
@@ -87,7 +89,9 @@
     "filterByStatus": "تصفية حسب الحالة",
     "allAssignments": "جميع التعيينات",
     "completed": "مكتمل",
-    "skipped": "تم التخطي"
+    "skipped": "تم التخطي",
+    "requiredInformation": "المعلومات المطلوبة",
+    "firstStep": "الخطوة الأولى"
   },
   "tasks": {
     "completeTask": "إكمال المهمة",
@@ -95,7 +99,11 @@
     "completionNotesPlaceholder": "أضف ملاحظات حول إكمال هذه المهمة...",
     "completeTaskAction": "إكمال المهمة",
     "viewAllTasks": "عرض جميع المهام",
-    "taskCount": "{{count}} مهمة"
+    "taskCount": "{{count}} مهمة",
+    "noTasks": "لا توجد مهام متاحة",
+    "taskCompleted": "تم إكمال المهمة بنجاح!",
+    "taskCompletionError": "فشل في إكمال المهمة. يرجى المحاولة مرة أخرى.",
+    "markComplete": "تمييز كمكتمل"
   },
   "status": {
     "pending": "في الانتظار",

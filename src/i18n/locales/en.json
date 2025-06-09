@@ -56,7 +56,9 @@
     "noPendingTasks": "No pending tasks",
     "allCaughtUp": "You're all caught up!",
     "workflowsMoved": "Workflows moved to \"My Saved Workflows\"",
-    "workflowsMovedDescription": "All workflow management is now handled in the \"My Saved Workflows\" section."
+    "workflowsMovedDescription": "All workflow management is now handled in the \"My Saved Workflows\" section.",
+    "noTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
+    "refreshTasks": "Check for New Tasks"
   },
   "workflow": {
     "launch": "Launch",
@@ -87,7 +89,9 @@
     "filterByStatus": "Filter by status",
     "allAssignments": "All Assignments",
     "completed": "Completed",
-    "skipped": "Skipped"
+    "skipped": "Skipped",
+    "requiredInformation": "Required Information",
+    "firstStep": "First Step"
   },
   "tasks": {
     "completeTask": "Complete Task",
@@ -95,7 +99,11 @@
     "completionNotesPlaceholder": "Add notes about completing this task...",
     "completeTaskAction": "Complete Task",
     "viewAllTasks": "View All Tasks",
-    "taskCount": "{{count}} tasks"
+    "taskCount": "{{count}} tasks",
+    "noTasks": "No tasks available",
+    "taskCompleted": "Task completed successfully!",
+    "taskCompletionError": "Failed to complete task. Please try again.",
+    "markComplete": "Mark Complete"
   },
   "status": {
     "pending": "Pending",
