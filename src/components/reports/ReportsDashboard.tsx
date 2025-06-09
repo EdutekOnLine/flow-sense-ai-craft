@@ -5,13 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, Users, Brain, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings } from 'lucide-react';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { WorkflowPerformanceChart } from './WorkflowPerformanceChart';
 import { UserPerformanceTable } from './UserPerformanceTable';
 import { DepartmentAnalyticsChart } from './DepartmentAnalyticsChart';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { WorkflowTrendsChart } from './WorkflowTrendsChart';
+import ReportBuilder from './ReportBuilder';
+import NaturalLanguageReports from './NaturalLanguageReports';
 import { useAIInsights, useGenerateAIInsights } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 
@@ -59,11 +61,19 @@ export default function ReportsDashboard() {
         <AIInsightsPanel insights={insights} />
       )}
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+      <Tabs defaultValue="analytics" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            {t('reports.tabs.overview')}
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="builder" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Report Builder
+          </TabsTrigger>
+          <TabsTrigger value="ai-reports" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            AI Reports
           </TabsTrigger>
           <TabsTrigger value="workflows" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -83,7 +93,7 @@ export default function ReportsDashboard() {
           )}
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -115,6 +125,14 @@ export default function ReportsDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="builder" className="space-y-6">
+          <ReportBuilder />
+        </TabsContent>
+
+        <TabsContent value="ai-reports" className="space-y-6">
+          <NaturalLanguageReports />
         </TabsContent>
 
         <TabsContent value="workflows" className="space-y-6">

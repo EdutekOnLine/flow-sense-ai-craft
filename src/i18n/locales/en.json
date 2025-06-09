@@ -96,6 +96,23 @@
     "departments": {
       "analytics": "Department Analytics",
       "analyticsDescription": "Cross-departmental performance comparison and insights"
+    },
+    "builder": {
+      "title": "Report Builder",
+      "description": "Create custom reports with AI-powered insights",
+      "configuration": "Basic Configuration",
+      "filters": "Advanced Filters",
+      "preview": "Report Preview",
+      "generate": "Generate Report",
+      "generating": "Generating..."
+    },
+    "naturalLanguage": {
+      "title": "AI-Powered Report Insights",
+      "description": "Natural language analysis and interactive report conversations",
+      "narratives": "Generated Report Narratives",
+      "chat": "Interactive Report Chat",
+      "askQuestion": "Ask about your workflow data...",
+      "confidence": "confidence"
     }
   },
   "workflowBuilder": {
