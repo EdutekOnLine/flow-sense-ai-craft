@@ -1,6 +1,6 @@
-
 import { format as formatDate, formatDistanceToNow as formatDistance } from 'date-fns';
-import { enUS, ar } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale/en-US';
+import { ar } from 'date-fns/locale/ar';
 
 // Get the appropriate date-fns locale based on the current language
 export const getDateFnsLocale = (language: string) => {
