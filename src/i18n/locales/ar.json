@@ -1,5 +1,25 @@
 
 {
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "signOut": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "signInWithEmail": "تسجيل الدخول بالبريد الإلكتروني",
+    "signUpWithEmail": "إنشاء حساب بالبريد الإلكتروني",
+    "loading": "جاري التحميل...",
+    "welcomeBack": "مرحباً بعودتك",
+    "createAccount": "إنشاء حسابك",
+    "authError": "فشل في المصادقة. يرجى المحاولة مرة أخرى.",
+    "signInSuccess": "تم تسجيل الدخول بنجاح!",
+    "signUpSuccess": "تم إنشاء الحساب بنجاح!"
+  },
   "navigation": {
     "dashboard": "لوحة التحكم",
     "myTasks": "مهامي",
@@ -7,7 +27,8 @@
     "users": "المستخدمون",
     "reports": "التقارير",
     "templates": "القوالب",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "workflows": "سير العمل"
   },
   "header": {
     "welcome": "مرحباً، {{name}}",
@@ -45,10 +66,14 @@
     "totalWorkflows": "إجمالي سير العمل",
     "metrics": {
       "totalWorkflows": "إجمالي سير العمل",
+      "activeUsers": "المستخدمون النشطون",
+      "completionRate": "معدل الإنجاز",
+      "avgProcessingTime": "متوسط وقت المعالجة",
       "activeWorkflows": "سير العمل النشط",
       "completedToday": "مكتمل اليوم",
       "avgCompletionTime": "متوسط وقت الإنجاز"
-    }
+    },
+    "welcome": "مرحباً بعودتك"
   },
   "workflow": {
     "launchSuccess": "تم إطلاق سير العمل بنجاح!",
@@ -65,55 +90,6 @@
     "assignedTo": "مُسند إلى",
     "nodes": "عقد",
     "moreWorkflows": "المزيد من سير العمل"
-  },
-  "languages": {
-    "english": "الإنجليزية",
-    "arabic": "العربية"
-  },
-  "reports": {
-    "title": "التحليلات والتقارير",
-    "description": "رؤى شاملة حول أداء سير العمل وإنتاجية الفريق",
-    "tabs": {
-      "overview": "نظرة عامة",
-      "workflows": "سير العمل",
-      "users": "المستخدمون",
-      "departments": "الإدارات"
-    },
-    "overview": {
-      "trends": "اتجاهات سير العمل",
-      "trendsDescription": "أنماط إنشاء وإنجاز سير العمل اليومية",
-      "performance": "نظرة عامة على الأداء",
-      "performanceDescription": "مؤشرات الأداء الرئيسية ومعدلات الإنجاز"
-    },
-    "workflows": {
-      "performance": "تحليل أداء سير العمل",
-      "performanceDescription": "تفصيل مفصل لتقدم سير العمل الفردي والكفاءة"
-    },
-    "users": {
-      "performance": "مقاييس أداء المستخدم",
-      "performanceDescription": "إنتاجية أعضاء الفريق الفردي وإحصائيات الإنجاز"
-    },
-    "departments": {
-      "analytics": "تحليلات الإدارة",
-      "analyticsDescription": "مقارنة الأداء عبر الإدارات والرؤى"
-    },
-    "builder": {
-      "title": "منشئ التقارير",
-      "description": "إنشاء تقارير مخصصة مع رؤى مدعومة بالذكاء الاصطناعي",
-      "configuration": "التكوين الأساسي",
-      "filters": "المرشحات المتقدمة",
-      "preview": "معاينة التقرير",
-      "generate": "إنشاء التقرير",
-      "generating": "جاري الإنشاء..."
-    },
-    "naturalLanguage": {
-      "title": "رؤى التقارير المدعومة بالذكاء الاصطناعي",
-      "description": "تحليل باللغة الطبيعية ومحادثات التقارير التفاعلية",
-      "narratives": "سرديات التقارير المُولدة",
-      "chat": "محادثة التقارير التفاعلية",
-      "askQuestion": "اسأل عن بيانات سير العمل...",
-      "confidence": "الثقة"
-    }
   },
   "workflowBuilder": {
     "title": "منشئ سير العمل",
@@ -170,7 +146,18 @@
     "title": "إدارة المستخدمين",
     "inviteUser": "دعوة مستخدم",
     "editUser": "تحرير المستخدم",
-    "deleteUser": "حذف المستخدم"
+    "deleteUser": "حذف المستخدم",
+    "roles": {
+      "admin": "مدير",
+      "manager": "مدير",
+      "employee": "موظف",
+      "root": "مستخدم جذر"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "pending": "معلق"
+    }
   },
   "myTasks": {
     "title": "مهامي",
@@ -185,19 +172,173 @@
     "skipped": "مُتجاهل",
     "active": "نشط"
   },
-  "common": {
-    "assigned": "مُسند",
-    "start": "بدء",
-    "done": "تم",
-    "cancel": "إلغاء",
-    "completing": "جاري الإنجاز...",
-    "open": "فتح"
-  },
   "tasks": {
     "completeTask": "إنجاز المهمة",
     "completionNotes": "ملاحظات الإنجاز",
     "completionNotesPlaceholder": "أضف أي ملاحظات حول إنجاز هذه المهمة...",
     "completeTaskAction": "إنجاز المهمة",
     "viewAllTasks": "عرض جميع المهام"
+  },
+  "workflows": {
+    "title": "سير العمل",
+    "create": "إنشاء سير عمل",
+    "edit": "تحرير سير العمل",
+    "delete": "حذف سير العمل",
+    "duplicate": "تكرار سير العمل",
+    "start": "بدء سير العمل",
+    "pause": "إيقاف سير العمل مؤقتاً",
+    "resume": "استئناف سير العمل",
+    "complete": "إكمال سير العمل",
+    "status": {
+      "draft": "مسودة",
+      "active": "نشط",
+      "paused": "متوقف مؤقتاً",
+      "completed": "مكتمل",
+      "cancelled": "ملغي"
+    },
+    "builder": {
+      "title": "منشئ سير العمل",
+      "addStep": "إضافة خطوة",
+      "removeStep": "إزالة خطوة",
+      "stepTypes": {
+        "task": "مهمة",
+        "approval": "موافقة",
+        "condition": "شرط",
+        "notification": "إشعار"
+      }
+    }
+  },
+  "reports": {
+    "title": "التحليلات والتقارير",
+    "description": "رؤى شاملة حول أداء سير العمل وإنتاجية الفريق",
+    "tabs": {
+      "overview": "نظرة عامة",
+      "workflows": "سير العمل",
+      "users": "المستخدمون",
+      "departments": "الإدارات",
+      "analytics": "التحليلات",
+      "templates": "القوالب",
+      "builder": "منشئ التقارير",
+      "aiReports": "تقارير الذكاء الاصطناعي",
+      "aiAssistant": "مساعد الذكاء الاصطناعي",
+      "predictive": "التحليلات التنبؤية",
+      "recommendations": "التوصيات الذكية"
+    },
+    "overview": {
+      "title": "نظرة عامة على التحليلات",
+      "trends": "اتجاهات سير العمل",
+      "trendsDescription": "أنماط إنشاء وإنجاز سير العمل اليومية",
+      "performance": "نظرة عامة على الأداء",
+      "performanceDescription": "مؤشرات الأداء الرئيسية ومعدلات الإنجاز"
+    },
+    "workflows": {
+      "performance": "تحليل أداء سير العمل",
+      "performanceDescription": "تفصيل مفصل لتقدم سير العمل الفردي والكفاءة"
+    },
+    "users": {
+      "performance": "مقاييس أداء المستخدم",
+      "performanceDescription": "إنتاجية أعضاء الفريق الفردي وإحصائيات الإنجاز"
+    },
+    "departments": {
+      "analytics": "تحليلات الإدارة",
+      "analyticsDescription": "مقارنة الأداء عبر الإدارات والرؤى"
+    },
+    "aiInsights": {
+      "title": "رؤى مدعومة بالذكاء الاصطناعي",
+      "generating": "جاري إنشاء الرؤى...",
+      "noInsights": "لا توجد رؤى متاحة",
+      "performance": "تحليل الأداء",
+      "predictions": "التحليلات التنبؤية",
+      "recommendations": "التوصيات",
+      "patterns": "التعرف على الأنماط"
+    },
+    "builder": {
+      "title": "منشئ التقارير",
+      "description": "إنشاء تقارير مخصصة مع رؤى مدعومة بالذكاء الاصطناعي",
+      "configuration": "التكوين الأساسي",
+      "visualization": "التصور",
+      "preview": "معاينة التقرير",
+      "export": "تصدير",
+      "generateReport": "إنشاء التقرير",
+      "exportReport": "تصدير التقرير"
+    },
+    "templates": {
+      "title": "قوالب التقارير",
+      "description": "قوالب تقارير محددة مسبقاً للاحتياجات التجارية الشائعة",
+      "categories": {
+        "executive": "تنفيذي",
+        "operational": "تشغيلي",
+        "compliance": "امتثال",
+        "predictive": "تنبؤي"
+      },
+      "actions": {
+        "preview": "معاينة",
+        "generate": "إنشاء",
+        "download": "تحميل"
+      }
+    },
+    "naturalLanguage": {
+      "title": "رؤى التقارير المدعومة بالذكاء الاصطناعي",
+      "description": "تحليل باللغة الطبيعية ومحادثات التقارير التفاعلية",
+      "placeholder": "اسأل عن بيانات سير العمل...",
+      "examples": {
+        "performance": "أظهر لي مقاييس الأداء للربع الماضي",
+        "users": "قارن إنتاجية المستخدم عبر الإدارات",
+        "trends": "حلل اتجاهات إنجاز سير العمل هذا الشهر"
+      },
+      "narratives": "سرديات التقارير المُولدة",
+      "chat": "محادثة التقارير التفاعلية",
+      "confidence": "الثقة"
+    },
+    "predictive": {
+      "title": "التحليلات التنبؤية",
+      "description": "التنبؤ وتحليل الاتجاهات مدعوم بالتعلم الآلي",
+      "forecast": "توقعات الأداء",
+      "anomalies": "كشف الشذوذ",
+      "capacity": "تخطيط القدرات",
+      "trends": "تحليل الاتجاهات"
+    },
+    "recommendations": {
+      "title": "التوصيات الذكية",
+      "description": "اقتراحات التحسين مدعومة بالذكاء الاصطناعي بناءً على أنماط البيانات",
+      "automation": "فرص الأتمتة",
+      "resource": "تحسين الموارد",
+      "process": "تحسينات العملية",
+      "training": "توصيات التدريب"
+    }
+  },
+  "languages": {
+    "english": "الإنجليزية",
+    "arabic": "العربية"
+  },
+  "common": {
+    "assigned": "مُسند",
+    "start": "بدء",
+    "done": "تم",
+    "cancel": "إلغاء",
+    "completing": "جاري الإنجاز...",
+    "open": "فتح",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تحرير",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "export": "تصدير",
+    "import": "استيراد",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "warning": "تحذير",
+    "info": "معلومات",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "back": "العودة",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق"
   }
 }

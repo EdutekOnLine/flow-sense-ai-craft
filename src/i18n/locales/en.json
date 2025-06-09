@@ -1,3 +1,4 @@
+
 {
   "auth": {
     "signIn": "Sign In",
@@ -24,22 +25,142 @@
     "workflows": "Workflows",
     "reports": "Reports",
     "users": "Users",
-    "settings": "Settings"
+    "settings": "Settings",
+    "myTasks": "My Tasks",
+    "workflowBuilder": "Workflow Builder",
+    "templates": "Templates"
+  },
+  "header": {
+    "welcome": "Welcome, {{name}}",
+    "signOut": "Sign Out"
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome back",
+    "subtitle": "Your central hub for workflow management and insights",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "myAssignedTasks": "My Assigned Tasks",
+    "myAssignedTasksDescription": "View and manage tasks assigned to you across all workflows",
+    "myReusableWorkflows": "My Reusable Workflows",
+    "myReusableWorkflowsDescription": "Start new instances from reusable workflow templates",
+    "mySavedWorkflows": "My Saved Workflows",
+    "mySavedWorkflowsDescription": "View and edit workflows you've created",
+    "allSavedWorkflows": "All Saved Workflows",
+    "allSavedWorkflowsDescription": "View and manage all workflows in the organization",
+    "welcomeTitle": "Welcome to NeuraFlow!",
+    "welcomeMessage": "You can view your assigned tasks and start reusable workflows here. Contact your manager to get workflow creation permissions.",
+    "noReusableWorkflows": "No reusable workflows found",
+    "reusableWorkflowsInfo": "Reusable workflows allow you to start new instances from predefined workflow templates",
+    "pendingTasks": "Pending Tasks",
+    "activeTasks": "Active Tasks",
+    "reusableWorkflows": "Reusable Workflows",
+    "noSavedWorkflows": "No saved workflows found",
+    "createFirstWorkflow": "Create your first workflow to get started",
+    "noPendingTasks": "No pending tasks",
+    "allCaughtUp": "You're all caught up!",
+    "completedToday": "Completed Today",
+    "workflowsMoved": "Workflows Moved",
+    "workflowsMovedDescription": "Reusable workflows are now managed in the 'My Reusable Workflows' section above.",
+    "activeWorkflows": "Active Workflows",
+    "totalWorkflows": "Total Workflows",
     "metrics": {
       "totalWorkflows": "Total Workflows",
       "activeUsers": "Active Users",
       "completionRate": "Completion Rate",
-      "avgProcessingTime": "Avg Processing Time"
+      "avgProcessingTime": "Avg Processing Time",
+      "activeWorkflows": "Active Workflows",
+      "completedToday": "Completed Today",
+      "avgCompletionTime": "Avg Completion Time"
     },
-    "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions",
-    "createWorkflow": "Create Workflow",
-    "viewReports": "View Reports",
-    "manageUsers": "Manage Users"
+    "welcome": "Welcome back"
+  },
+  "workflow": {
+    "launchSuccess": "Workflow launched successfully!",
+    "launchError": "Failed to launch workflow. Please try again.",
+    "unassigned": "Unassigned",
+    "reusable": "Reusable",
+    "updated": "Updated",
+    "startsWith": "Starts with",
+    "steps": "Steps",
+    "launch": "Launch",
+    "launching": "Launching...",
+    "deleteConfirm": "Are you sure you want to delete this workflow?",
+    "oneTime": "One Time",
+    "assignedTo": "Assigned to",
+    "nodes": "Nodes",
+    "moreWorkflows": "More Workflows"
+  },
+  "workflowBuilder": {
+    "title": "Workflow Builder",
+    "newWorkflow": "New Workflow",
+    "loadWorkflow": "Load Workflow",
+    "workflowSteps": "Workflow Steps",
+    "dragAndDrop": "Drag and drop steps to build your workflow",
+    "triggers": "Triggers",
+    "actions": "Actions",
+    "conditions": "Conditions",
+    "utilities": "Utilities",
+    "new": "New",
+    "save": "Save",
+    "saving": "Saving...",
+    "aiGenerate": "AI Generate",
+    "explainWorkflow": "Explain Workflow",
+    "aiAssistant": "AI Assistant",
+    "steps": {
+      "formSubmitted": "Form Submitted",
+      "formSubmittedDesc": "Triggers when a form is submitted by a user",
+      "schedule": "Schedule",
+      "scheduleDesc": "Triggers at specific times or intervals",
+      "webhook": "Webhook",
+      "webhookDesc": "Triggers when a webhook is received",
+      "recordCreated": "Record Created",
+      "recordCreatedDesc": "Triggers when a new record is created in the database",
+      "sendEmail": "Send Email",
+      "sendEmailDesc": "Sends an email to specified recipients",
+      "updateRecord": "Update Record",
+      "updateRecordDesc": "Updates existing records in the database",
+      "sendNotification": "Send Notification",
+      "sendNotificationDesc": "Sends notifications to users or systems",
+      "createTask": "Create Task",
+      "createTaskDesc": "Creates a new task and assigns it to users",
+      "ifCondition": "If Condition",
+      "ifConditionDesc": "Branches workflow based on conditional logic",
+      "filter": "Filter",
+      "filterDesc": "Filters data based on specified criteria",
+      "switchCase": "Switch Case",
+      "switchCaseDesc": "Routes workflow based on multiple conditions",
+      "wait": "Wait",
+      "waitDesc": "Pauses workflow execution for a specified duration",
+      "approval": "Approval",
+      "approvalDesc": "Requires user approval before proceeding",
+      "webhookCall": "Webhook Call",
+      "webhookCallDesc": "Makes an HTTP request to an external service",
+      "delay": "Delay",
+      "delayDesc": "Delays execution for a specified time period",
+      "errorHandler": "Error Handler",
+      "errorHandlerDesc": "Handles errors and exceptions in the workflow"
+    }
+  },
+  "myTasks": {
+    "title": "My Tasks",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "completed": "Completed"
+  },
+  "status": {
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "skipped": "Skipped",
+    "active": "Active"
+  },
+  "tasks": {
+    "completeTask": "Complete Task",
+    "completionNotes": "Completion Notes",
+    "completionNotesPlaceholder": "Add any notes about completing this task...",
+    "completeTaskAction": "Complete Task",
+    "viewAllTasks": "View All Tasks"
   },
   "workflows": {
     "title": "Workflows",
@@ -186,9 +307,18 @@
       "pending": "Pending"
     }
   },
+  "languages": {
+    "english": "English",
+    "arabic": "Arabic"
+  },
   "common": {
-    "save": "Save",
+    "assigned": "Assigned",
+    "start": "Start",
+    "done": "Done",
     "cancel": "Cancel",
+    "completing": "Completing...",
+    "open": "Open",
+    "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -209,7 +339,6 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
-    "close": "Close",
-    "open": "Open"
+    "close": "Close"
   }
 }
