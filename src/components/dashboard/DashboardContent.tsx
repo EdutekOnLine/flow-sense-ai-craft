@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
+import { DashboardTasks } from './DashboardTasks';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,13 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
     }
   };
 
+  const handleViewAllTasks = () => {
+    // Switch to the workflow-inbox tab
+    window.location.hash = 'workflow-inbox';
+    // Trigger a custom event to update the active tab
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  };
+
   return (
     <div className="space-y-8">
       {/* Header with colorful gradient */}
@@ -54,6 +62,11 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
         </div>
         <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-white/10 rounded-full blur-lg"></div>
+      </div>
+
+      {/* My Assigned Tasks Section - Show for ALL users */}
+      <div className="space-y-6">
+        <DashboardTasks onViewAllTasks={handleViewAllTasks} />
       </div>
 
       {/* Saved Workflows Section - Only show for users who can edit workflows */}

@@ -44,6 +44,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [isMainDashboard, location.pathname]);
 
+  // Add hash change listener to handle programmatic navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (isMainDashboard) {
+        const hash = window.location.hash.slice(1);
+        if (hash) {
+          setActiveTab(hash);
+        } else {
+          setActiveTab('dashboard');
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [isMainDashboard]);
+
   const handleSignOut = async () => {
     await signOut();
   };
