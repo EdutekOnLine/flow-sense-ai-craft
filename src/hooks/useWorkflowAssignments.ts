@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -108,7 +109,7 @@ export function useWorkflowAssignments() {
           workflowInstance = instanceData[0];
           console.log('Found workflow instance:', workflowInstance);
 
-          // CRITICAL: Only show assignment if it's the current step in the workflow instance
+          // Show assignment if it's the current step OR if it's completed
           if (workflowInstance.current_step_id === assignment.workflow_step_id) {
             shouldShow = true;
             console.log(`Assignment ${assignment.id} is the current step, showing to user`);
@@ -289,6 +290,33 @@ export function useWorkflowAssignments() {
       });
     }
   }, [assignments, user?.id, toast, fetchAssignments]);
+
+  // Set up real-time subscription for assignment changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-assignments')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workflow_step_assignments',
+          filter: `assigned_to=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Assignment change detected:', payload);
+          // Refresh assignments when any change occurs
+          fetchAssignments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchAssignments]);
 
   useEffect(() => {
     fetchAssignments();

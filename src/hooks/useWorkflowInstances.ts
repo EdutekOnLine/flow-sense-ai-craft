@@ -192,27 +192,35 @@ export function useWorkflowInstances() {
 
       console.log('Created workflow instance:', newWorkflowInstance);
 
-      // Create assignments for all workflow steps
-      for (const step of workflowSteps) {
-        console.log('Creating assignment for step:', step.id);
+      // CRITICAL FIX: Create assignments for all workflow steps automatically
+      console.log('Creating assignments for all workflow steps...');
+      const assignmentPromises = workflowSteps.map(async (step) => {
+        console.log('Creating assignment for step:', step.id, 'assigned to:', step.assigned_to);
         
-        const { error: assignmentError } = await supabase
+        const { data: assignment, error: assignmentError } = await supabase
           .from('workflow_step_assignments')
           .insert({
             workflow_step_id: step.id,
             assigned_to: step.assigned_to,
             assigned_by: user.id,
-            status: step.id === firstStepId ? 'pending' : 'pending', // All start as pending
+            status: 'pending', // All start as pending - only current step will be actionable
             notes: `Auto-created assignment for step: ${step.name}`
-          });
+          })
+          .select()
+          .single();
 
         if (assignmentError) {
           console.error('Error creating assignment for step:', step.id, assignmentError);
-          // Continue with other assignments even if one fails
+          throw assignmentError;
         } else {
-          console.log('Successfully created assignment for step:', step.id);
+          console.log('Successfully created assignment:', assignment);
+          return assignment;
         }
-      }
+      });
+
+      // Wait for all assignments to be created
+      const createdAssignments = await Promise.all(assignmentPromises);
+      console.log('All assignments created successfully:', createdAssignments);
 
       return newWorkflowInstance.id;
     } catch (error) {
