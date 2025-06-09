@@ -29,7 +29,11 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 import { supabase } from '@/integrations/supabase/client';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 
-export default function DashboardLayout() {
+interface DashboardLayoutProps {
+  children?: React.ReactNode;
+}
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { t } = useTranslation();
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -208,7 +212,7 @@ export default function DashboardLayout() {
         {/* Page content */}
         <main className="py-10">
           <div className="px-4 sm:px-6 lg:px-8">
-            <Outlet />
+            {children || <Outlet />}
           </div>
         </main>
       </div>
