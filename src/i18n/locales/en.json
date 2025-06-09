@@ -1,0 +1,68 @@
+
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "open": "Open",
+    "close": "Close",
+    "add": "Add",
+    "new": "New",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "search": "Search"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "myTasks": "My Tasks",
+    "workflowBuilder": "Workflow Builder",
+    "users": "Users",
+    "reports": "Reports",
+    "templates": "Templates",
+    "settings": "Settings"
+  },
+  "header": {
+    "welcome": "Welcome, {{name}}",
+    "signOut": "Sign Out"
+  },
+  "dashboard": {
+    "myAssignedTasks": "My Assigned Tasks",
+    "allSavedWorkflows": "All Saved Workflows",
+    "myReusableWorkflows": "My Reusable Workflows",
+    "noTasksAssigned": "No tasks assigned to you",
+    "pendingTasksInfo": "You'll see workflow tasks assigned to you here",
+    "noSavedWorkflows": "No saved workflows yet",
+    "createFirstWorkflow": "Create and save your first workflow in the Workflow Builder",
+    "noReusableWorkflows": "No reusable workflows available",
+    "reusableWorkflowsInfo": "You'll see reusable workflows you can start here"
+  },
+  "workflow": {
+    "launch": "Launch",
+    "launchWorkflow": "Launch Workflow",
+    "launching": "Launching...",
+    "reusable": "Reusable",
+    "oneTime": "One-time",
+    "assignedTo": "Assigned to",
+    "startsWith": "Starts with",
+    "unassigned": "Unassigned",
+    "nodes": "nodes",
+    "steps": "steps",
+    "updated": "Updated",
+    "moreWorkflows": "And {{count}} more workflows...",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?"
+  },
+  "workflowBuilder": {
+    "aiGenerate": "AI Generate",
+    "explainWorkflow": "Explain Workflow",
+    "aiAssistant": "AI Assistant",
+    "saving": "Saving..."
+  },
+  "languages": {
+    "english": "English",
+    "arabic": "العربية",
+    "changeLanguage": "Change Language"
+  }
+}

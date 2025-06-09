@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -13,6 +14,7 @@ import {
   Inbox
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
@@ -26,6 +28,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const { canEditWorkflows } = useWorkflowPermissions();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
 
@@ -71,13 +74,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-inbox', label: 'My Tasks', icon: Inbox, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow, roles: ['admin', 'manager'] },
-    { id: 'users', label: 'Users', icon: Users, roles: ['admin', 'manager'] },
-    { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'manager'] },
-    { id: 'templates', label: 'Templates', icon: FileText, roles: ['admin', 'manager', 'employee'] },
-    { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
+    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee'] },
+    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager'] },
+    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager'] },
+    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager'] },
+    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee'] },
+    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin'] },
   ];
 
   const visibleNavItems = navigationItems.filter(item => 
@@ -117,21 +120,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'reports':
         return (
           <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Reports</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.reports')}</h2>
             <p className="text-gray-600">Analytics and reporting functionality coming soon...</p>
           </div>
         );
       case 'templates':
         return (
           <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Templates</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.templates')}</h2>
             <p className="text-gray-600">Workflow templates functionality coming soon...</p>
           </div>
         );
       case 'settings':
         return (
           <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Settings</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.settings')}</h2>
             <p className="text-gray-600">System settings functionality coming soon...</p>
           </div>
         );
@@ -151,16 +154,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
               <NotificationCenter />
               <span className="text-sm text-gray-600">
-                Welcome, {profile?.first_name || profile?.email}
+                {t('header.welcome', { name: profile?.first_name || profile?.email })}
               </span>
               <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                 {profile?.role?.toUpperCase()}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                {t('header.signOut')}
               </Button>
             </div>
           </div>

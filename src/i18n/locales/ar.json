@@ -1,0 +1,68 @@
+
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "open": "فتح",
+    "close": "إغلاق",
+    "add": "إضافة",
+    "new": "جديد",
+    "yes": "نعم",
+    "no": "لا",
+    "confirm": "تأكيد",
+    "search": "بحث"
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "myTasks": "مهامي",
+    "workflowBuilder": "منشئ سير العمل",
+    "users": "المستخدمون",
+    "reports": "التقارير",
+    "templates": "القوالب",
+    "settings": "الإعدادات"
+  },
+  "header": {
+    "welcome": "مرحباً، {{name}}",
+    "signOut": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "myAssignedTasks": "المهام المسندة إلي",
+    "allSavedWorkflows": "جميع سير العمل المحفوظة",
+    "myReusableWorkflows": "سير العمل القابلة للإعادة",
+    "noTasksAssigned": "لا توجد مهام مسندة إليك",
+    "pendingTasksInfo": "ستظهر مهام سير العمل المسندة إليك هنا",
+    "noSavedWorkflows": "لا توجد سير عمل محفوظة بعد",
+    "createFirstWorkflow": "قم بإنشاء وحفظ أول سير عمل في منشئ سير العمل",
+    "noReusableWorkflows": "لا توجد سير عمل قابلة للإعادة",
+    "reusableWorkflowsInfo": "ستظهر سير العمل القابلة للإعادة التي يمكنك بدؤها هنا"
+  },
+  "workflow": {
+    "launch": "تشغيل",
+    "launchWorkflow": "تشغيل سير العمل",
+    "launching": "جاري التشغيل...",
+    "reusable": "قابل للإعادة",
+    "oneTime": "لمرة واحدة",
+    "assignedTo": "مسند إلى",
+    "startsWith": "يبدأ مع",
+    "unassigned": "غير مسند",
+    "nodes": "عقد",
+    "steps": "خطوات",
+    "updated": "محدث",
+    "moreWorkflows": "و {{count}} سير عمل أخرى...",
+    "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"؟"
+  },
+  "workflowBuilder": {
+    "aiGenerate": "توليد بالذكاء الاصطناعي",
+    "explainWorkflow": "شرح سير العمل",
+    "aiAssistant": "مساعد الذكاء الاصطناعي",
+    "saving": "جاري الحفظ..."
+  },
+  "languages": {
+    "english": "English",
+    "arabic": "العربية",
+    "changeLanguage": "تغيير اللغة"
+  }
+}
