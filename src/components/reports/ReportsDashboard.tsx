@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings, Template } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings, Layout } from 'lucide-react';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { WorkflowPerformanceChart } from './WorkflowPerformanceChart';
 import { UserPerformanceTable } from './UserPerformanceTable';
@@ -70,7 +70,7 @@ export default function ReportsDashboard() {
             Analytics
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
-            <Template className="h-4 w-4" />
+            <Layout className="h-4 w-4" />
             Templates
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-2">

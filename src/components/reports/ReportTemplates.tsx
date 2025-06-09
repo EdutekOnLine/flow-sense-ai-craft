@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, FileText, BarChart3, Users, TrendingUp, AlertTriangle, Download, Eye } from 'lucide-react';
 import { useWorkflowAnalytics, useUserAnalytics, useDepartmentAnalytics, useWorkflowTrends } from '@/hooks/useAnalytics';
-import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics';
+import { usePredictiveAnalytics, useAnomalyDetection, useResourceOptimization } from '@/hooks/useAdvancedAnalytics';
 import { toast } from 'sonner';
 
 interface ReportTemplate {
