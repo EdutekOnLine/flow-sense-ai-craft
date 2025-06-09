@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,25 +20,41 @@ export interface SavedWorkflow {
 }
 
 export function useSavedWorkflows() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchWorkflows = useCallback(async () => {
-    if (!user) {
-      console.log('No user found, skipping workflow fetch');
+    if (!user || !profile) {
+      console.log('No user or profile found, skipping workflow fetch');
       return;
     }
 
-    console.log('Fetching workflows for user:', user.id);
+    console.log('Fetching workflows for user:', user.id, 'with role:', profile.role);
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('saved_workflows')
-        .select('*')
-        .order('updated_at', { ascending: false });
+        .select('*');
+
+      // Role-based filtering
+      if (profile.role === 'admin') {
+        // Admins see all workflows - no filter needed
+        console.log('Admin user - fetching all workflows');
+      } else if (profile.role === 'manager') {
+        // Managers only see workflows they created
+        console.log('Manager user - fetching only workflows created by user');
+        query = query.eq('created_by', user.id);
+      } else {
+        // Employees shouldn't reach this point due to permission guards, but safety check
+        console.log('Employee user - no workflow access');
+        setWorkflows([]);
+        return;
+      }
+
+      const { data, error } = await query.order('updated_at', { ascending: false });
 
       if (error) throw error;
 
@@ -58,7 +73,7 @@ export function useSavedWorkflows() {
       }));
 
       setWorkflows(transformedWorkflows);
-      console.log('Fetched workflows:', transformedWorkflows);
+      console.log('Fetched workflows:', transformedWorkflows.length, 'workflows for role:', profile.role);
     } catch (error) {
       console.error('Error fetching workflows:', error);
       toast({
@@ -69,7 +84,7 @@ export function useSavedWorkflows() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, toast]);
+  }, [user, profile, toast]);
 
   const saveWorkflow = useCallback(async (
     name: string,
