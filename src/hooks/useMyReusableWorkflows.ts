@@ -39,10 +39,11 @@ export function useMyReusableWorkflows() {
         if (nodes.length === 0) return false;
 
         // Find the first step (node with earliest Y position or start/trigger type)
-        const firstNode = nodes.find((node: any) => {
-          // Safely access node properties
-          if (!node || typeof node !== 'object') return false;
+        const firstNode = nodes.find((nodeJson: any) => {
+          // Type cast and safely access node properties
+          if (!nodeJson || typeof nodeJson !== 'object') return false;
           
+          const node = nodeJson as { data?: any; position?: { y: number } };
           const nodeData = node.data;
           if (!nodeData || typeof nodeData !== 'object') return false;
 
@@ -51,17 +52,26 @@ export function useMyReusableWorkflows() {
             nodeData.stepType === 'start' ||
             (node.position && typeof node.position.y === 'number' && 
              node.position.y === Math.min(...nodes
-               .filter((n: any) => n?.position?.y !== undefined && typeof n.position.y === 'number')
-               .map((n: any) => n.position.y)))
+               .filter((n: any) => {
+                 if (!n || typeof n !== 'object') return false;
+                 const nNode = n as { position?: { y: number } };
+                 return nNode.position?.y !== undefined && typeof nNode.position.y === 'number';
+               })
+               .map((n: any) => {
+                 const nNode = n as { position: { y: number } };
+                 return nNode.position.y;
+               })))
           );
-        }) || nodes.find((node: any) => {
-          if (!node || typeof node !== 'object') return false;
+        }) || nodes.find((nodeJson: any) => {
+          if (!nodeJson || typeof nodeJson !== 'object') return false;
+          const node = nodeJson as { data?: any };
           const nodeData = node.data;
           return nodeData && typeof nodeData === 'object' && nodeData.assignedTo;
         }) || nodes[0];
 
         if (!firstNode || typeof firstNode !== 'object') return false;
-        const firstNodeData = firstNode.data;
+        const firstNodeTyped = firstNode as { data?: any };
+        const firstNodeData = firstNodeTyped.data;
         if (!firstNodeData || typeof firstNodeData !== 'object') return false;
 
         return firstNodeData.assignedTo === user.id;
