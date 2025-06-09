@@ -15,15 +15,34 @@
   },
   "dashboard": {
     "title": "لوحة التحكم",
+    "subtitle": "مركزك الرئيسي لإدارة سير العمل والرؤى",
     "overview": "نظرة عامة",
     "recentActivity": "النشاط الحديث",
     "quickActions": "إجراءات سريعة",
+    "myAssignedTasks": "مهامي المُسندة",
+    "myAssignedTasksDescription": "عرض وإدارة المهام المُسندة إليك عبر جميع سير العمل",
+    "myReusableWorkflows": "سير العمل القابل للإعادة",
+    "myReusableWorkflowsDescription": "بدء حالات جديدة من قوالب سير العمل القابلة للإعادة",
+    "mySavedWorkflows": "سير العمل المحفوظ",
+    "mySavedWorkflowsDescription": "عرض وتحرير سير العمل الذي أنشأته",
+    "allSavedWorkflows": "جميع سير العمل المحفوظ",
+    "allSavedWorkflowsDescription": "عرض وإدارة جميع سير العمل في المنظمة",
+    "welcomeTitle": "مرحباً بك في NeuraFlow!",
+    "welcomeMessage": "يمكنك عرض مهامك المُسندة وبدء سير العمل القابل للإعادة هنا. اتصل بالمدير للحصول على صلاحية إنشاء سير العمل.",
     "metrics": {
       "totalWorkflows": "إجمالي سير العمل",
       "activeWorkflows": "سير العمل النشط",
       "completedToday": "مكتمل اليوم",
       "avgCompletionTime": "متوسط وقت الإنجاز"
     }
+  },
+  "workflow": {
+    "launchSuccess": "تم إطلاق سير العمل بنجاح!",
+    "launchError": "فشل في إطلاق سير العمل. يرجى المحاولة مرة أخرى."
+  },
+  "languages": {
+    "english": "الإنجليزية",
+    "arabic": "العربية"
   },
   "reports": {
     "title": "التحليلات والتقارير",

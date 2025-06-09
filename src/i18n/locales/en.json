@@ -15,15 +15,34 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "subtitle": "Your central hub for workflow management and insights",
     "overview": "Overview",
     "recentActivity": "Recent Activity",
     "quickActions": "Quick Actions",
+    "myAssignedTasks": "My Assigned Tasks",
+    "myAssignedTasksDescription": "View and manage tasks assigned to you across all workflows",
+    "myReusableWorkflows": "My Reusable Workflows",
+    "myReusableWorkflowsDescription": "Start new instances of your reusable workflow templates",
+    "mySavedWorkflows": "My Saved Workflows",
+    "mySavedWorkflowsDescription": "View and edit workflows you've created",
+    "allSavedWorkflows": "All Saved Workflows",
+    "allSavedWorkflowsDescription": "View and manage all workflows in the organization",
+    "welcomeTitle": "Welcome to NeuraFlow!",
+    "welcomeMessage": "You can view your assigned tasks and start reusable workflows here. Contact your administrator for workflow creation access.",
     "metrics": {
       "totalWorkflows": "Total Workflows",
       "activeWorkflows": "Active Workflows",
       "completedToday": "Completed Today",
       "avgCompletionTime": "Avg Completion Time"
     }
+  },
+  "workflow": {
+    "launchSuccess": "Workflow launched successfully!",
+    "launchError": "Failed to launch workflow. Please try again."
+  },
+  "languages": {
+    "english": "English",
+    "arabic": "Arabic"
   },
   "reports": {
     "title": "Analytics & Reports",
