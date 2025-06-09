@@ -11,9 +11,10 @@ import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 interface StartWorkflowDialogProps {
   workflow: StartableWorkflow;
   onStartWorkflow: (workflowId: string, startData: any) => Promise<void>;
+  trigger?: React.ReactNode;
 }
 
-export function StartWorkflowDialog({ workflow, onStartWorkflow }: StartWorkflowDialogProps) {
+export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: StartWorkflowDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -96,9 +97,29 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow }: StartWorkflow
     }
   };
 
+  // Default trigger if none provided
+  const defaultTrigger = (
+    <Button
+      className="bg-green-600 hover:bg-green-700"
+      size="sm"
+      disabled={isStarting}
+    >
+      {isStarting ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : (
+        <Play className="h-4 w-4 mr-2" />
+      )}
+      {isStarting ? 'Starting...' : 'Start Workflow'}
+    </Button>
+  );
+
   // If no inputs required, show simple start button
   if (!hasInputs) {
-    return (
+    return trigger ? (
+      <div onClick={handleStart} style={{ cursor: 'pointer', display: 'inline-block' }}>
+        {trigger}
+      </div>
+    ) : (
       <Button
         onClick={handleStart}
         disabled={isStarting}
@@ -119,10 +140,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow }: StartWorkflow
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 hover:bg-green-700" size="sm">
-          <Play className="h-4 w-4 mr-2" />
-          Start Workflow
-        </Button>
+        {trigger || defaultTrigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

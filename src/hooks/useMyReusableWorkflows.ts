@@ -40,14 +40,31 @@ export function useMyReusableWorkflows() {
 
         // Find the first step (node with earliest Y position or start/trigger type)
         const firstNode = nodes.find((node: any) => {
-          return node?.data && node.data.assignedTo && (
-            node.data.stepType === 'trigger' || 
-            node.data.stepType === 'start' ||
-            node.position?.y === Math.min(...nodes.filter((n: any) => n?.position?.y !== undefined).map((n: any) => n.position.y))
-          );
-        }) || nodes.find((node: any) => node?.data?.assignedTo) || nodes[0];
+          // Safely access node properties
+          if (!node || typeof node !== 'object') return false;
+          
+          const nodeData = node.data;
+          if (!nodeData || typeof nodeData !== 'object') return false;
 
-        return firstNode?.data?.assignedTo === user.id;
+          return nodeData.assignedTo && (
+            nodeData.stepType === 'trigger' || 
+            nodeData.stepType === 'start' ||
+            (node.position && typeof node.position.y === 'number' && 
+             node.position.y === Math.min(...nodes
+               .filter((n: any) => n?.position?.y !== undefined && typeof n.position.y === 'number')
+               .map((n: any) => n.position.y)))
+          );
+        }) || nodes.find((node: any) => {
+          if (!node || typeof node !== 'object') return false;
+          const nodeData = node.data;
+          return nodeData && typeof nodeData === 'object' && nodeData.assignedTo;
+        }) || nodes[0];
+
+        if (!firstNode || typeof firstNode !== 'object') return false;
+        const firstNodeData = firstNode.data;
+        if (!firstNodeData || typeof firstNodeData !== 'object') return false;
+
+        return firstNodeData.assignedTo === user.id;
       });
 
       // Transform the database data to match our SavedWorkflow interface
