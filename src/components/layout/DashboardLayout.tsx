@@ -75,13 +75,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const navigationItems = [
-    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee'] },
-    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager'] },
-    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager'] },
-    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager'] },
-    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee'] },
-    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin'] },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'] },
+    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'] },
+    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'] },
+    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'] },
   ];
 
   const visibleNavItems = navigationItems.filter(item => 
