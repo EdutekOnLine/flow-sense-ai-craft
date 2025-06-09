@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
@@ -26,14 +26,6 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   if (!canEditWorkflows) {
     return null;
   }
-
-  // Dynamic title based on user role
-  const getTitle = () => {
-    if (profile?.role === 'admin') {
-      return 'All Saved Workflows';
-    }
-    return 'My Saved Workflows';
-  };
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -105,120 +97,102 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Workflow className="h-5 w-5 text-blue-500" />
-            {getTitle()}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Workflow className="h-5 w-5 text-blue-500" />
-          {getTitle()}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {workflows.length === 0 ? (
-          <div className="text-center py-8">
-            <Workflow className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">No saved workflows yet</p>
-            <p className="text-sm text-gray-400">Create and save your first workflow in the Workflow Builder</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {workflows.slice(0, 5).map((workflow) => (
-              <div
-                key={workflow.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm">{workflow.name}</h4>
-                      <Badge 
-                        variant={workflow.is_reusable ? "default" : "secondary"}
-                        className={workflow.is_reusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
-                      >
-                        {workflow.is_reusable ? (
-                          <>
-                            <Repeat className="h-3 w-3 mr-1" />
-                            Reusable
-                          </>
-                        ) : (
-                          'One-time'
-                        )}
-                      </Badge>
-                    </div>
-                    {workflow.description && (
-                      <p className="text-xs text-gray-600 mb-2">{workflow.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Updated {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        Assigned to: {getAssignedUserName(workflow)}
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {workflow.nodes.length} nodes
-                      </Badge>
-                    </div>
+    <div>
+      {workflows.length === 0 ? (
+        <div className="text-center py-8">
+          <Workflow className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+          <p className="text-purple-600 mb-2">No saved workflows yet</p>
+          <p className="text-sm text-purple-500">Create and save your first workflow in the Workflow Builder</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {workflows.slice(0, 5).map((workflow) => (
+            <div
+              key={workflow.id}
+              className="border border-purple-200 rounded-lg p-4 bg-white hover:bg-purple-25 transition-colors"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium text-sm text-purple-800">{workflow.name}</h4>
+                    <Badge 
+                      variant={workflow.is_reusable ? "default" : "secondary"}
+                      className={workflow.is_reusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
+                    >
+                      {workflow.is_reusable ? (
+                        <>
+                          <Repeat className="h-3 w-3 mr-1" />
+                          Reusable
+                        </>
+                      ) : (
+                        'One-time'
+                      )}
+                    </Badge>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    {onStartWorkflow && (
-                      <StartWorkflowDialog
-                        workflow={convertToStartableWorkflow(workflow)}
-                        onStartWorkflow={onStartWorkflow}
-                      />
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        console.log('Open button clicked for workflow:', workflow.id);
-                        handleOpenWorkflow(workflow.id);
-                      }}
-                      className="flex items-center gap-1"
-                    >
-                      <Edit className="h-3 w-3" />
-                      Open
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(workflow.id, workflow.name)}
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                  {workflow.description && (
+                    <p className="text-xs text-purple-600 mb-2">{workflow.description}</p>
+                  )}
+                  <div className="flex items-center gap-4 text-xs text-purple-600">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Updated {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      Assigned to: {getAssignedUserName(workflow)}
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {workflow.nodes.length} nodes
+                    </Badge>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 ml-4">
+                  {onStartWorkflow && (
+                    <StartWorkflowDialog
+                      workflow={convertToStartableWorkflow(workflow)}
+                      onStartWorkflow={onStartWorkflow}
+                    />
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('Open button clicked for workflow:', workflow.id);
+                      handleOpenWorkflow(workflow.id);
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Open
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(workflow.id, workflow.name)}
+                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            ))}
-            {workflows.length > 5 && (
-              <div className="text-center pt-4 border-t">
-                <p className="text-sm text-gray-600">
-                  And {workflows.length - 5} more workflows...
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            </div>
+          ))}
+          {workflows.length > 5 && (
+            <div className="text-center pt-4 border-t border-purple-200">
+              <p className="text-sm text-purple-600">
+                And {workflows.length - 5} more workflows...
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
