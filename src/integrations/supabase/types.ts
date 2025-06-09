@@ -9,42 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      ai_insights: {
-        Row: {
-          confidence_score: number | null
-          created_at: string
-          data: Json | null
-          description: string
-          expires_at: string | null
-          id: string
-          insight_type: string
-          is_active: boolean | null
-          title: string
-        }
-        Insert: {
-          confidence_score?: number | null
-          created_at?: string
-          data?: Json | null
-          description: string
-          expires_at?: string | null
-          id?: string
-          insight_type: string
-          is_active?: boolean | null
-          title: string
-        }
-        Update: {
-          confidence_score?: number | null
-          created_at?: string
-          data?: Json | null
-          description?: string
-          expires_at?: string | null
-          id?: string
-          insight_type?: string
-          is_active?: boolean | null
-          title?: string
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           created_at: string
@@ -227,13 +191,6 @@ export type Database = {
             foreignKeyName: "workflow_comments_workflow_id_fkey"
             columns: ["workflow_id"]
             isOneToOne: false
-            referencedRelation: "workflow_performance_analytics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_comments_workflow_id_fkey"
-            columns: ["workflow_id"]
-            isOneToOne: false
             referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
@@ -318,13 +275,6 @@ export type Database = {
             columns: ["current_step_id"]
             isOneToOne: false
             referencedRelation: "workflow_steps"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_instances_workflow_id_fkey"
-            columns: ["workflow_id"]
-            isOneToOne: false
-            referencedRelation: "workflow_performance_analytics"
             referencedColumns: ["id"]
           },
           {
@@ -434,13 +384,6 @@ export type Database = {
             foreignKeyName: "workflow_steps_workflow_id_fkey"
             columns: ["workflow_id"]
             isOneToOne: false
-            referencedRelation: "workflow_performance_analytics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workflow_steps_workflow_id_fkey"
-            columns: ["workflow_id"]
-            isOneToOne: false
             referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
@@ -532,72 +475,7 @@ export type Database = {
       }
     }
     Views: {
-      department_analytics: {
-        Row: {
-          avg_time_variance: number | null
-          completed_steps: number | null
-          department: string | null
-          department_completion_rate: number | null
-          total_actual_hours: number | null
-          total_estimated_hours: number | null
-          total_steps: number | null
-          total_users: number | null
-          workflows_created: number | null
-        }
-        Relationships: []
-      }
-      user_performance_analytics: {
-        Row: {
-          avg_time_variance: number | null
-          completion_rate: number | null
-          department: string | null
-          full_name: string | null
-          id: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          steps_assigned: number | null
-          steps_completed: number | null
-          steps_in_progress: number | null
-          total_actual_hours: number | null
-          total_estimated_hours: number | null
-          workflows_assigned: number | null
-          workflows_created: number | null
-        }
-        Relationships: []
-      }
-      workflow_performance_analytics: {
-        Row: {
-          assigned_to: string | null
-          assigned_to_name: string | null
-          completed_steps: number | null
-          completion_percentage: number | null
-          created_at: string | null
-          created_by: string | null
-          created_by_name: string | null
-          id: string | null
-          in_progress_steps: number | null
-          name: string | null
-          pending_steps: number | null
-          priority: Database["public"]["Enums"]["task_priority"] | null
-          status: Database["public"]["Enums"]["workflow_status"] | null
-          total_actual_hours: number | null
-          total_duration_hours: number | null
-          total_estimated_hours: number | null
-          total_steps: number | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      workflow_trends: {
-        Row: {
-          avg_completion_time_hours: number | null
-          date: string | null
-          workflows_active: number | null
-          workflows_completed: number | null
-          workflows_created: number | null
-          workflows_paused: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_current_user_role: {
