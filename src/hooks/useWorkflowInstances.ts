@@ -132,6 +132,7 @@ export function useWorkflowInstances() {
 
       // Create workflow steps for each node that has assigned users
       const workflowSteps = [];
+      const nodeIdToStepIdMap: { [nodeId: string]: string } = {};
       let firstStepId = null;
 
       for (let i = 0; i < nodes.length; i++) {
@@ -139,27 +140,33 @@ export function useWorkflowInstances() {
         if (node?.data?.assignedTo) {
           console.log(`Creating workflow step for node ${node.id}:`, node);
           
+          // CRITICAL FIX: Generate a proper UUID for the step and store original node ID in metadata
           const { data: newStep, error: stepError } = await supabase
             .from('workflow_steps')
             .insert({
-              id: node.id, // Use the original node ID to maintain references
+              // Don't specify ID - let Supabase generate a proper UUID
               workflow_id: newWorkflow.id,
               name: node.data.label || `Step ${i + 1}`,
               description: node.data.description || '',
               assigned_to: node.data.assignedTo,
               step_order: i + 1,
               status: 'pending',
-              metadata: node.data.metadata || {}
+              metadata: {
+                ...node.data.metadata,
+                original_node_id: node.id, // Store the original node ID for reference
+                node_position: node.position
+              }
             })
             .select()
             .single();
 
           if (stepError) {
             console.error('Error creating workflow step:', stepError);
-            // Continue with other steps even if one fails
+            throw new Error(`Failed to create workflow step: ${stepError.message}`);
           } else {
             console.log('Created workflow step:', newStep);
             workflowSteps.push(newStep);
+            nodeIdToStepIdMap[node.id] = newStep.id;
             
             // Set the first step as the current step
             if (!firstStepId) {
@@ -170,6 +177,7 @@ export function useWorkflowInstances() {
       }
 
       console.log('Created workflow steps:', workflowSteps);
+      console.log('Node ID to Step ID mapping:', nodeIdToStepIdMap);
       console.log('First step ID:', firstStepId);
 
       // Create a new workflow instance with the first step as current
@@ -179,7 +187,7 @@ export function useWorkflowInstances() {
           workflow_id: newWorkflow.id,
           started_by: user.id,
           current_step_id: firstStepId,
-          start_data: {},
+          start_data: { nodeIdToStepIdMap }, // Store the mapping for future reference
           status: 'active'
         })
         .select()
