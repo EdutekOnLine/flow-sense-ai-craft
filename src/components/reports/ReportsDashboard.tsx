@@ -65,10 +65,22 @@ export default function ReportsDashboard() {
       )}
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="ai-chat" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            AI Assistant
+          </TabsTrigger>
+          <TabsTrigger value="predictive" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Predictive
+          </TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            Recommendations
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <Layout className="h-4 w-4" />
@@ -77,10 +89,6 @@ export default function ReportsDashboard() {
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Report Builder
-          </TabsTrigger>
-          <TabsTrigger value="ai-reports" className="flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            AI Reports
           </TabsTrigger>
           <TabsTrigger value="workflows" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -99,6 +107,18 @@ export default function ReportsDashboard() {
             </TabsTrigger>
           )}
         </TabsList>
+
+        <TabsContent value="ai-chat" className="space-y-6">
+          <EnhancedNaturalLanguageReports />
+        </TabsContent>
+
+        <TabsContent value="predictive" className="space-y-6">
+          <PredictiveAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="space-y-6">
+          <IntelligentRecommendationsEngine />
+        </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -148,10 +168,6 @@ export default function ReportsDashboard() {
 
         <TabsContent value="builder" className="space-y-6">
           <ReportBuilder />
-        </TabsContent>
-
-        <TabsContent value="ai-reports" className="space-y-6">
-          <NaturalLanguageReports />
         </TabsContent>
 
         <TabsContent value="workflows" className="space-y-6">
