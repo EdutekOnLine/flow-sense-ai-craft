@@ -21,6 +21,7 @@ import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import ReportsDashboard from '@/components/reports/ReportsDashboard';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -75,20 +76,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     window.location.hash = tabId;
   };
 
-  const navigationItems = [
-    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'] },
-    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'] },
-    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'] },
-    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'] },
-  ];
-
-  const visibleNavItems = navigationItems.filter(item => 
-    item.roles.includes(profile?.role || 'employee')
-  );
-
   const handleOpenWorkflow = (workflowId: string) => {
     console.log('DashboardLayout handleOpenWorkflow called with workflowId:', workflowId);
     console.log('canEditWorkflows:', canEditWorkflows);
@@ -110,6 +97,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     console.log('Switched to workflow-builder tab');
   };
 
+  const navigationItems = [
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'] },
+    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'] },
+    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'] },
+    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'] },
+    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'] },
+  ];
+
+  const visibleNavItems = navigationItems.filter(item => 
+    item.roles.includes(profile?.role || 'employee')
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'workflow-inbox':
@@ -120,12 +121,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         // Allow all users to access workflow builder - it will handle permissions internally
         return <WorkflowBuilder />;
       case 'reports':
-        return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.reports')}</h2>
-            <p className="text-gray-600">Analytics and reporting functionality coming soon...</p>
-          </div>
-        );
+        return <ReportsDashboard />;
       case 'templates':
         return (
           <div className="text-center py-8">
