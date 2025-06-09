@@ -1,3 +1,4 @@
+
 {
   "auth": {
     "signIn": "Sign In",
@@ -75,15 +76,13 @@
     "description": "Comprehensive reporting and business intelligence",
     "tabs": {
       "overview": "Overview",
-      "workflows": "Workflows", 
+      "workflows": "Workflows",
       "users": "Users",
       "departments": "Departments",
       "analytics": "Analytics",
       "templates": "Templates",
       "builder": "Builder",
-      "aiReports": "AI Reports",
-      "workspace": "Workspace",
-      "customizer": "Customizer"
+      "aiReports": "AI Reports"
     },
     "overview": {
       "title": "Analytics Overview",
@@ -150,49 +149,6 @@
       "narratives": "Generated Report Narratives",
       "chat": "Interactive Report Chat",
       "confidence": "Confidence"
-    },
-    "collaboration": {
-      "title": "Collaborative Editing",
-      "description": "Work together in real-time on reports",
-      "collaborators": "Collaborators",
-      "comments": "Comments",
-      "addComment": "Add Comment",
-      "markResolved": "Mark as resolved",
-      "shareReport": "Share Report",
-      "autoSaving": "Auto-saving...",
-      "lastSaved": "Last saved",
-      "editMode": "Edit Mode",
-      "exitEdit": "Exit Edit"
-    },
-    "workspace": {
-      "title": "Report Workspaces",
-      "description": "Collaborate on reports with your team",
-      "newReport": "New Report",
-      "searchReports": "Search reports...",
-      "allTypes": "All Types",
-      "members": "members",
-      "share": "Share",
-      "noReports": "No reports found",
-      "createFirst": "Get started by creating your first report",
-      "tryAdjusting": "Try adjusting your search or filter criteria"
-    },
-    "customizer": {
-      "title": "Dashboard Customizer",
-      "description": "Customize your dashboard layout and widgets",
-      "newLayout": "New Layout",
-      "editMode": "Edit Mode",
-      "exitEdit": "Exit Edit",
-      "layouts": "Dashboard Layouts",
-      "addWidget": "Add Widget",
-      "selectType": "Select widget type",
-      "widgetTypes": {
-        "metric": "Key Metric",
-        "chart": "Chart",
-        "table": "Data Table",
-        "text": "Text Widget"
-      },
-      "noWidgets": "No widgets in this layout",
-      "addFromLibrary": "Add widgets from the library on the left"
     }
   },
   "users": {

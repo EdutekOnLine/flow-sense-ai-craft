@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,18 +65,10 @@ export default function ReportsDashboard() {
       )}
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
-          </TabsTrigger>
-          <TabsTrigger value="workspace" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Workspace
-          </TabsTrigger>
-          <TabsTrigger value="customizer" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Customizer
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <Layout className="h-4 w-4" />
@@ -147,14 +140,6 @@ export default function ReportsDashboard() {
               <ReportInsightsPanel />
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="workspace" className="space-y-6">
-          <ReportWorkspace />
-        </TabsContent>
-
-        <TabsContent value="customizer" className="space-y-6">
-          <DashboardCustomizer />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
