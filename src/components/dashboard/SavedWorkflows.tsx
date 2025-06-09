@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Workflow, Edit, Trash2, Calendar, User, Repeat } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatLocalizedDistanceToNow, formatLocalizedNumber } from '@/utils/localization';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
 interface SavedWorkflowsProps {
@@ -22,7 +21,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   const { canEditWorkflows } = useWorkflowPermissions();
   const { profile } = useAuth();
   const { data: users } = useUsers();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Don't render for employees who can't edit workflows
   if (!canEditWorkflows) {
@@ -144,14 +143,14 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                   <div className="flex items-center gap-4 text-xs text-purple-600">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {t('workflow.updated')} {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                      {t('workflow.updated')} {formatLocalizedDistanceToNow(new Date(workflow.updated_at), i18n.language)}
                     </div>
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3" />
                       {t('workflow.assignedTo')}: {getAssignedUserName(workflow)}
                     </div>
                     <Badge variant="secondary" className="text-xs">
-                      {workflow.nodes.length} {t('workflow.nodes')}
+                      {formatLocalizedNumber(workflow.nodes.length, i18n.language)} {t('workflow.nodes')}
                     </Badge>
                   </div>
                 </div>
@@ -189,7 +188,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
           {workflows.length > 5 && (
             <div className="text-center pt-4 border-t border-purple-200">
               <p className="text-sm text-purple-600">
-                {t('workflow.moreWorkflows', { count: workflows.length - 5 })}
+                {t('workflow.moreWorkflows', { count: formatLocalizedNumber(workflows.length - 5, i18n.language) })}
               </p>
             </div>
           )}

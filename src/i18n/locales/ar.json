@@ -77,5 +77,14 @@
     "english": "English",
     "arabic": "العربية",
     "changeLanguage": "تغيير اللغة"
+  },
+  "dateTime": {
+    "justNow": "الآن",
+    "minutesAgo": "منذ {{count}} دقائق",
+    "hoursAgo": "منذ {{count}} ساعات",
+    "daysAgo": "منذ {{count}} أيام",
+    "weeksAgo": "منذ {{count}} أسابيع",
+    "monthsAgo": "منذ {{count}} أشهر",
+    "yearsAgo": "منذ {{count}} سنوات"
   }
 }
