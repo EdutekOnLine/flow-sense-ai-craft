@@ -1,241 +1,194 @@
 
 {
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "forgotPassword": "Forgot Password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInWithEmail": "Sign in with email",
+    "signUpWithEmail": "Sign up with email",
+    "loading": "Loading...",
+    "welcomeBack": "Welcome back",
+    "createAccount": "Create your account",
+    "authError": "Authentication failed. Please try again.",
+    "signInSuccess": "Successfully signed in!",
+    "signUpSuccess": "Account created successfully!"
+  },
   "navigation": {
     "dashboard": "Dashboard",
-    "myTasks": "My Tasks",
-    "workflowBuilder": "Workflow Builder",
-    "users": "Users",
+    "workflows": "Workflows",
     "reports": "Reports",
-    "templates": "Templates",
+    "users": "Users",
     "settings": "Settings"
-  },
-  "header": {
-    "welcome": "Welcome, {{name}}",
-    "signOut": "Sign Out"
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Your central hub for workflow management and insights",
-    "overview": "Overview",
-    "recentActivity": "Recent Activity",
-    "quickActions": "Quick Actions",
-    "myAssignedTasks": "My Assigned Tasks",
-    "myAssignedTasksDescription": "View and manage tasks assigned to you across all workflows",
-    "myReusableWorkflows": "My Reusable Workflows",
-    "myReusableWorkflowsDescription": "Start new instances of your reusable workflow templates",
-    "mySavedWorkflows": "My Saved Workflows",
-    "mySavedWorkflowsDescription": "View and edit workflows you've created",
-    "allSavedWorkflows": "All Saved Workflows",
-    "allSavedWorkflowsDescription": "View and manage all workflows in the organization",
-    "welcomeTitle": "Welcome to NeuraFlow!",
-    "welcomeMessage": "You can view your assigned tasks and start reusable workflows here. Contact your administrator for workflow creation access.",
-    "noReusableWorkflows": "No reusable workflows available",
-    "reusableWorkflowsInfo": "Reusable workflows allow you to start new instances of predefined workflow templates",
-    "pendingTasks": "Pending Tasks",
-    "activeTasks": "Active Tasks",
-    "reusableWorkflows": "Reusable Workflows",
-    "noSavedWorkflows": "No saved workflows found",
-    "createFirstWorkflow": "Create your first workflow to get started",
-    "noPendingTasks": "No pending tasks",
-    "allCaughtUp": "You're all caught up!",
-    "completedToday": "Completed Today",
-    "workflowsMoved": "Workflows Moved",
-    "workflowsMovedDescription": "Reusable workflows are now managed in the 'My Reusable Workflows' section above.",
-    "activeWorkflows": "Active Workflows",
-    "totalWorkflows": "Total Workflows",
+    "welcome": "Welcome back",
     "metrics": {
       "totalWorkflows": "Total Workflows",
-      "activeWorkflows": "Active Workflows",
-      "completedToday": "Completed Today",
-      "avgCompletionTime": "Avg Completion Time"
+      "activeUsers": "Active Users",
+      "completionRate": "Completion Rate",
+      "avgProcessingTime": "Avg Processing Time"
+    },
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "createWorkflow": "Create Workflow",
+    "viewReports": "View Reports",
+    "manageUsers": "Manage Users"
+  },
+  "workflows": {
+    "title": "Workflows",
+    "create": "Create Workflow",
+    "edit": "Edit Workflow",
+    "delete": "Delete Workflow",
+    "duplicate": "Duplicate Workflow",
+    "start": "Start Workflow",
+    "pause": "Pause Workflow",
+    "resume": "Resume Workflow",
+    "complete": "Complete Workflow",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "builder": {
+      "title": "Workflow Builder",
+      "addStep": "Add Step",
+      "removeStep": "Remove Step",
+      "stepTypes": {
+        "task": "Task",
+        "approval": "Approval",
+        "condition": "Condition",
+        "notification": "Notification"
+      }
     }
   },
-  "workflow": {
-    "launchSuccess": "Workflow launched successfully!",
-    "launchError": "Failed to launch workflow. Please try again.",
-    "unassigned": "Unassigned",
-    "reusable": "Reusable",
-    "updated": "Updated",
-    "startsWith": "Starts with",
-    "steps": "steps",
-    "launch": "Launch",
-    "launching": "Launching...",
-    "deleteConfirm": "Are you sure you want to delete this workflow?",
-    "oneTime": "One-time",
-    "assignedTo": "Assigned to",
-    "nodes": "nodes",
-    "moreWorkflows": "More workflows"
-  },
-  "languages": {
-    "english": "English",
-    "arabic": "Arabic"
-  },
   "reports": {
-    "title": "Analytics & Reports",
-    "description": "Comprehensive insights into your workflow performance and team productivity",
+    "title": "Reports & Analytics",
+    "description": "Comprehensive reporting and business intelligence",
     "tabs": {
       "overview": "Overview",
       "workflows": "Workflows",
       "users": "Users",
-      "departments": "Departments"
+      "departments": "Departments",
+      "analytics": "Analytics",
+      "templates": "Templates",
+      "builder": "Builder",
+      "aiReports": "AI Reports"
     },
     "overview": {
+      "title": "Analytics Overview",
       "trends": "Workflow Trends",
-      "trendsDescription": "Daily workflow creation and completion patterns",
-      "performance": "Performance Overview",
-      "performanceDescription": "Key performance indicators and completion rates"
+      "trendsDescription": "Track workflow performance over time",
+      "performance": "Performance Metrics",
+      "performanceDescription": "Key performance indicators and metrics"
     },
     "workflows": {
-      "performance": "Workflow Performance Analysis",
-      "performanceDescription": "Detailed breakdown of individual workflow progress and efficiency"
+      "performance": "Workflow Performance",
+      "performanceDescription": "Detailed workflow execution metrics and trends"
     },
     "users": {
-      "performance": "User Performance Metrics",
-      "performanceDescription": "Individual team member productivity and completion statistics"
+      "performance": "User Performance",
+      "performanceDescription": "Individual user productivity and engagement metrics"
     },
     "departments": {
       "analytics": "Department Analytics",
       "analyticsDescription": "Cross-departmental performance comparison and insights"
     },
+    "aiInsights": {
+      "title": "AI-Powered Insights",
+      "generating": "Generating insights...",
+      "noInsights": "No insights available",
+      "performance": "Performance Analysis",
+      "predictions": "Predictive Analytics",
+      "recommendations": "Recommendations",
+      "patterns": "Pattern Recognition"
+    },
     "builder": {
       "title": "Report Builder",
-      "description": "Create custom reports with AI-powered insights",
-      "configuration": "Basic Configuration",
-      "filters": "Advanced Filters",
-      "preview": "Report Preview",
-      "generate": "Generate Report",
-      "generating": "Generating..."
-    },
-    "naturalLanguage": {
-      "title": "AI-Powered Report Insights",
-      "description": "Natural language analysis and interactive report conversations",
-      "narratives": "Generated Report Narratives",
-      "chat": "Interactive Report Chat",
-      "askQuestion": "Ask about your workflow data...",
-      "confidence": "confidence"
+      "description": "Create custom reports with advanced visualizations",
+      "configuration": "Configuration",
+      "visualization": "Visualization",
+      "preview": "Preview",
+      "export": "Export",
+      "generateReport": "Generate Report",
+      "exportReport": "Export Report"
     },
     "templates": {
       "title": "Report Templates",
-      "description": "Pre-configured report templates for common business scenarios",
+      "description": "Pre-configured report templates for common business needs",
       "categories": {
         "executive": "Executive",
         "operational": "Operational", 
         "compliance": "Compliance",
         "predictive": "Predictive"
       },
-      "executive": {
-        "summary": {
-          "name": "Executive Summary",
-          "description": "High-level overview with key performance indicators and strategic insights"
-        }
-      },
-      "operational": {
-        "performance": {
-          "name": "Performance Analysis",
-          "description": "Detailed operational metrics and team productivity analysis"
-        },
-        "resource": {
-          "name": "Resource Utilization",
-          "description": "Workload distribution and capacity optimization insights"
-        }
-      },
-      "compliance": {
-        "audit": {
-          "name": "Compliance Audit",
-          "description": "Process adherence and regulatory compliance assessment"
-        }
-      },
-      "predictive": {
-        "forecast": {
-          "name": "Predictive Analytics",
-          "description": "Future performance forecasting and trend predictions"
-        }
+      "actions": {
+        "preview": "Preview",
+        "generate": "Generate",
+        "download": "Download"
       }
-    }
-  },
-  "workflowBuilder": {
-    "title": "Workflow Builder",
-    "newWorkflow": "New Workflow",
-    "loadWorkflow": "Load Workflow",
-    "workflowSteps": "Workflow Steps",
-    "dragAndDrop": "Drag and drop steps to build your workflow",
-    "triggers": "Triggers",
-    "actions": "Actions",
-    "conditions": "Conditions",
-    "utilities": "Utilities",
-    "new": "New",
-    "save": "Save",
-    "saving": "Saving...",
-    "aiGenerate": "AI Generate",
-    "explainWorkflow": "Explain Workflow",
-    "aiAssistant": "AI Assistant",
-    "steps": {
-      "formSubmitted": "Form Submitted",
-      "formSubmittedDesc": "Triggers when a form is submitted by a user",
-      "schedule": "Schedule",
-      "scheduleDesc": "Triggers at specified times or intervals",
-      "webhook": "Webhook",
-      "webhookDesc": "Triggers when a webhook is received",
-      "recordCreated": "Record Created",
-      "recordCreatedDesc": "Triggers when a new record is created in the database",
-      "sendEmail": "Send Email",
-      "sendEmailDesc": "Sends an email to specified recipients",
-      "updateRecord": "Update Record",
-      "updateRecordDesc": "Updates existing records in the database",
-      "sendNotification": "Send Notification",
-      "sendNotificationDesc": "Sends notifications to users or systems",
-      "createTask": "Create Task",
-      "createTaskDesc": "Creates a new task and assigns it to users",
-      "ifCondition": "If Condition",
-      "ifConditionDesc": "Branches workflow based on conditional logic",
-      "filter": "Filter",
-      "filterDesc": "Filters data based on specified criteria",
-      "switchCase": "Switch Case",
-      "switchCaseDesc": "Routes workflow based on multiple conditions",
-      "wait": "Wait",
-      "waitDesc": "Pauses workflow execution for a specified duration",
-      "approval": "Approval",
-      "approvalDesc": "Requires user approval before continuing",
-      "webhookCall": "Webhook Call",
-      "webhookCallDesc": "Makes an HTTP request to an external service",
-      "delay": "Delay",
-      "delayDesc": "Delays execution for a specified time period",
-      "errorHandler": "Error Handler",
-      "errorHandlerDesc": "Handles errors and exceptions in the workflow"
+    },
+    "naturalLanguage": {
+      "title": "Natural Language Reports",
+      "description": "Generate reports using natural language queries",
+      "placeholder": "Describe the report you want to generate...",
+      "examples": {
+        "performance": "Show me performance metrics for the last quarter",
+        "users": "Compare user productivity across departments",
+        "trends": "Analyze workflow completion trends this month"
+      }
     }
   },
   "users": {
     "title": "User Management",
     "inviteUser": "Invite User",
     "editUser": "Edit User",
-    "deleteUser": "Delete User"
-  },
-  "myTasks": {
-    "title": "My Tasks",
-    "pending": "Pending",
-    "inProgress": "In Progress",
-    "completed": "Completed"
-  },
-  "status": {
-    "pending": "Pending",
-    "inProgress": "In Progress", 
-    "completed": "Completed",
-    "skipped": "Skipped",
-    "active": "Active"
+    "deleteUser": "Delete User",
+    "roles": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "employee": "Employee",
+      "root": "Root User"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending"
+    }
   },
   "common": {
-    "assigned": "Assigned",
-    "start": "Start",
-    "done": "Done",
+    "save": "Save",
     "cancel": "Cancel",
-    "completing": "Completing...",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
     "open": "Open"
-  },
-  "tasks": {
-    "completeTask": "Complete Task",
-    "completionNotes": "Completion Notes",
-    "completionNotesPlaceholder": "Add any notes about completing this task...",
-    "completeTaskAction": "Complete Task",
-    "viewAllTasks": "View All Tasks"
   }
 }

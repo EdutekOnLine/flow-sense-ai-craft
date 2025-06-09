@@ -8,17 +8,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
-import { Calendar, FileText, Download, Filter, Settings, Brain } from 'lucide-react';
+import { Calendar, FileText, Download, Filter, Settings, Brain, BarChart3, LineChart, PieChart, Activity } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
+import ReportBuilderPreview from './ReportBuilderPreview';
+import ReportExportOptions from './ReportExportOptions';
+import { toast } from 'sonner';
 
 interface ReportConfig {
   name: string;
   type: string;
+  visualization: string;
   dateRange: DateRange | undefined;
   filters: Record<string, string>;
   departments: string[];
   users: string[];
+  groupBy: string;
 }
 
 export default function ReportBuilder() {
@@ -26,6 +31,7 @@ export default function ReportBuilder() {
   const [config, setConfig] = useState<ReportConfig>({
     name: '',
     type: 'performance',
+    visualization: '',
     dateRange: {
       from: addDays(new Date(), -30),
       to: new Date(),
@@ -33,9 +39,11 @@ export default function ReportBuilder() {
     filters: {},
     departments: [],
     users: [],
+    groupBy: 'department',
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const reportTypes = [
     { value: 'performance', label: 'Performance Report' },
@@ -45,11 +53,62 @@ export default function ReportBuilder() {
     { value: 'predictive', label: 'Predictive Analytics' },
   ];
 
+  const visualizationTypes = [
+    { value: 'bar', label: 'Bar Chart', icon: <BarChart3 className="h-4 w-4" /> },
+    { value: 'line', label: 'Line Chart', icon: <LineChart className="h-4 w-4" /> },
+    { value: 'pie', label: 'Pie Chart', icon: <PieChart className="h-4 w-4" /> },
+    { value: 'table', label: 'Data Table', icon: <Activity className="h-4 w-4" /> },
+  ];
+
+  const groupByOptions = [
+    { value: 'department', label: 'Department' },
+    { value: 'user', label: 'User' },
+    { value: 'workflow', label: 'Workflow Type' },
+    { value: 'date', label: 'Date Period' },
+  ];
+
   const handleGenerateReport = async () => {
     setIsGenerating(true);
-    // Implementation will be added when we create the edge function
-    console.log('Generating report with config:', config);
-    setTimeout(() => setIsGenerating(false), 2000);
+    try {
+      // Simulate report generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success('Report generated successfully!');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleExportReport = async (exportConfig: any) => {
+    setIsExporting(true);
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Create mock download
+      const filename = `${config.name || 'report'}-${new Date().toISOString().split('T')[0]}.${exportConfig.format}`;
+      const mockData = JSON.stringify({ config, exportConfig, generatedAt: new Date().toISOString() }, null, 2);
+      const blob = new Blob([mockData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Report exported as ${exportConfig.format.toUpperCase()}`);
+    } catch (error) {
+      toast.error('Failed to export report');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const updateConfig = (key: keyof ReportConfig, value: any) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -57,7 +116,7 @@ export default function ReportBuilder() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Report Builder</h2>
-          <p className="text-gray-600 mt-1">Create custom reports with AI-powered insights</p>
+          <p className="text-gray-600 mt-1">Create custom reports with advanced visualizations</p>
         </div>
         <Button 
           onClick={handleGenerateReport}
@@ -70,18 +129,22 @@ export default function ReportBuilder() {
       </div>
 
       <Tabs defaultValue="config" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="config" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Configuration
           </TabsTrigger>
-          <TabsTrigger value="filters" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
+          <TabsTrigger value="visualization" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Visualization
           </TabsTrigger>
           <TabsTrigger value="preview" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Preview
+          </TabsTrigger>
+          <TabsTrigger value="export" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
           </TabsTrigger>
         </TabsList>
 
@@ -99,7 +162,7 @@ export default function ReportBuilder() {
                     id="reportName"
                     placeholder="Enter report name"
                     value={config.name}
-                    onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => updateConfig('name', e.target.value)}
                   />
                 </div>
                 
@@ -107,7 +170,7 @@ export default function ReportBuilder() {
                   <Label htmlFor="reportType">Report Type</Label>
                   <Select 
                     value={config.type} 
-                    onValueChange={(value) => setConfig(prev => ({ ...prev, type: value }))}
+                    onValueChange={(value) => updateConfig('type', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select report type" />
@@ -127,91 +190,67 @@ export default function ReportBuilder() {
                 <Label>Date Range</Label>
                 <DatePickerWithRange
                   date={config.dateRange}
-                  onDateChange={(dateRange) => setConfig(prev => ({ ...prev, dateRange }))}
+                  onDateChange={(dateRange) => updateConfig('dateRange', dateRange)}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Group By</Label>
+                <Select value={config.groupBy} onValueChange={(value) => updateConfig('groupBy', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select grouping" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupByOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="filters" className="space-y-6">
+        <TabsContent value="visualization" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Advanced Filters</CardTitle>
-              <CardDescription>Customize your report with specific filters and parameters</CardDescription>
+              <CardTitle>Visualization Options</CardTitle>
+              <CardDescription>Choose how to display your data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Department Filter</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select departments" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="sales">Sales</SelectItem>
-                      <SelectItem value="hr">Human Resources</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Status Filter</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="paused">Paused</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {visualizationTypes.map((viz) => (
+                  <div
+                    key={viz.value}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      config.visualization === viz.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => updateConfig('visualization', viz.value)}
+                  >
+                    <div className="text-center">
+                      <div className="mb-2 flex justify-center">{viz.icon}</div>
+                      <p className="text-sm font-medium">{viz.label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="preview" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Report Preview</CardTitle>
-              <CardDescription>Preview your report configuration before generating</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium mb-2">Report Summary</h4>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Name:</strong> {config.name || 'Untitled Report'}</p>
-                    <p><strong>Type:</strong> {reportTypes.find(t => t.value === config.type)?.label}</p>
-                    <p><strong>Date Range:</strong> {config.dateRange?.from?.toLocaleDateString()} - {config.dateRange?.to?.toLocaleDateString()}</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export PDF
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export Excel
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Export CSV
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ReportBuilderPreview config={config} />
+        </TabsContent>
+
+        <TabsContent value="export" className="space-y-6">
+          <ReportExportOptions 
+            onExport={handleExportReport}
+            isExporting={isExporting}
+          />
         </TabsContent>
       </Tabs>
     </div>
