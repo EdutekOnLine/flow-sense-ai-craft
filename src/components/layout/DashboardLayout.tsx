@@ -28,12 +28,13 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const { canEditWorkflows } = useWorkflowPermissions();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
 
   // Check if we're on the main dashboard
   const isMainDashboard = location.pathname === '/';
+  const isRTL = i18n.language === 'ar';
 
   useEffect(() => {
     // Only set active tab from hash if we're on the main dashboard
@@ -144,16 +145,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <LayoutDashboard className="h-8 w-8 text-blue-600 mr-2" />
+          <div className={`flex justify-between items-center h-16 ${isRTL ? 'rtl-space-reverse' : ''}`}>
+            <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <LayoutDashboard className={`h-8 w-8 text-blue-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
               <LanguageSwitcher />
               <NotificationCenter />
               <span className="text-sm text-gray-600">
@@ -163,7 +164,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {profile?.role?.toUpperCase()}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                 {t('header.signOut')}
               </Button>
             </div>
@@ -174,20 +175,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Show Navigation Tabs only on the main dashboard */}
         {isMainDashboard && (
-          <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
+          <div className={`flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg ${isRTL ? 'space-x-reverse' : ''}`}>
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => handleTabChange(item.id)}
-                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${isRTL ? 'flex-row-reverse' : ''} ${
                     activeTab === item.id
                       ? 'bg-white text-blue-600 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
+                  <Icon className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   {item.label}
                 </button>
               );

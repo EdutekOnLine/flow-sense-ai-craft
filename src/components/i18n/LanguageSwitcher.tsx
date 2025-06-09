@@ -25,6 +25,13 @@ export function LanguageSwitcher() {
     // Update document direction
     document.documentElement.dir = languageCode === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = languageCode;
+    
+    // Add a class to body for RTL styling if needed
+    if (languageCode === 'ar') {
+      document.body.classList.add('rtl');
+    } else {
+      document.body.classList.remove('rtl');
+    }
   };
 
   return (
