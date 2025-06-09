@@ -12,7 +12,9 @@ import { toast } from 'sonner';
 import { 
   Workflow, 
   Activity,
-  Sparkles
+  Sparkles,
+  Inbox,
+  Repeat
 } from 'lucide-react';
 
 interface DashboardContentProps {
@@ -81,12 +83,34 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
 
       {/* My Assigned Tasks Section - Show for ALL users */}
       <div className="space-y-6">
-        <DashboardTasks onViewAllTasks={handleViewAllTasks} />
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+            <Inbox className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">My Assigned Tasks</h2>
+            <p className="text-gray-600">Workflow tasks assigned to you and their current status</p>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+          <DashboardTasks onViewAllTasks={handleViewAllTasks} />
+        </div>
       </div>
 
       {/* My Reusable Workflows Section - Show for ALL users */}
       <div className="space-y-6">
-        <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+            <Repeat className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">My Reusable Workflows</h2>
+            <p className="text-gray-600">Workflows you can start multiple times for recurring processes</p>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+          <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
+        </div>
       </div>
 
       {/* Saved Workflows Section - Only show for users who can edit workflows */}
