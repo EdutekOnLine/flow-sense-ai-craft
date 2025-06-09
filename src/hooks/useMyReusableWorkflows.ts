@@ -19,6 +19,7 @@ export function useMyReusableWorkflows() {
     console.log('Fetching reusable workflows for user:', user.id);
     setIsLoading(true);
     try {
+      // Fetch ALL reusable workflows, not filtered by creator
       const { data, error } = await supabase
         .from('saved_workflows')
         .select('*')
@@ -27,7 +28,7 @@ export function useMyReusableWorkflows() {
 
       if (error) throw error;
 
-      // Filter workflows where user is assigned to first step
+      // Filter workflows where user is assigned to first step ONLY
       const filteredWorkflows = (data || []).filter(workflow => {
         // Check if user is assigned to the first step
         const nodes = Array.isArray(workflow.nodes) ? workflow.nodes : [];
@@ -69,6 +70,7 @@ export function useMyReusableWorkflows() {
         const firstNodeData = firstNodeTyped.data;
         if (!firstNodeData || typeof firstNodeData !== 'object') return false;
 
+        // ONLY filter by assignment, not by creator
         return firstNodeData.assignedTo === user.id;
       });
 
@@ -87,7 +89,7 @@ export function useMyReusableWorkflows() {
       }));
 
       setWorkflows(transformedWorkflows);
-      console.log('Fetched my reusable workflows:', transformedWorkflows);
+      console.log('Fetched my reusable workflows (assignment-based only):', transformedWorkflows);
     } catch (error) {
       console.error('Error fetching my reusable workflows:', error);
     } finally {
