@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Copy, Trash2 } from 'lucide-react';
+import { UserPlus, Copy, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { EditUserDialog } from './EditUserDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,13 +40,14 @@ interface UserProfile {
   email: string;
   first_name?: string;
   last_name?: string;
-  role: 'admin' | 'manager' | 'employee';
+  role: 'admin' | 'manager' | 'employee' | 'root';
   department?: string;
   created_at: string;
 }
 
 export default function UserManagement() {
   const [isInviting, setIsInviting] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [inviteForm, setInviteForm] = useState({
     email: '',
     role: 'employee' as 'admin' | 'manager' | 'employee',
@@ -225,11 +227,14 @@ export default function UserManagement() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'root': return 'bg-purple-100 text-purple-800';
       case 'admin': return 'bg-red-100 text-red-800';
       case 'manager': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const isRootUser = profile?.role === 'root';
 
   return (
     <div className="space-y-6">
@@ -305,6 +310,17 @@ export default function UserManagement() {
                     <Badge className={getRoleBadgeColor(user.role)}>
                       {user.role.toUpperCase()}
                     </Badge>
+                    {/* Show edit button for root users */}
+                    {isRootUser && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingUser(user)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
                     {/* Only show delete button if not deleting self and user is not the current user */}
                     {profile?.id !== user.id && (
                       <AlertDialog>
@@ -411,5 +427,12 @@ export default function UserManagement() {
         </CardContent>
       </Card>
     </div>
+
+    {/* Edit User Dialog */}
+    <EditUserDialog
+      user={editingUser}
+      isOpen={!!editingUser}
+      onClose={() => setEditingUser(null)}
+    />
   );
 }

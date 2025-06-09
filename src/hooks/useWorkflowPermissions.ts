@@ -25,6 +25,11 @@ export function useWorkflowPermissions() {
     return true;
   };
 
+  const canEditUsers = () => {
+    if (!profile) return false;
+    return profile.role === 'root';
+  };
+
   const isRootUser = () => {
     if (!profile) return false;
     return profile.role === 'root';
@@ -40,6 +45,7 @@ export function useWorkflowPermissions() {
     canEditWorkflows: canEditWorkflows(),
     canDeleteWorkflows: canDeleteWorkflows(),
     canViewWorkflows: canViewWorkflows(),
+    canEditUsers: canEditUsers(),
     hasWorkflowPermissions: canCreateWorkflows() || canEditWorkflows() || canDeleteWorkflows(),
     isRootUser: isRootUser(),
     isAdmin: isAdmin(),
