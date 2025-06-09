@@ -18,6 +18,7 @@ import {
   Timer,
   Send,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WorkflowStep {
   id: string;
@@ -31,130 +32,132 @@ interface WorkflowSidebarProps {
   onAddNode: (type: string, label: string, description: string) => void;
 }
 
-const workflowSteps = {
-  triggers: [
-    {
-      id: 'form-submitted',
-      label: 'Form Submitted',
-      description: 'When a form is submitted',
-      icon: FileText,
-      stepType: 'trigger',
-    },
-    {
-      id: 'schedule-trigger',
-      label: 'Schedule',
-      description: 'Run on a schedule',
-      icon: Calendar,
-      stepType: 'trigger',
-    },
-    {
-      id: 'webhook-trigger',
-      label: 'Webhook',
-      description: 'When webhook is called',
-      icon: Webhook,
-      stepType: 'trigger',
-    },
-    {
-      id: 'record-created',
-      label: 'Record Created',
-      description: 'When a new record is created',
-      icon: Database,
-      stepType: 'trigger',
-    },
-  ] as WorkflowStep[],
-  actions: [
-    {
-      id: 'send-email',
-      label: 'Send Email',
-      description: 'Send an email notification',
-      icon: Mail,
-      stepType: 'action',
-    },
-    {
-      id: 'update-record',
-      label: 'Update Record',
-      description: 'Update a database record',
-      icon: Database,
-      stepType: 'action',
-    },
-    {
-      id: 'send-notification',
-      label: 'Send Notification',
-      description: 'Send a push notification',
-      icon: Send,
-      stepType: 'action',
-    },
-    {
-      id: 'create-task',
-      label: 'Create Task',
-      description: 'Create a new task',
-      icon: CheckCircle,
-      stepType: 'action',
-    },
-  ] as WorkflowStep[],
-  conditions: [
-    {
-      id: 'if-condition',
-      label: 'If Condition',
-      description: 'Branch based on condition',
-      icon: GitBranch,
-      stepType: 'condition',
-    },
-    {
-      id: 'filter',
-      label: 'Filter',
-      description: 'Filter records by criteria',
-      icon: Filter,
-      stepType: 'condition',
-    },
-    {
-      id: 'switch-case',
-      label: 'Switch Case',
-      description: 'Multiple condition branches',
-      icon: Settings,
-      stepType: 'condition',
-    },
-  ] as WorkflowStep[],
-  utilities: [
-    {
-      id: 'wait',
-      label: 'Wait',
-      description: 'Pause workflow execution',
-      icon: Clock,
-      stepType: 'utility',
-    },
-    {
-      id: 'approval',
-      label: 'Approval',
-      description: 'Wait for approval',
-      icon: Users,
-      stepType: 'utility',
-    },
-    {
-      id: 'webhook-call',
-      label: 'Call Webhook',
-      description: 'Make HTTP request',
-      icon: Webhook,
-      stepType: 'utility',
-    },
-    {
-      id: 'delay',
-      label: 'Delay',
-      description: 'Add time delay',
-      icon: Timer,
-      stepType: 'utility',
-    },
-    {
-      id: 'error-handler',
-      label: 'Error Handler',
-      description: 'Handle errors',
-      icon: AlertTriangle,
-      stepType: 'utility',
-    },
-  ] as WorkflowStep[],
-};
-
 export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
+  const { t } = useTranslation();
+
+  const workflowSteps = {
+    triggers: [
+      {
+        id: 'form-submitted',
+        label: t('workflowBuilder.steps.formSubmitted'),
+        description: t('workflowBuilder.steps.formSubmittedDesc'),
+        icon: FileText,
+        stepType: 'trigger',
+      },
+      {
+        id: 'schedule-trigger',
+        label: t('workflowBuilder.steps.schedule'),
+        description: t('workflowBuilder.steps.scheduleDesc'),
+        icon: Calendar,
+        stepType: 'trigger',
+      },
+      {
+        id: 'webhook-trigger',
+        label: t('workflowBuilder.steps.webhook'),
+        description: t('workflowBuilder.steps.webhookDesc'),
+        icon: Webhook,
+        stepType: 'trigger',
+      },
+      {
+        id: 'record-created',
+        label: t('workflowBuilder.steps.recordCreated'),
+        description: t('workflowBuilder.steps.recordCreatedDesc'),
+        icon: Database,
+        stepType: 'trigger',
+      },
+    ] as WorkflowStep[],
+    actions: [
+      {
+        id: 'send-email',
+        label: t('workflowBuilder.steps.sendEmail'),
+        description: t('workflowBuilder.steps.sendEmailDesc'),
+        icon: Mail,
+        stepType: 'action',
+      },
+      {
+        id: 'update-record',
+        label: t('workflowBuilder.steps.updateRecord'),
+        description: t('workflowBuilder.steps.updateRecordDesc'),
+        icon: Database,
+        stepType: 'action',
+      },
+      {
+        id: 'send-notification',
+        label: t('workflowBuilder.steps.sendNotification'),
+        description: t('workflowBuilder.steps.sendNotificationDesc'),
+        icon: Send,
+        stepType: 'action',
+      },
+      {
+        id: 'create-task',
+        label: t('workflowBuilder.steps.createTask'),
+        description: t('workflowBuilder.steps.createTaskDesc'),
+        icon: CheckCircle,
+        stepType: 'action',
+      },
+    ] as WorkflowStep[],
+    conditions: [
+      {
+        id: 'if-condition',
+        label: t('workflowBuilder.steps.ifCondition'),
+        description: t('workflowBuilder.steps.ifConditionDesc'),
+        icon: GitBranch,
+        stepType: 'condition',
+      },
+      {
+        id: 'filter',
+        label: t('workflowBuilder.steps.filter'),
+        description: t('workflowBuilder.steps.filterDesc'),
+        icon: Filter,
+        stepType: 'condition',
+      },
+      {
+        id: 'switch-case',
+        label: t('workflowBuilder.steps.switchCase'),
+        description: t('workflowBuilder.steps.switchCaseDesc'),
+        icon: Settings,
+        stepType: 'condition',
+      },
+    ] as WorkflowStep[],
+    utilities: [
+      {
+        id: 'wait',
+        label: t('workflowBuilder.steps.wait'),
+        description: t('workflowBuilder.steps.waitDesc'),
+        icon: Clock,
+        stepType: 'utility',
+      },
+      {
+        id: 'approval',
+        label: t('workflowBuilder.steps.approval'),
+        description: t('workflowBuilder.steps.approvalDesc'),
+        icon: Users,
+        stepType: 'utility',
+      },
+      {
+        id: 'webhook-call',
+        label: t('workflowBuilder.steps.webhookCall'),
+        description: t('workflowBuilder.steps.webhookCallDesc'),
+        icon: Webhook,
+        stepType: 'utility',
+      },
+      {
+        id: 'delay',
+        label: t('workflowBuilder.steps.delay'),
+        description: t('workflowBuilder.steps.delayDesc'),
+        icon: Timer,
+        stepType: 'utility',
+      },
+      {
+        id: 'error-handler',
+        label: t('workflowBuilder.steps.errorHandler'),
+        description: t('workflowBuilder.steps.errorHandlerDesc'),
+        icon: AlertTriangle,
+        stepType: 'utility',
+      },
+    ] as WorkflowStep[],
+  };
+
   const handleStepClick = (step: WorkflowStep) => {
     onAddNode(step.stepType, step.label, step.description);
   };
@@ -208,16 +211,16 @@ export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
   return (
     <div className="w-80 border-r border-gray-200 bg-white">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Workflow Steps</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('workflowBuilder.workflowSteps')}</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Drag and drop steps onto the canvas
+          {t('workflowBuilder.dragAndDrop')}
         </p>
       </div>
       <div className="px-2 py-4 space-y-6 overflow-y-auto h-full">
-        {renderStepGroup('Triggers', workflowSteps.triggers, 'text-green-700')}
-        {renderStepGroup('Actions', workflowSteps.actions, 'text-blue-700')}
-        {renderStepGroup('Conditions', workflowSteps.conditions, 'text-yellow-700')}
-        {renderStepGroup('Utilities', workflowSteps.utilities, 'text-purple-700')}
+        {renderStepGroup(t('workflowBuilder.triggers'), workflowSteps.triggers, 'text-green-700')}
+        {renderStepGroup(t('workflowBuilder.actions'), workflowSteps.actions, 'text-blue-700')}
+        {renderStepGroup(t('workflowBuilder.conditions'), workflowSteps.conditions, 'text-yellow-700')}
+        {renderStepGroup(t('workflowBuilder.utilities'), workflowSteps.utilities, 'text-purple-700')}
       </div>
     </div>
   );

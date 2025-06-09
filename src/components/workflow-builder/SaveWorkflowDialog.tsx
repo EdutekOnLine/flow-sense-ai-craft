@@ -15,6 +15,7 @@ import { Node, Edge } from '@xyflow/react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 interface SaveWorkflowDialogProps {
   isOpen: boolean;
@@ -36,12 +37,13 @@ export function SaveWorkflowDialog({
   const [isReusable, setIsReusable] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSave = async () => {
     if (!name.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Please enter a workflow name.",
+        title: t('workflowBuilder.validationError'),
+        description: t('workflowBuilder.enterWorkflowName'),
         variant: "destructive",
       });
       return;
@@ -61,14 +63,14 @@ export function SaveWorkflowDialog({
       onClose();
       
       toast({
-        title: "Success",
-        description: `Workflow "${name.trim()}" has been saved successfully.`,
+        title: t('workflowBuilder.saveSuccess'),
+        description: t('workflowBuilder.saveSuccessMessage', { name: name.trim() }),
       });
     } catch (error) {
       console.error('Error saving workflow:', error);
       toast({
-        title: "Save Failed",
-        description: error instanceof Error ? error.message : "Failed to save workflow. Please try again.",
+        title: t('workflowBuilder.saveFailed'),
+        description: error instanceof Error ? error.message : t('workflowBuilder.saveFailedMessage'),
         variant: "destructive",
       });
     } finally {
@@ -90,26 +92,26 @@ export function SaveWorkflowDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Save Workflow</DialogTitle>
+          <DialogTitle>{t('workflowBuilder.saveWorkflow')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="workflow-name">Workflow Name *</Label>
+            <Label htmlFor="workflow-name">{t('workflowBuilder.workflowNameRequired')}</Label>
             <Input
               id="workflow-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter workflow name..."
+              placeholder={t('workflowBuilder.workflowNamePlaceholder')}
               disabled={isSaving || isLoading}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="workflow-description">Description</Label>
+            <Label htmlFor="workflow-description">{t('workflowBuilder.description')}</Label>
             <Textarea
               id="workflow-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter workflow description..."
+              placeholder={t('workflowBuilder.descriptionPlaceholder')}
               disabled={isSaving || isLoading}
               rows={3}
             />
@@ -122,11 +124,11 @@ export function SaveWorkflowDialog({
               disabled={isSaving || isLoading}
             />
             <Label htmlFor="workflow-reusable" className="text-sm">
-              Make this workflow reusable
+              {t('workflowBuilder.makeReusable')}
             </Label>
           </div>
           <div className="text-xs text-gray-500">
-            Reusable workflows can be started multiple times by different users. Non-reusable workflows can only be started once.
+            {t('workflowBuilder.reusableDescription')}
           </div>
         </div>
         <div className="flex justify-end space-x-2">
@@ -135,13 +137,13 @@ export function SaveWorkflowDialog({
             onClick={handleClose} 
             disabled={isSaving || isLoading}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={!name.trim() || isSaving || isLoading}
           >
-            {isSaving ? 'Saving...' : 'Save Workflow'}
+            {isSaving ? t('workflowBuilder.saving') : t('workflowBuilder.saveWorkflow')}
           </Button>
         </div>
       </DialogContent>

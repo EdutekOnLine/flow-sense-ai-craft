@@ -15,6 +15,7 @@ import { useWorkflowExplainer } from '@/hooks/useWorkflowExplainer';
 import { Node, Edge } from '@xyflow/react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from 'react-i18next';
 
 interface WorkflowToolbarProps {
   onAddNode: (type: string, label: string, description?: string) => void;
@@ -42,6 +43,7 @@ export function WorkflowToolbar({
 }: WorkflowToolbarProps) {
   const [showExplanation, setShowExplanation] = useState(false);
   const { explainWorkflow } = useWorkflowExplainer();
+  const { t } = useTranslation();
 
   const handleExplain = () => {
     setShowExplanation(true);
@@ -61,7 +63,7 @@ export function WorkflowToolbar({
             disabled={isSaving}
           >
             <Plus className="h-4 w-4" />
-            New
+            {t('workflowBuilder.new')}
           </Button>
 
           <Button
@@ -76,7 +78,7 @@ export function WorkflowToolbar({
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? t('workflowBuilder.saving') : t('workflowBuilder.save')}
           </Button>
 
           <div className="h-6 w-px bg-gray-200 mx-2" />
@@ -89,7 +91,7 @@ export function WorkflowToolbar({
             disabled={isSaving}
           >
             <Sparkles className="h-4 w-4" />
-            AI Generate
+            {t('workflowBuilder.aiGenerate')}
           </Button>
 
           <Button
@@ -100,7 +102,7 @@ export function WorkflowToolbar({
             disabled={nodes.length === 0 || isSaving}
           >
             <MessageSquare className="h-4 w-4" />
-            Explain Workflow
+            {t('workflowBuilder.explainWorkflow')}
           </Button>
         </div>
 
@@ -108,7 +110,7 @@ export function WorkflowToolbar({
           {/* AI Assistant Toggle */}
           <div className="flex items-center space-x-2">
             <Label htmlFor="ai-assistant-toggle" className="text-sm font-medium">
-              AI Assistant
+              {t('workflowBuilder.aiAssistant')}
             </Label>
             <Switch
               id="ai-assistant-toggle"
