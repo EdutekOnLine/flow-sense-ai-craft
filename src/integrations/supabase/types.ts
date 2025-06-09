@@ -486,6 +486,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      is_root_user: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       task_priority: "low" | "medium" | "high" | "urgent"

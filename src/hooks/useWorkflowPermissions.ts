@@ -6,17 +6,17 @@ export function useWorkflowPermissions() {
 
   const canCreateWorkflows = () => {
     if (!profile) return false;
-    return ['admin', 'manager'].includes(profile.role);
+    return ['admin', 'manager', 'root'].includes(profile.role);
   };
 
   const canEditWorkflows = () => {
     if (!profile) return false;
-    return ['admin', 'manager'].includes(profile.role);
+    return ['admin', 'manager', 'root'].includes(profile.role);
   };
 
   const canDeleteWorkflows = () => {
     if (!profile) return false;
-    return ['admin', 'manager'].includes(profile.role);
+    return ['admin', 'manager', 'root'].includes(profile.role);
   };
 
   const canViewWorkflows = () => {
@@ -25,12 +25,24 @@ export function useWorkflowPermissions() {
     return true;
   };
 
+  const isRootUser = () => {
+    if (!profile) return false;
+    return profile.role === 'root';
+  };
+
+  const isAdmin = () => {
+    if (!profile) return false;
+    return ['admin', 'root'].includes(profile.role);
+  };
+
   return {
     canCreateWorkflows: canCreateWorkflows(),
     canEditWorkflows: canEditWorkflows(),
     canDeleteWorkflows: canDeleteWorkflows(),
     canViewWorkflows: canViewWorkflows(),
     hasWorkflowPermissions: canCreateWorkflows() || canEditWorkflows() || canDeleteWorkflows(),
+    isRootUser: isRootUser(),
+    isAdmin: isAdmin(),
     userRole: profile?.role
   };
 }

@@ -29,14 +29,14 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // First, verify the requesting user is an admin
+    // First, verify the requesting user is an admin or root
     const { data: adminProfile, error: adminError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', adminId)
       .single();
 
-    if (adminError || !adminProfile || adminProfile.role !== 'admin') {
+    if (adminError || !adminProfile || !['admin', 'root'].includes(adminProfile.role)) {
       console.error("Unauthorized deletion attempt:", adminError);
       return new Response(
         JSON.stringify({ error: "Unauthorized: Only admins can delete users" }),
@@ -76,14 +76,36 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if this is the last admin (prevent deleting the last admin)
+    // Prevent deletion of root users (database trigger will also prevent this)
+    if (userProfile.role === 'root') {
+      return new Response(
+        JSON.stringify({ error: "Root users cannot be deleted" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Only root users can delete admins
+    if (userProfile.role === 'admin' && adminProfile.role !== 'root') {
+      return new Response(
+        JSON.stringify({ error: "Only root users can delete admin users" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Check if this is the last admin (prevent deleting the last admin unless requester is root)
     if (userProfile.role === 'admin') {
       const { data: adminCount, error: countError } = await supabase
         .from('profiles')
         .select('id', { count: 'exact' })
         .eq('role', 'admin');
 
-      if (countError || !adminCount || adminCount.length <= 1) {
+      if (countError || !adminCount || (adminCount.length <= 1 && adminProfile.role !== 'root')) {
         return new Response(
           JSON.stringify({ error: "Cannot delete the last admin user" }),
           {
