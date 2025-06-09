@@ -495,7 +495,7 @@ export type Database = {
         | "completed"
         | "blocked"
         | "cancelled"
-      user_role: "admin" | "manager" | "employee"
+      user_role: "admin" | "manager" | "employee" | "root"
       workflow_status: "draft" | "active" | "paused" | "completed" | "archived"
     }
     CompositeTypes: {
@@ -620,7 +620,7 @@ export const Constants = {
         "blocked",
         "cancelled",
       ],
-      user_role: ["admin", "manager", "employee"],
+      user_role: ["admin", "manager", "employee", "root"],
       workflow_status: ["draft", "active", "paused", "completed", "archived"],
     },
   },
