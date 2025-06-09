@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useMyReusableWorkflows } from '@/hooks/useMyReusableWorkflows';
 import { useUsers } from '@/hooks/useUsers';
+import { useTranslation } from 'react-i18next';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Repeat, Calendar, User, Rocket, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -16,6 +17,7 @@ interface MyReusableWorkflowsProps {
 export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProps) {
   const { workflows, isLoading } = useMyReusableWorkflows();
   const { data: users } = useUsers();
+  const { t } = useTranslation();
 
   // Convert saved workflow to startable workflow format
   const convertToStartableWorkflow = (savedWorkflow: any): StartableWorkflow => {
@@ -51,7 +53,7 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
     const assignedUserId = startNode?.data?.assignedTo;
     
     if (!assignedUserId) {
-      return 'Unassigned';
+      return t('workflow.unassigned');
     }
     
     const user = users?.find(u => u.id === assignedUserId);
@@ -76,8 +78,8 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
       {workflows.length === 0 ? (
         <div className="text-center py-8">
           <Repeat className="h-12 w-12 text-green-400 mx-auto mb-4" />
-          <p className="text-green-600 mb-2">No reusable workflows available</p>
-          <p className="text-sm text-green-500">You'll see reusable workflows you can start here</p>
+          <p className="text-green-600 mb-2">{t('dashboard.noReusableWorkflows')}</p>
+          <p className="text-sm text-green-500">{t('dashboard.reusableWorkflowsInfo')}</p>
         </div>
       ) : (
         workflows.map((workflow) => (
@@ -91,7 +93,7 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                   <h4 className="font-medium text-sm text-green-800">{workflow.name}</h4>
                   <Badge className="bg-green-100 text-green-800 border-green-300">
                     <Repeat className="h-3 w-3 mr-1" />
-                    Reusable
+                    {t('workflow.reusable')}
                   </Badge>
                 </div>
                 {workflow.description && (
@@ -100,14 +102,14 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                 <div className="flex items-center gap-4 text-xs text-green-600">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    Updated {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                    {t('workflow.updated')} {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
                   </div>
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    Starts with: {getAssignedUserName(workflow)}
+                    {t('workflow.startsWith')}: {getAssignedUserName(workflow)}
                   </div>
                   <Badge variant="secondary" className="text-xs">
-                    {workflow.nodes.length} steps
+                    {workflow.nodes.length} {t('workflow.steps')}
                   </Badge>
                 </div>
               </div>
@@ -122,7 +124,7 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                         className="bg-purple-600 hover:bg-purple-700 text-white"
                       >
                         <Rocket className="h-3 w-3 mr-1" />
-                        Launch
+                        {t('workflow.launch')}
                       </Button>
                     }
                   />

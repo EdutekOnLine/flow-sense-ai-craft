@@ -6,6 +6,7 @@ import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useUsers } from '@/hooks/useUsers';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Workflow, Edit, Trash2, Calendar, User, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,6 +22,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   const { canEditWorkflows } = useWorkflowPermissions();
   const { profile } = useAuth();
   const { data: users } = useUsers();
+  const { t } = useTranslation();
 
   // Don't render for employees who can't edit workflows
   if (!canEditWorkflows) {
@@ -28,7 +30,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    if (window.confirm(t('workflow.deleteConfirm', { name }))) {
       try {
         await deleteWorkflow(id);
       } catch (error) {
@@ -83,7 +85,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
     const assignedUserId = startNode?.data?.assignedTo;
     
     if (!assignedUserId) {
-      return 'Unassigned';
+      return t('workflow.unassigned');
     }
     
     const user = users?.find(u => u.id === assignedUserId);
@@ -108,8 +110,8 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
       {workflows.length === 0 ? (
         <div className="text-center py-8">
           <Workflow className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-          <p className="text-purple-600 mb-2">No saved workflows yet</p>
-          <p className="text-sm text-purple-500">Create and save your first workflow in the Workflow Builder</p>
+          <p className="text-purple-600 mb-2">{t('dashboard.noSavedWorkflows')}</p>
+          <p className="text-sm text-purple-500">{t('dashboard.createFirstWorkflow')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -129,10 +131,10 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                       {workflow.is_reusable ? (
                         <>
                           <Repeat className="h-3 w-3 mr-1" />
-                          Reusable
+                          {t('workflow.reusable')}
                         </>
                       ) : (
-                        'One-time'
+                        t('workflow.oneTime')
                       )}
                     </Badge>
                   </div>
@@ -142,14 +144,14 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                   <div className="flex items-center gap-4 text-xs text-purple-600">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Updated {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                      {t('workflow.updated')} {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
                     </div>
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3" />
-                      Assigned to: {getAssignedUserName(workflow)}
+                      {t('workflow.assignedTo')}: {getAssignedUserName(workflow)}
                     </div>
                     <Badge variant="secondary" className="text-xs">
-                      {workflow.nodes.length} nodes
+                      {workflow.nodes.length} {t('workflow.nodes')}
                     </Badge>
                   </div>
                 </div>
@@ -170,7 +172,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                     className="flex items-center gap-1"
                   >
                     <Edit className="h-3 w-3" />
-                    Open
+                    {t('common.open')}
                   </Button>
                   <Button
                     variant="outline"
@@ -187,7 +189,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
           {workflows.length > 5 && (
             <div className="text-center pt-4 border-t border-purple-200">
               <p className="text-sm text-purple-600">
-                And {workflows.length - 5} more workflows...
+                {t('workflow.moreWorkflows', { count: workflows.length - 5 })}
               </p>
             </div>
           )}

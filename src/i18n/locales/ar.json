@@ -13,7 +13,9 @@
     "yes": "نعم",
     "no": "لا",
     "confirm": "تأكيد",
-    "search": "بحث"
+    "search": "بحث",
+    "welcome": "أهلاً وسهلاً",
+    "viewAll": "عرض الكل"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -29,15 +31,24 @@
     "signOut": "تسجيل الخروج"
   },
   "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "مرحباً بك في مركز قيادة سير العمل",
     "myAssignedTasks": "المهام المسندة إلي",
+    "myAssignedTasksDescription": "مهام سير العمل المسندة إليك وحالتها الحالية",
     "allSavedWorkflows": "جميع سير العمل المحفوظة",
+    "allSavedWorkflowsDescription": "إدارة جميع قوالب سير العمل في النظام وبدء حالات سير عمل جديدة",
+    "mySavedWorkflows": "سير العمل المحفوظة",
+    "mySavedWorkflowsDescription": "إدارة قوالب سير العمل المحفوظة وبدء حالات سير عمل جديدة",
     "myReusableWorkflows": "سير العمل القابلة للإعادة",
+    "myReusableWorkflowsDescription": "سير عمل يمكنك بدؤها عدة مرات للعمليات المتكررة",
     "noTasksAssigned": "لا توجد مهام مسندة إليك",
     "pendingTasksInfo": "ستظهر مهام سير العمل المسندة إليك هنا",
     "noSavedWorkflows": "لا توجد سير عمل محفوظة بعد",
     "createFirstWorkflow": "قم بإنشاء وحفظ أول سير عمل في منشئ سير العمل",
     "noReusableWorkflows": "لا توجد سير عمل قابلة للإعادة",
-    "reusableWorkflowsInfo": "ستظهر سير العمل القابلة للإعادة التي يمكنك بدؤها هنا"
+    "reusableWorkflowsInfo": "ستظهر سير العمل القابلة للإعادة التي يمكنك بدؤها هنا",
+    "welcomeTitle": "مرحباً بك في نظام سير العمل",
+    "welcomeMessage": "وظائف سير العمل متاحة للمدراء والمشرفين. تواصل مع المدير للحصول على صلاحيات إنشاء سير العمل."
   },
   "workflow": {
     "launch": "تشغيل",
@@ -52,7 +63,9 @@
     "steps": "خطوات",
     "updated": "محدث",
     "moreWorkflows": "و {{count}} سير عمل أخرى...",
-    "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"؟"
+    "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"؟",
+    "launchSuccess": "تم تشغيل سير العمل بنجاح!",
+    "launchError": "فشل في تشغيل سير العمل. يرجى المحاولة مرة أخرى."
   },
   "workflowBuilder": {
     "aiGenerate": "توليد بالذكاء الاصطناعي",

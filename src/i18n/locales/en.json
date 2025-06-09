@@ -13,7 +13,9 @@
     "yes": "Yes",
     "no": "No",
     "confirm": "Confirm",
-    "search": "Search"
+    "search": "Search",
+    "welcome": "Welcome",
+    "viewAll": "View All"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -29,15 +31,24 @@
     "signOut": "Sign Out"
   },
   "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Welcome to your workflow command center",
     "myAssignedTasks": "My Assigned Tasks",
+    "myAssignedTasksDescription": "Workflow tasks assigned to you and their current status",
     "allSavedWorkflows": "All Saved Workflows",
+    "allSavedWorkflowsDescription": "Manage all workflow templates in the system and start new workflow instances",
+    "mySavedWorkflows": "My Saved Workflows",
+    "mySavedWorkflowsDescription": "Manage your saved workflow templates and start new workflow instances",
     "myReusableWorkflows": "My Reusable Workflows",
+    "myReusableWorkflowsDescription": "Workflows you can start multiple times for recurring processes",
     "noTasksAssigned": "No tasks assigned to you",
     "pendingTasksInfo": "You'll see workflow tasks assigned to you here",
     "noSavedWorkflows": "No saved workflows yet",
     "createFirstWorkflow": "Create and save your first workflow in the Workflow Builder",
     "noReusableWorkflows": "No reusable workflows available",
-    "reusableWorkflowsInfo": "You'll see reusable workflows you can start here"
+    "reusableWorkflowsInfo": "You'll see reusable workflows you can start here",
+    "welcomeTitle": "Welcome to the Workflow System",
+    "welcomeMessage": "Workflow functionality is available for admins and managers. Contact your administrator to get workflow creation permissions."
   },
   "workflow": {
     "launch": "Launch",
@@ -52,7 +63,9 @@
     "steps": "steps",
     "updated": "Updated",
     "moreWorkflows": "And {{count}} more workflows...",
-    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?"
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?",
+    "launchSuccess": "Workflow launched successfully!",
+    "launchError": "Failed to launch workflow. Please try again."
   },
   "workflowBuilder": {
     "aiGenerate": "AI Generate",

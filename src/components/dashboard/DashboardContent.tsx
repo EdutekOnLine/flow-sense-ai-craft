@@ -6,6 +6,7 @@ import { MyReusableWorkflows } from './MyReusableWorkflows';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ interface DashboardContentProps {
 
 export default function DashboardContent({ onOpenWorkflow }: DashboardContentProps) {
   const { profile } = useAuth();
+  const { t } = useTranslation();
   const { 
     startWorkflow
   } = useWorkflowInstances();
@@ -32,10 +34,10 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   const handleStartWorkflow = async (workflowId: string, startData: any) => {
     try {
       await startWorkflow(workflowId, startData);
-      toast.success('Workflow launched successfully!');
+      toast.success(t('workflow.launchSuccess'));
     } catch (error) {
       console.error('Error launching workflow:', error);
-      toast.error('Failed to launch workflow. Please try again.');
+      toast.error(t('workflow.launchError'));
     }
   };
 
@@ -50,13 +52,13 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   const getSavedWorkflowsContent = () => {
     if (profile?.role === 'admin') {
       return {
-        title: 'All Saved Workflows',
-        description: 'Manage all workflow templates in the system and start new workflow instances'
+        title: t('dashboard.allSavedWorkflows'),
+        description: t('dashboard.allSavedWorkflowsDescription')
       };
     }
     return {
-      title: 'My Saved Workflows',
-      description: 'Manage your saved workflow templates and start new workflow instances'
+      title: t('dashboard.mySavedWorkflows'),
+      description: t('dashboard.mySavedWorkflowsDescription')
     };
   };
 
@@ -71,8 +73,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <Activity className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold">Dashboard</h1>
-                <p className="text-purple-100 text-lg">Welcome to your workflow command center</p>
+                <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+                <p className="text-purple-100 text-lg">{t('dashboard.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -88,8 +90,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             <Inbox className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">My Assigned Tasks</h2>
-            <p className="text-gray-600">Workflow tasks assigned to you and their current status</p>
+            <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myAssignedTasks')}</h2>
+            <p className="text-gray-600">{t('dashboard.myAssignedTasksDescription')}</p>
           </div>
         </div>
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
@@ -104,8 +106,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             <Repeat className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">My Reusable Workflows</h2>
-            <p className="text-gray-600">Workflows you can start multiple times for recurring processes</p>
+            <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myReusableWorkflows')}</h2>
+            <p className="text-gray-600">{t('dashboard.myReusableWorkflowsDescription')}</p>
           </div>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
@@ -142,12 +144,11 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
               <div className="mx-auto p-3 bg-blue-500 rounded-xl w-fit mb-4">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl text-blue-900">Welcome to the Workflow System</CardTitle>
+              <CardTitle className="text-2xl text-blue-900">{t('dashboard.welcomeTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-blue-700 text-lg">
-                Workflow functionality is available for admins and managers. 
-                Contact your administrator to get workflow creation permissions.
+                {t('dashboard.welcomeMessage')}
               </p>
             </CardContent>
           </Card>
