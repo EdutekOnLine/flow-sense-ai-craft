@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -20,6 +21,7 @@ import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { ReportsPage } from '@/components/reports/ReportsPage';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -119,7 +121,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         // Allow all users to access workflow builder - it will handle permissions internally
         return <WorkflowBuilder />;
       case 'reports':
-        return React.lazy(() => import('@/components/reports/ReportsPage').then(m => ({ default: m.ReportsPage })));
+        return <ReportsPage />;
       case 'templates':
         return (
           <div className="text-center py-8">
