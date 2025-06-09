@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSavedWorkflows } from '@/hooks/useSavedWorkflows';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useUsers } from '@/hooks/useUsers';
+import { useAuth } from '@/hooks/useAuth';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Workflow, Edit, Trash2, Calendar, User, Repeat } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,12 +19,21 @@ interface SavedWorkflowsProps {
 export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflowsProps) {
   const { workflows, isLoading, deleteWorkflow } = useSavedWorkflows();
   const { canEditWorkflows } = useWorkflowPermissions();
+  const { profile } = useAuth();
   const { data: users } = useUsers();
 
   // Don't render for employees who can't edit workflows
   if (!canEditWorkflows) {
     return null;
   }
+
+  // Dynamic title based on user role
+  const getTitle = () => {
+    if (profile?.role === 'admin') {
+      return 'All Saved Workflows';
+    }
+    return 'My Saved Workflows';
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -100,7 +109,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Workflow className="h-5 w-5 text-blue-500" />
-            My Saved Workflows
+            {getTitle()}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -117,7 +126,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Workflow className="h-5 w-5 text-blue-500" />
-          My Saved Workflows
+          {getTitle()}
         </CardTitle>
       </CardHeader>
       <CardContent>

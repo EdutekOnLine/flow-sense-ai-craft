@@ -44,6 +44,20 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
     window.dispatchEvent(new HashChangeEvent('hashchange'));
   };
 
+  // Dynamic content based on user role
+  const getSavedWorkflowsContent = () => {
+    if (profile?.role === 'admin') {
+      return {
+        title: 'All Saved Workflows',
+        description: 'Manage all workflow templates in the system and start new workflow instances'
+      };
+    }
+    return {
+      title: 'My Saved Workflows',
+      description: 'Manage your saved workflow templates and start new workflow instances'
+    };
+  };
+
   return (
     <div className="space-y-8">
       {/* Header with colorful gradient */}
@@ -83,8 +97,8 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
               <Workflow className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">My Saved Workflows</h2>
-              <p className="text-gray-600">Manage your saved workflow templates and start new workflow instances</p>
+              <h2 className="text-2xl font-bold text-gray-900">{getSavedWorkflowsContent().title}</h2>
+              <p className="text-gray-600">{getSavedWorkflowsContent().description}</p>
             </div>
           </div>
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
