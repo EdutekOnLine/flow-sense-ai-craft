@@ -22,35 +22,44 @@ export function LanguageSwitcher() {
 
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
-    // Update document direction
+    
+    // Update document direction and language
     document.documentElement.dir = languageCode === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = languageCode;
     
-    // Add a class to body for RTL styling if needed
+    // Update body classes for RTL styling
     if (languageCode === 'ar') {
       document.body.classList.add('rtl');
+      document.body.classList.remove('ltr');
     } else {
+      document.body.classList.add('ltr');
       document.body.classList.remove('rtl');
     }
+
+    // Store the preference
+    localStorage.setItem('preferred-language', languageCode);
+    localStorage.setItem('text-direction', languageCode === 'ar' ? 'rtl' : 'ltr');
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
+        <Button variant="outline" size="sm" className="flex items-center gap-2 rtl:flex-row-reverse">
           <Languages className="h-4 w-4" />
           <span className="text-sm">{currentLanguage.nativeName}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-background border border-border shadow-lg min-w-[180px]">
         {languages.map((language) => (
           <DropdownMenuItem
             key={language.code}
             onClick={() => handleLanguageChange(language.code)}
-            className={i18n.language === language.code ? 'bg-blue-50' : ''}
+            className={`rtl:text-right ${i18n.language === language.code ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
           >
-            <span className="font-medium">{language.nativeName}</span>
-            <span className="text-sm text-gray-500 ml-2">({language.name})</span>
+            <div className="flex items-center justify-between w-full rtl:flex-row-reverse">
+              <span className="font-medium">{language.nativeName}</span>
+              <span className="text-sm text-muted-foreground rtl:mr-2 ltr:ml-2">({language.name})</span>
+            </div>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

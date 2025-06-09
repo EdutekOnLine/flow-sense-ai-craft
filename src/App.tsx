@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +24,23 @@ const AppContent = () => {
     console.log('Checking for invitation token in App.tsx:', token);
     console.log('Current URL:', window.location.href);
     setHasInviteToken(!!token);
+
+    // Initialize RTL support based on stored preference
+    const storedLanguage = localStorage.getItem('preferred-language');
+    const storedDirection = localStorage.getItem('text-direction');
+    
+    if (storedLanguage && storedDirection) {
+      document.documentElement.dir = storedDirection;
+      document.documentElement.lang = storedLanguage;
+      
+      if (storedDirection === 'rtl') {
+        document.body.classList.add('rtl');
+        document.body.classList.remove('ltr');
+      } else {
+        document.body.classList.add('ltr');
+        document.body.classList.remove('rtl');
+      }
+    }
   }, []);
 
   if (loading) {
