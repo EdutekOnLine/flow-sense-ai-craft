@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { useTranslation } from 'react-i18next';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Repeat, Calendar, User, Rocket, RefreshCw } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatLocalizedDistanceToNow } from '@/utils/localization';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
 interface MyReusableWorkflowsProps {
@@ -17,7 +16,7 @@ interface MyReusableWorkflowsProps {
 export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProps) {
   const { workflows, isLoading } = useMyReusableWorkflows();
   const { data: users } = useUsers();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Convert saved workflow to startable workflow format
   const convertToStartableWorkflow = (savedWorkflow: any): StartableWorkflow => {
@@ -102,7 +101,7 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                 <div className="flex items-center gap-4 text-xs text-green-600">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {t('workflow.updated')} {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                    {t('workflow.updated')} {formatLocalizedDistanceToNow(new Date(workflow.updated_at), i18n.language)}
                   </div>
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />

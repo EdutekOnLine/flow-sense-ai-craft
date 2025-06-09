@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
 import { Workflow, Edit, Trash2, Calendar, User, Repeat } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatLocalizedDistanceToNow } from '@/utils/localization';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
 interface SavedWorkflowsProps {
@@ -22,7 +21,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   const { canEditWorkflows } = useWorkflowPermissions();
   const { profile } = useAuth();
   const { data: users } = useUsers();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Don't render for employees who can't edit workflows
   if (!canEditWorkflows) {
@@ -144,7 +143,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                   <div className="flex items-center gap-4 text-xs text-purple-600">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {t('workflow.updated')} {formatDistanceToNow(new Date(workflow.updated_at), { addSuffix: true })}
+                      {t('workflow.updated')} {formatLocalizedDistanceToNow(new Date(workflow.updated_at), i18n.language)}
                     </div>
                     <div className="flex items-center gap-1">
                       <User className="h-3 w-3" />

@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
-import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedDistanceToNow } from '@/utils/localization';
 
 interface DashboardTasksProps {
   onViewAllTasks: () => void;
@@ -14,6 +15,7 @@ interface DashboardTasksProps {
 
 export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const { assignments, isLoading, updateAssignmentStatus, completeStep } = useWorkflowAssignments();
+  const { i18n } = useTranslation();
   const [notes, setNotes] = useState('');
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -101,7 +103,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     {assignment.workflow_steps.workflows.name}
                   </p>
                   <p className="text-xs text-blue-500 mt-1">
-                    Assigned {formatDistanceToNow(new Date(assignment.created_at), { addSuffix: true })}
+                    Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-2">
