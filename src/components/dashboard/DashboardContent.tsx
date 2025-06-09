@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
 import { DashboardTasks } from './DashboardTasks';
 import { MyReusableWorkflows } from './MyReusableWorkflows';
+import { LiveMetricsCards } from './LiveMetricsCards';
+import { RealtimeActivityFeed } from './RealtimeActivityFeed';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,7 +75,12 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <Activity className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
+                  <Badge className="bg-green-500 text-white animate-pulse">
+                    LIVE
+                  </Badge>
+                </div>
                 <p className="text-purple-100 text-lg">{t('dashboard.subtitle')}</p>
               </div>
             </div>
@@ -83,77 +90,91 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
         <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-white/10 rounded-full blur-lg"></div>
       </div>
 
-      {/* My Assigned Tasks Section - Show for ALL users */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-            <Inbox className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myAssignedTasks')}</h2>
-            <p className="text-gray-600">{t('dashboard.myAssignedTasksDescription')}</p>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-          <DashboardTasks onViewAllTasks={handleViewAllTasks} />
-        </div>
-      </div>
+      {/* Live Metrics Cards */}
+      <LiveMetricsCards />
 
-      {/* My Reusable Workflows Section - Show for ALL users */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-            <Repeat className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myReusableWorkflows')}</h2>
-            <p className="text-gray-600">{t('dashboard.myReusableWorkflowsDescription')}</p>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-          <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
-        </div>
-      </div>
-
-      {/* Saved Workflows Section - Only show for users who can edit workflows */}
-      {canEditWorkflows && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-              <Workflow className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{getSavedWorkflowsContent().title}</h2>
-              <p className="text-gray-600">{getSavedWorkflowsContent().description}</p>
-            </div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-            <SavedWorkflows 
-              onOpenWorkflow={onOpenWorkflow}
-              onStartWorkflow={handleStartWorkflow}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Message for employees */}
-      {!canEditWorkflows && (
-        <div className="space-y-6">
-          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-            <CardHeader className="text-center">
-              <div className="mx-auto p-3 bg-blue-500 rounded-xl w-fit mb-4">
-                <Sparkles className="h-8 w-8 text-white" />
+      {/* Two-column layout for main content and activity feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main content - 2/3 width */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* My Assigned Tasks Section - Show for ALL users */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                <Inbox className="h-6 w-6 text-white" />
               </div>
-              <CardTitle className="text-2xl text-blue-900">{t('dashboard.welcomeTitle')}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-blue-700 text-lg">
-                {t('dashboard.welcomeMessage')}
-              </p>
-            </CardContent>
-          </Card>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myAssignedTasks')}</h2>
+                <p className="text-gray-600">{t('dashboard.myAssignedTasksDescription')}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+              <DashboardTasks onViewAllTasks={handleViewAllTasks} />
+            </div>
+          </div>
+
+          {/* My Reusable Workflows Section - Show for ALL users */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                <Repeat className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myReusableWorkflows')}</h2>
+                <p className="text-gray-600">{t('dashboard.myReusableWorkflowsDescription')}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+              <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
+            </div>
+          </div>
+
+          {/* Saved Workflows Section - Only show for users who can edit workflows */}
+          {canEditWorkflows && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                  <Workflow className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{getSavedWorkflowsContent().title}</h2>
+                  <p className="text-gray-600">{getSavedWorkflowsContent().description}</p>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+                <SavedWorkflows 
+                  onOpenWorkflow={onOpenWorkflow}
+                  onStartWorkflow={handleStartWorkflow}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Message for employees */}
+          {!canEditWorkflows && (
+            <div className="space-y-6">
+              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardHeader className="text-center">
+                  <div className="mx-auto p-3 bg-blue-500 rounded-xl w-fit mb-4">
+                    <Sparkles className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl text-blue-900">{t('dashboard.welcomeTitle')}</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-blue-700 text-lg">
+                    {t('dashboard.welcomeMessage')}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Activity feed sidebar - 1/3 width */}
+        <div className="lg:col-span-1">
+          <RealtimeActivityFeed />
+        </div>
+      </div>
     </div>
   );
 }

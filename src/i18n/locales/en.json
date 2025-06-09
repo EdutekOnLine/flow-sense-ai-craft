@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "Loading...",
@@ -36,29 +35,31 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Welcome to your workflow command center",
+    "subtitle": "Overview of your workflows and tasks",
     "myAssignedTasks": "My Assigned Tasks",
-    "myAssignedTasksDescription": "Workflow tasks assigned to you and their current status",
-    "allSavedWorkflows": "All Saved Workflows",
-    "allSavedWorkflowsDescription": "Manage all workflow templates in the system and start new workflow instances",
-    "mySavedWorkflows": "My Saved Workflows",
-    "mySavedWorkflowsDescription": "Manage your saved workflow templates and start new workflow instances",
+    "myAssignedTasksDescription": "Tasks currently assigned to you",
     "myReusableWorkflows": "My Reusable Workflows",
-    "myReusableWorkflowsDescription": "Workflows you can start multiple times for recurring processes",
-    "noTasksAssigned": "No tasks assigned to you",
-    "pendingTasksInfo": "You'll see workflow tasks assigned to you here",
+    "myReusableWorkflowsDescription": "Workflows you can launch multiple times",
+    "allSavedWorkflows": "All Saved Workflows",
+    "allSavedWorkflowsDescription": "All workflows in the system",
+    "mySavedWorkflows": "My Saved Workflows",
+    "mySavedWorkflowsDescription": "Workflows you have created",
     "noSavedWorkflows": "No saved workflows yet",
-    "createFirstWorkflow": "Create and save your first workflow in the Workflow Builder",
-    "noReusableWorkflows": "No reusable workflows available",
-    "reusableWorkflowsInfo": "You'll see reusable workflows you can start here",
-    "welcomeTitle": "Welcome to the Workflow System",
-    "welcomeMessage": "Workflow functionality is available for admins and managers. Contact your administrator to get workflow creation permissions.",
+    "createFirstWorkflow": "Create your first workflow to get started",
+    "noReusableWorkflows": "No reusable workflows yet",
+    "reusableWorkflowsInfo": "Create workflows and mark them as reusable to see them here",
     "noPendingTasks": "No pending tasks",
     "allCaughtUp": "You're all caught up!",
-    "workflowsMoved": "Workflows moved to \"My Saved Workflows\"",
-    "workflowsMovedDescription": "All workflow management is now handled in the \"My Saved Workflows\" section.",
-    "noTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
-    "refreshTasks": "Check for New Tasks"
+    "welcomeTitle": "Welcome to NeuraFlow!",
+    "welcomeMessage": "You can view and complete assigned tasks, and launch reusable workflows. Contact your administrator to create new workflows.",
+    "pendingTasks": "Pending",
+    "activeTasks": "Active",
+    "completedToday": "Completed Today",
+    "activeWorkflows": "Active Workflows",
+    "reusableWorkflows": "Reusable",
+    "totalWorkflows": "Total Workflows",
+    "recentActivity": "Recent Activity",
+    "noRecentActivity": "No recent activity"
   },
   "workflow": {
     "launch": "Launch",
@@ -195,5 +196,12 @@
     "english": "English",
     "arabic": "العربية",
     "changeLanguage": "Change Language"
+  },
+  "activity": {
+    "taskAssigned": "Task Assigned",
+    "newTaskAssigned": "New Task Assigned",
+    "taskCompleted": "Task Completed",
+    "workflowStarted": "Workflow Started",
+    "workflowCompleted": "Workflow Completed"
   }
 }
