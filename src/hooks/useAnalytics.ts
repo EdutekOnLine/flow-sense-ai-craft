@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -187,6 +186,36 @@ export function useGenerateAIInsights() {
 
     if (!response.ok) {
       throw new Error('Failed to generate insights');
+    }
+
+    return response.json();
+  };
+}
+
+export function useGenerateAdvancedInsights() {
+  return async (analysisType?: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error('No session found');
+    }
+
+    const response = await fetch('/functions/v1/generate-ai-insights', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        analysis_type: analysisType || 'comprehensive',
+        include_predictions: true,
+        include_anomalies: true,
+        include_recommendations: true
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate advanced insights');
     }
 
     return response.json();

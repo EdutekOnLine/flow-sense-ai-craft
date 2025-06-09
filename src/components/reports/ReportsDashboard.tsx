@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { WorkflowPerformanceChart } from './WorkflowPerformanceChart';
 import { UserPerformanceTable } from './UserPerformanceTable';
 import { DepartmentAnalyticsChart } from './DepartmentAnalyticsChart';
 import { AIInsightsPanel } from './AIInsightsPanel';
+import AdvancedAIInsights from './AdvancedAIInsights';
 import { WorkflowTrendsChart } from './WorkflowTrendsChart';
 import ReportBuilder from './ReportBuilder';
 import NaturalLanguageReports from './NaturalLanguageReports';
@@ -56,9 +56,9 @@ export default function ReportsDashboard() {
         </Button>
       </div>
 
-      {/* AI Insights Panel */}
+      {/* Enhanced AI Insights Panel */}
       {insights && insights.length > 0 && (
-        <AIInsightsPanel insights={insights} />
+        <AdvancedAIInsights insights={insights} />
       )}
 
       <Tabs defaultValue="analytics" className="space-y-6">

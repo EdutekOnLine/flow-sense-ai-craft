@@ -43,81 +43,169 @@ serve(async (req) => {
       throw new Error('Profile not found')
     }
 
-    // Fetch analytics data based on user role
     const insights = []
 
-    // Personal insights for all users
+    // Get comprehensive analytics data
+    const { data: trends } = await supabaseClient
+      .from('workflow_trends')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(30)
+
     const { data: userAnalytics } = await supabaseClient
       .from('user_performance_analytics')
       .select('*')
-      .eq('id', user.id)
-      .single()
 
+    const { data: deptAnalytics } = await supabaseClient
+      .from('department_analytics')
+      .select('*')
+
+    // Advanced Analytics: Predictive Insights
+    if (trends && trends.length >= 7) {
+      const recentTrends = trends.slice(0, 7)
+      const olderTrends = trends.slice(7, 14)
+      
+      const recentAvg = recentTrends.reduce((sum, day) => sum + (day.workflows_completed || 0), 0) / recentTrends.length
+      const olderAvg = olderTrends.reduce((sum, day) => sum + (day.workflows_completed || 0), 0) / (olderTrends.length || 1)
+      
+      const trendDirection = recentAvg > olderAvg ? 'increasing' : 'decreasing'
+      const changePercent = Math.abs(((recentAvg - olderAvg) / olderAvg) * 100)
+
+      if (changePercent > 10) {
+        insights.push({
+          insight_type: 'predictive',
+          title: `Workflow Completion Trend ${trendDirection === 'increasing' ? 'Rising' : 'Declining'}`,
+          description: `Based on the last 14 days of data, workflow completions are ${trendDirection} by ${changePercent.toFixed(1)}%. If this trend continues, expect ${trendDirection === 'increasing' ? 'improved' : 'reduced'} productivity in the coming week.`,
+          data: { 
+            trend: trendDirection, 
+            change_percent: changePercent,
+            recent_avg: recentAvg,
+            prediction: recentAvg * (trendDirection === 'increasing' ? 1.1 : 0.9)
+          },
+          confidence_score: changePercent > 20 ? 0.85 : 0.72
+        })
+      }
+
+      // Anomaly Detection
+      const completionRates = recentTrends.map(day => day.workflows_completed || 0)
+      const avgCompletion = completionRates.reduce((sum, rate) => sum + rate, 0) / completionRates.length
+      const stdDev = Math.sqrt(completionRates.reduce((sum, rate) => sum + Math.pow(rate - avgCompletion, 2), 0) / completionRates.length)
+      
+      const anomalies = completionRates.filter(rate => Math.abs(rate - avgCompletion) > 2 * stdDev)
+      
+      if (anomalies.length > 0) {
+        insights.push({
+          insight_type: 'anomaly',
+          title: 'Workflow Completion Anomaly Detected',
+          description: `Detected ${anomalies.length} day(s) with unusual workflow completion patterns. These anomalies suggest external factors may be affecting productivity. Consider investigating potential causes like system issues, team availability, or process changes.`,
+          data: { 
+            anomalies: anomalies.length,
+            avg_completion: avgCompletion,
+            anomalous_values: anomalies
+          },
+          confidence_score: 0.78
+        })
+      }
+    }
+
+    // Department Performance Analysis with Recommendations
+    if (deptAnalytics && deptAnalytics.length > 1) {
+      const topPerformer = deptAnalytics.reduce((max, dept) => 
+        (dept.department_completion_rate || 0) > (max.department_completion_rate || 0) ? dept : max
+      )
+      
+      const underPerformers = deptAnalytics.filter(dept => 
+        (dept.department_completion_rate || 0) < (topPerformer.department_completion_rate || 0) * 0.8
+      )
+
+      if (underPerformers.length > 0) {
+        insights.push({
+          insight_type: 'recommendation',
+          title: 'Cross-Department Learning Opportunity',
+          description: `${topPerformer.department} department (${topPerformer.department_completion_rate?.toFixed(1)}% completion rate) significantly outperforms other departments. Consider implementing knowledge sharing sessions where ${topPerformer.department} team members can share best practices with ${underPerformers.map(d => d.department).join(', ')} departments.`,
+          data: {
+            top_performer: topPerformer.department,
+            top_rate: topPerformer.department_completion_rate,
+            underperformers: underPerformers.map(d => ({ dept: d.department, rate: d.department_completion_rate }))
+          },
+          confidence_score: 0.82
+        })
+      }
+    }
+
+    // Resource Utilization Insights
+    if (userAnalytics && userAnalytics.length > 0) {
+      const overutilizedUsers = userAnalytics.filter(user => 
+        (user.steps_assigned || 0) > 10 && (user.completion_rate || 0) < 70
+      )
+      
+      const underutilizedUsers = userAnalytics.filter(user => 
+        (user.steps_assigned || 0) < 3 && (user.completion_rate || 0) > 90
+      )
+
+      if (overutilizedUsers.length > 0 && underutilizedUsers.length > 0) {
+        insights.push({
+          insight_type: 'resource_optimization',
+          title: 'Workload Redistribution Opportunity',
+          description: `Found ${overutilizedUsers.length} team member(s) with high workload but lower completion rates, and ${underutilizedUsers.length} member(s) with capacity for additional tasks. Consider redistributing workload to optimize team performance and prevent burnout.`,
+          data: {
+            overutilized: overutilizedUsers.map(u => ({ name: u.full_name, assigned: u.steps_assigned, rate: u.completion_rate })),
+            underutilized: underutilizedUsers.map(u => ({ name: u.full_name, assigned: u.steps_assigned, rate: u.completion_rate }))
+          },
+          confidence_score: 0.75
+        })
+      }
+    }
+
+    // Time Efficiency Analysis
     if (userAnalytics) {
-      // Generate personal performance insights
-      if (userAnalytics.completion_rate && userAnalytics.completion_rate > 90) {
-        insights.push({
-          insight_type: 'personal',
-          title: 'Excellent Performance!',
-          description: `You have an outstanding completion rate of ${userAnalytics.completion_rate}%. Keep up the great work!`,
-          data: { completion_rate: userAnalytics.completion_rate },
-          confidence_score: 0.95
-        })
-      }
+      const efficientUsers = userAnalytics.filter(user => 
+        (user.avg_time_variance || 0) < -1 && (user.steps_completed || 0) > 5
+      )
 
-      if (userAnalytics.avg_time_variance && userAnalytics.avg_time_variance < -2) {
+      if (efficientUsers.length > 0) {
+        const topEfficient = efficientUsers.reduce((max, user) => 
+          Math.abs(user.avg_time_variance || 0) > Math.abs(max.avg_time_variance || 0) ? user : max
+        )
+
         insights.push({
-          insight_type: 'personal',
-          title: 'Time Management Expert',
-          description: `You consistently complete tasks faster than estimated. Consider sharing your efficiency techniques with the team.`,
-          data: { time_variance: userAnalytics.avg_time_variance },
-          confidence_score: 0.88
+          insight_type: 'efficiency',
+          title: 'Time Management Best Practice Identified',
+          description: `${topEfficient.full_name} consistently completes tasks ${Math.abs(topEfficient.avg_time_variance || 0).toFixed(1)} hours faster than estimated. This efficiency pattern could be studied and shared with the team to improve overall productivity. Consider conducting a brief interview to document their time management techniques.`,
+          data: {
+            efficient_user: topEfficient.full_name,
+            time_saved: Math.abs(topEfficient.avg_time_variance || 0),
+            completed_tasks: topEfficient.steps_completed
+          },
+          confidence_score: 0.87
         })
       }
     }
 
-    // Department insights for managers and above
-    if (['manager', 'admin', 'root'].includes(profile.role)) {
-      const { data: deptAnalytics } = await supabaseClient
-        .from('department_analytics')
-        .select('*')
-        .eq('department', profile.department)
-        .single()
-
-      if (deptAnalytics) {
-        if (deptAnalytics.department_completion_rate && deptAnalytics.department_completion_rate < 70) {
-          insights.push({
-            insight_type: 'department',
-            title: 'Department Performance Alert',
-            description: `${profile.department} department completion rate is ${deptAnalytics.department_completion_rate}%. Consider reviewing workload distribution.`,
-            data: { department: profile.department, completion_rate: deptAnalytics.department_completion_rate },
-            confidence_score: 0.82
-          })
-        }
+    // Seasonal Pattern Analysis (if enough historical data)
+    if (trends && trends.length >= 21) {
+      const weeklyPattern = []
+      for (let i = 0; i < 3; i++) {
+        const weekData = trends.slice(i * 7, (i + 1) * 7)
+        const weekAvg = weekData.reduce((sum, day) => sum + (day.workflows_completed || 0), 0) / 7
+        weeklyPattern.push(weekAvg)
       }
-    }
 
-    // Organization insights for admins and root
-    if (['admin', 'root'].includes(profile.role)) {
-      const { data: trends } = await supabaseClient
-        .from('workflow_trends')
-        .select('*')
-        .order('date', { ascending: false })
-        .limit(7)
+      const patternTrend = weeklyPattern[0] > weeklyPattern[2] ? 'declining' : 'improving'
+      const weeklyVariance = Math.abs(weeklyPattern[0] - weeklyPattern[2]) / weeklyPattern[2] * 100
 
-      if (trends && trends.length > 0) {
-        const avgCreated = trends.reduce((sum, day) => sum + (day.workflows_created || 0), 0) / trends.length
-        const avgCompleted = trends.reduce((sum, day) => sum + (day.workflows_completed || 0), 0) / trends.length
-
-        if (avgCreated > avgCompleted * 1.5) {
-          insights.push({
-            insight_type: 'organization',
-            title: 'Workflow Backlog Growing',
-            description: `New workflows are being created faster than completed. Average ${avgCreated.toFixed(1)} created vs ${avgCompleted.toFixed(1)} completed daily.`,
-            data: { avg_created: avgCreated, avg_completed: avgCompleted },
-            confidence_score: 0.78
-          })
-        }
+      if (weeklyVariance > 15) {
+        insights.push({
+          insight_type: 'pattern',
+          title: 'Weekly Performance Pattern Detected',
+          description: `Analysis of 3-week patterns shows productivity is ${patternTrend} with ${weeklyVariance.toFixed(1)}% variance between weeks. This suggests either cyclical business factors or team scheduling patterns. Consider analyzing external factors that might be influencing these weekly cycles.`,
+          data: {
+            pattern: patternTrend,
+            variance: weeklyVariance,
+            weekly_averages: weeklyPattern
+          },
+          confidence_score: 0.71
+        })
       }
     }
 
