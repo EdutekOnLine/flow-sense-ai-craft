@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -426,13 +427,13 @@ export default function UserManagement() {
           </Table>
         </CardContent>
       </Card>
-    </div>
 
-    {/* Edit User Dialog */}
-    <EditUserDialog
-      user={editingUser}
-      isOpen={!!editingUser}
-      onClose={() => setEditingUser(null)}
-    />
+      {/* Edit User Dialog */}
+      <EditUserDialog
+        user={editingUser}
+        isOpen={!!editingUser}
+        onClose={() => setEditingUser(null)}
+      />
+    </div>
   );
 }
