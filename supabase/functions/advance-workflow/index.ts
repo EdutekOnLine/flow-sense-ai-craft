@@ -125,9 +125,40 @@ serve(async (req) => {
         console.error('Error updating next step status:', nextStepError);
       }
 
-      // Create assignment for the next step ONLY if someone is assigned
-      if (nextStep.assigned_to) {
-        console.log(`Creating assignment for next step assigned to: ${nextStep.assigned_to}`);
+      // CRITICAL FIX: Instead of creating a new assignment, update the existing one
+      // Check if an assignment already exists for the next step
+      const { data: existingAssignment, error: assignmentCheckError } = await supabaseClient
+        .from('workflow_step_assignments')
+        .select('*')
+        .eq('workflow_step_id', nextStep.id)
+        .eq('assigned_to', nextStep.assigned_to)
+        .single();
+
+      if (assignmentCheckError && assignmentCheckError.code !== 'PGRST116') {
+        console.error('Error checking for existing assignment:', assignmentCheckError);
+      }
+
+      if (existingAssignment) {
+        // Assignment exists, just update its status to make it active
+        console.log(`Updating existing assignment ${existingAssignment.id} for next step`);
+        
+        const { error: assignmentUpdateError } = await supabaseClient
+          .from('workflow_step_assignments')
+          .update({
+            status: 'pending',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingAssignment.id);
+
+        if (assignmentUpdateError) {
+          console.error('Error updating assignment:', assignmentUpdateError);
+          throw assignmentUpdateError;
+        } else {
+          console.log('Successfully updated existing assignment for next step');
+        }
+      } else if (nextStep.assigned_to) {
+        // No existing assignment and someone is assigned - create new assignment
+        console.log(`Creating new assignment for next step assigned to: ${nextStep.assigned_to}`);
         
         const { error: assignmentError } = await supabaseClient
           .from('workflow_step_assignments')
@@ -141,7 +172,8 @@ serve(async (req) => {
 
         if (assignmentError) {
           console.error('Error creating step assignment:', assignmentError);
-          throw assignmentError;
+          // Don't throw here - the workflow still advanced successfully
+          console.log('Workflow advanced successfully despite assignment creation error');
         } else {
           console.log('Step assignment created successfully for next step');
         }
