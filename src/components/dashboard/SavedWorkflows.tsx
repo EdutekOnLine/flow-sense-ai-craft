@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -188,7 +189,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
           {workflows.length > 5 && (
             <div className="text-center pt-4 border-t border-purple-200">
               <p className="text-sm text-purple-600">
-                {t('workflow.moreWorkflows', { count: formatLocalizedNumber(workflows.length - 5, i18n.language) })}
+                {t('workflow.moreWorkflows', { count: workflows.length - 5 })}
               </p>
             </div>
           )}
