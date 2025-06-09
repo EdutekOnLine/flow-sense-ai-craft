@@ -22,7 +22,7 @@ interface ReportFiltersProps {
 export default function ReportFilters({ filters, onFiltersChange }: ReportFiltersProps) {
   const { t } = useTranslation();
   const { canViewUsers } = useWorkflowPermissions();
-  const { users } = useUsers();
+  const { data: users } = useUsers();
   const { workflows } = useSavedWorkflows();
   const [showFilters, setShowFilters] = useState(false);
 
@@ -40,7 +40,7 @@ export default function ReportFilters({ filters, onFiltersChange }: ReportFilter
   };
 
   const departments = Array.from(
-    new Set(users?.map(user => user.department).filter(Boolean))
+    new Set(users?.map(user => user.department).filter((dept): dept is string => Boolean(dept)))
   );
 
   return (

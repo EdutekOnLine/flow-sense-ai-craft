@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
@@ -22,8 +21,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
-import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
-import NotificationCenter from '@/components/notifications/NotificationCenter';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
