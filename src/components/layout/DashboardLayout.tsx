@@ -1,216 +1,215 @@
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Separator } from '@/components/ui/separator';
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  Workflow, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  Menu,
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  GitBranch,
+  Users,
+  BarChart3,
+  Settings,
   LogOut,
-  User
+  Menu,
+  X,
+  Building2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/hooks/useAuth';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { supabase } from '@/integrations/supabase/client';
+import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
-  const { canViewUsers, canCreateWorkflows } = useWorkflowPermissions();
+  const { user, profile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const navigation = [
-    { name: t('navigation.dashboard'), href: '/', icon: LayoutDashboard },
-    { name: t('navigation.myTasks'), href: '/tasks', icon: CheckSquare },
-    ...(canCreateWorkflows ? [{ name: t('navigation.workflowBuilder'), href: '/workflow-builder', icon: Workflow }] : []),
-    ...(canViewUsers ? [{ name: t('navigation.users'), href: '/users', icon: Users }] : []),
-    { name: t('navigation.reports'), href: '/reports', icon: BarChart3 },
-    { name: t('navigation.settings'), href: '/settings', icon: Settings },
-  ];
+  const { canViewUsers } = useWorkflowPermissions();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    navigate('/');
   };
 
-  const NavLinks = ({ mobile = false }) => (
-    <nav className={cn("space-y-2", mobile && "px-4")}>
-      {navigation.map((item) => {
-        const Icon = item.icon;
-        const isActive = location.pathname === item.href;
-        
-        return (
-          <Link
-            key={item.name}
-            to={item.href}
-            onClick={() => mobile && setSidebarOpen(false)}
-            className={cn(
-              "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            <Icon className="mr-3 h-4 w-4" />
-            {item.name}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  const navigation = [
+    {
+      name: t('navigation.dashboard'),
+      href: '/',
+      icon: LayoutDashboard,
+      current: location.pathname === '/',
+    },
+    {
+      name: t('navigation.workflows'),
+      href: '/workflows',
+      icon: GitBranch,
+      current: location.pathname === '/workflows',
+    },
+    {
+      name: t('navigation.reports'),
+      href: '/reports',
+      icon: BarChart3,
+      current: location.pathname === '/reports',
+    },
+  ];
+
+  if (canViewUsers) {
+    navigation.push({
+      name: t('navigation.admin'),
+      href: '/admin',
+      icon: Users,
+      current: location.pathname === '/admin',
+    });
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex flex-col flex-grow border-r border-border bg-card overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4 py-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Workflow className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">WorkFlow</h1>
-                <p className="text-xs text-muted-foreground">Management System</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile sidebar */}
+      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? '' : 'hidden'}`}>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
+          <div className="flex h-16 items-center justify-between px-4">
+            <div className="flex items-center">
+              <Building2 className="h-8 w-8 text-blue-600" />
+              <span className="ml-2 text-xl font-bold text-gray-900">NeuraFlow</span>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-          
-          <div className="flex-1 px-4">
-            <NavLinks />
-          </div>
+          <nav className="flex-1 space-y-1 px-2 py-4">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`${
+                    item.current
+                      ? 'bg-blue-100 text-blue-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Icon
+                    className={`${
+                      item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                    } mr-3 h-5 w-5`}
+                  />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
 
-          <div className="flex-shrink-0 p-4 border-t border-border">
-            <div className="flex items-center justify-between">
+      {/* Desktop sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+        <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200">
+          <div className="flex h-16 flex-shrink-0 items-center px-4">
+            <Building2 className="h-8 w-8 text-blue-600" />
+            <span className="ml-2 text-xl font-bold text-gray-900">NeuraFlow</span>
+          </div>
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <nav className="flex-1 space-y-1 px-2 py-4">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`${
+                      item.current
+                        ? 'bg-blue-100 text-blue-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  >
+                    <Icon
+                      className={`${
+                        item.current ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                      } mr-3 h-5 w-5`}
+                    />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="lg:pl-64">
+        {/* Top navigation */}
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1 items-center">
+              <h1 className="text-lg font-semibold text-gray-900">
+                {t('common.welcome')}, {profile?.first_name || user?.email}
+              </h1>
+            </div>
+            <div className="flex items-center gap-x-4 lg:gap-x-6">
               <LanguageSwitcher />
               <NotificationCenter />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Header */}
-      <div className="lg:hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-          <div className="flex items-center space-x-3">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
-                <div className="flex flex-col h-full">
-                  <div className="flex items-center px-4 py-6 border-b border-border">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <Workflow className="w-5 h-5 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h1 className="text-xl font-bold">WorkFlow</h1>
-                        <p className="text-xs text-muted-foreground">Management System</p>
-                      </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url} alt={profile?.first_name || ''} />
+                      <AvatarFallback>
+                        {profile?.first_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {profile?.first_name} {profile?.last_name}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex-1 py-4">
-                    <NavLinks mobile />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-            
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <Workflow className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-semibold">WorkFlow</span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{t('auth.logout')}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <NotificationCenter />
-            <LanguageSwitcher />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.first_name || ""} />
-                    <AvatarFallback>
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  {profile?.first_name} {profile?.last_name}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t('header.signOut')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="lg:pl-72">
-        <div className="hidden lg:flex lg:items-center lg:justify-between lg:px-6 lg:py-4 lg:border-b lg:border-border lg:bg-card">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">
-              {t('header.welcome', { name: profile?.first_name || 'User' })}
-            </h2>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <NotificationCenter />
-            <LanguageSwitcher />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || ""} alt={profile?.first_name || ""} />
-                    <AvatarFallback>
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  {profile?.first_name} {profile?.last_name}
-                </DropdownMenuItem>
-                <Separator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t('header.signOut')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
 
-        <main className="p-6">
-          {children}
+        {/* Page content */}
+        <main className="py-10">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
