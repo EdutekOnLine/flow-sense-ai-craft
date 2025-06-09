@@ -58,8 +58,65 @@ export default function UserManagement() {
   const queryClient = useQueryClient();
   const { profile, user } = useAuth();
 
+  // Permission helper functions
+  const canEditUser = (targetUser: UserProfile) => {
+    if (!profile) return false;
+    
+    // Root users can edit all users
+    if (profile.role === 'root') return true;
+    
+    // Admin users can edit all users except root users
+    if (profile.role === 'admin' && targetUser.role !== 'root') return true;
+    
+    // Users can edit themselves
+    if (profile.id === targetUser.id) return true;
+    
+    return false;
+  };
+
+  const canDeleteUser = (targetUser: UserProfile) => {
+    if (!profile) return false;
+    
+    // Cannot delete yourself
+    if (profile.id === targetUser.id) return false;
+    
+    // Root users can delete all non-root users
+    if (profile.role === 'root' && targetUser.role !== 'root') return true;
+    
+    // Admin users can delete employees and managers
+    if (profile.role === 'admin' && ['employee', 'manager'].includes(targetUser.role)) return true;
+    
+    return false;
+  };
+
+  const canSeeUser = (targetUser: UserProfile) => {
+    if (!profile) return false;
+    
+    // Users can always see themselves
+    if (profile.id === targetUser.id) return true;
+    
+    // Root users can see all users
+    if (profile.role === 'root') return true;
+    
+    // Admin users can see all users except other admins and root (unless it's themselves)
+    if (profile.role === 'admin') {
+      return !['admin', 'root'].includes(targetUser.role) || targetUser.id === profile.id;
+    }
+    
+    // Manager users can see all users except root
+    if (profile.role === 'manager') {
+      return targetUser.role !== 'root';
+    }
+    
+    return false;
+  };
+
+  const canInviteUsers = () => {
+    return profile && ['root', 'admin'].includes(profile.role);
+  };
+
   // Fetch existing users
-  const { data: users = [] } = useQuery({
+  const { data: allUsers = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -71,6 +128,9 @@ export default function UserManagement() {
       return data as UserProfile[];
     },
   });
+
+  // Filter users based on permissions
+  const users = allUsers.filter(canSeeUser);
 
   // Fetch pending invitations
   const { data: invitations = [] } = useQuery({
@@ -96,7 +156,7 @@ export default function UserManagement() {
           email: invitation.email,
           role: invitation.role,
           department: invitation.department || null,
-          invited_by: user?.id, // Use the current user's ID
+          invited_by: user?.id,
         }])
         .select()
         .single();
@@ -115,7 +175,7 @@ export default function UserManagement() {
           invitedByName: profile?.first_name && profile?.last_name 
             ? `${profile.first_name} ${profile.last_name}` 
             : profile?.email,
-          invitedBy: user?.id, // Pass the current user's ID
+          invitedBy: user?.id,
         },
       });
 
@@ -123,7 +183,6 @@ export default function UserManagement() {
 
       if (emailResponse.error) {
         console.error('Error sending invitation email:', emailResponse.error);
-        // Don't throw here - invitation was created successfully, just email failed
         toast({
           title: 'Invitation created but email failed',
           description: 'You can copy the invitation link manually.',
@@ -235,66 +294,81 @@ export default function UserManagement() {
     }
   };
 
-  const isRootUser = profile?.role === 'root';
+  // Show access denied message for employees
+  if (profile?.role === 'employee') {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+        <p className="text-gray-600">You don't have permission to access user management.</p>
+      </div>
+    );
+  }
+
+  const isManagerRole = profile?.role === 'manager';
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Invite New User */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <UserPlus className="h-5 w-5 mr-2" />
-              Invite New User
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={inviteForm.email}
-                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                placeholder="user@company.com"
-              />
-            </div>
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee">Employee</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="department">Department (Optional)</Label>
-              <Input
-                id="department"
-                value={inviteForm.department}
-                onChange={(e) => setInviteForm({ ...inviteForm, department: e.target.value })}
-                placeholder="Engineering, Marketing, etc."
-              />
-            </div>
-            <Button 
-              onClick={handleInviteUser} 
-              disabled={createInvitation.isPending}
-              className="w-full"
-            >
-              {createInvitation.isPending ? 'Creating...' : 'Send Invitation'}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Invite New User - Only show for root and admin */}
+        {canInviteUsers() && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <UserPlus className="h-5 w-5 mr-2" />
+                Invite New User
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  placeholder="user@company.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="department">Department (Optional)</Label>
+                <Input
+                  id="department"
+                  value={inviteForm.department}
+                  onChange={(e) => setInviteForm({ ...inviteForm, department: e.target.value })}
+                  placeholder="Engineering, Marketing, etc."
+                />
+              </div>
+              <Button 
+                onClick={handleInviteUser} 
+                disabled={createInvitation.isPending}
+                className="w-full"
+              >
+                {createInvitation.isPending ? 'Creating...' : 'Send Invitation'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Active Users */}
-        <Card>
+        <Card className={canInviteUsers() ? '' : 'lg:col-span-2'}>
           <CardHeader>
-            <CardTitle>Active Users ({users.length})</CardTitle>
+            <CardTitle>
+              {isManagerRole ? 'Team Members' : 'Active Users'} ({users.length})
+              {isManagerRole && <span className="text-sm font-normal text-gray-600 ml-2">(View Only)</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -311,8 +385,8 @@ export default function UserManagement() {
                     <Badge className={getRoleBadgeColor(user.role)}>
                       {user.role.toUpperCase()}
                     </Badge>
-                    {/* Show edit button for root users */}
-                    {isRootUser && (
+                    {/* Show edit button only if user can edit and it's not a manager viewing */}
+                    {canEditUser(user) && !isManagerRole && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -322,8 +396,8 @@ export default function UserManagement() {
                         <Edit className="h-4 w-4" />
                       </Button>
                     )}
-                    {/* Only show delete button if not deleting self and user is not the current user */}
-                    {profile?.id !== user.id && (
+                    {/* Show delete button only if user can delete */}
+                    {canDeleteUser(user) && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
@@ -363,70 +437,72 @@ export default function UserManagement() {
         </Card>
       </div>
 
-      {/* Pending Invitations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Invitations ({invitations.filter(inv => !inv.used_at).length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitations.map((invitation) => (
-                <TableRow key={invitation.id}>
-                  <TableCell>{invitation.email}</TableCell>
-                  <TableCell>
-                    <Badge className={getRoleBadgeColor(invitation.role)}>
-                      {invitation.role.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{invitation.department || '-'}</TableCell>
-                  <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {invitation.used_at ? (
-                      <Badge className="bg-green-100 text-green-800">Used</Badge>
-                    ) : new Date(invitation.expires_at) < new Date() ? (
-                      <Badge className="bg-gray-100 text-gray-800">Expired</Badge>
-                    ) : (
-                      <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {!invitation.used_at && new Date(invitation.expires_at) > new Date() && (
+      {/* Pending Invitations - Only show for root and admin */}
+      {canInviteUsers() && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Invitations ({invitations.filter(inv => !inv.used_at).length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invitations.map((invitation) => (
+                  <TableRow key={invitation.id}>
+                    <TableCell>{invitation.email}</TableCell>
+                    <TableCell>
+                      <Badge className={getRoleBadgeColor(invitation.role)}>
+                        {invitation.role.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{invitation.department || '-'}</TableCell>
+                    <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {invitation.used_at ? (
+                        <Badge className="bg-green-100 text-green-800">Used</Badge>
+                      ) : new Date(invitation.expires_at) < new Date() ? (
+                        <Badge className="bg-gray-100 text-gray-800">Expired</Badge>
+                      ) : (
+                        <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {!invitation.used_at && new Date(invitation.expires_at) > new Date() && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => copyInvitationLink(invitation.invitation_token)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => copyInvitationLink(invitation.invitation_token)}
+                          onClick={() => deleteInvitation.mutate(invitation.id)}
+                          disabled={deleteInvitation.isPending}
                         >
-                          <Copy className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => deleteInvitation.mutate(invitation.id)}
-                        disabled={deleteInvitation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Edit User Dialog */}
       <EditUserDialog
