@@ -16,6 +16,7 @@ import { WorkflowTrendsChart } from './WorkflowTrendsChart';
 import ReportBuilder from './ReportBuilder';
 import NaturalLanguageReports from './NaturalLanguageReports';
 import ReportTemplates from './ReportTemplates';
+import ReportInsightsPanel from './ReportInsightsPanel';
 import { useAIInsights, useGenerateAIInsights } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 
@@ -100,36 +101,44 @@ export default function ReportsDashboard() {
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  {t('reports.overview.trends')}
-                </CardTitle>
-                <CardDescription>
-                  {t('reports.overview.trendsDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WorkflowTrendsChart />
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Analytics Charts */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    {t('reports.overview.trends')}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('reports.overview.trendsDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WorkflowTrendsChart />
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  {t('reports.overview.performance')}
-                </CardTitle>
-                <CardDescription>
-                  {t('reports.overview.performanceDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WorkflowPerformanceChart />
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    {t('reports.overview.performance')}
+                  </CardTitle>
+                  <CardDescription>
+                    {t('reports.overview.performanceDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <WorkflowPerformanceChart />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Insights Panel */}
+            <div>
+              <ReportInsightsPanel />
+            </div>
           </div>
         </TabsContent>
 

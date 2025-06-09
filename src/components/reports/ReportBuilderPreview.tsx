@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, LineChart, PieChart, Activity, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, LineChart as RechartsLineChart, Line, PieChart as RechartsPieChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart as RechartsLineChart, Line, PieChart as RechartsPieChart, Cell, Pie, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ReportBuilderPreviewProps {
   config: {
@@ -57,12 +57,21 @@ export default function ReportBuilderPreview({ config }: ReportBuilderPreviewPro
         return (
           <ResponsiveContainer width="100%" height={300}>
             <RechartsPieChart>
-              <Tooltip />
-              <RechartsPieChart data={sampleData.map(item => ({ name: item.name, value: item.completed }))}>
+              <Pie
+                data={sampleData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: ${value}`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="completed"
+              >
                 {sampleData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
-              </RechartsPieChart>
+              </Pie>
+              <Tooltip />
             </RechartsPieChart>
           </ResponsiveContainer>
         );

@@ -140,12 +140,15 @@
     "naturalLanguage": {
       "title": "Natural Language Reports",
       "description": "Generate reports using natural language queries",
-      "placeholder": "Describe the report you want to generate...",
+      "placeholder": "Ask me about your workflow data...",
       "examples": {
         "performance": "Show me performance metrics for the last quarter",
         "users": "Compare user productivity across departments",
         "trends": "Analyze workflow completion trends this month"
-      }
+      },
+      "narratives": "Generated Report Narratives",
+      "chat": "Interactive Report Chat",
+      "confidence": "Confidence"
     }
   },
   "users": {

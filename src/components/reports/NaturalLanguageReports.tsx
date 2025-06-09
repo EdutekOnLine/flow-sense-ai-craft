@@ -4,260 +4,343 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Brain, TrendingUp, AlertCircle, FileText, Send } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Brain, MessageSquare, Send, Sparkles, FileText, TrendingUp, Users, BarChart3 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChatMessage {
   id: string;
-  type: 'user' | 'assistant';
+  type: 'user' | 'ai';
   content: string;
   timestamp: Date;
+  confidence?: number;
+  reportData?: any;
 }
 
-interface GeneratedNarrative {
-  id: string;
+interface ReportNarrative {
   title: string;
   summary: string;
   keyFindings: string[];
   recommendations: string[];
   confidence: number;
-  timestamp: Date;
 }
 
 export default function NaturalLanguageReports() {
   const { t } = useTranslation();
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      type: 'assistant',
-      content: 'Hello! I can help you understand your workflow data. Ask me questions like "Why did completion rates drop last week?" or "Show me the top performing departments."',
-      timestamp: new Date(),
-    }
-  ]);
-  const [currentMessage, setCurrentMessage] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  const [narratives] = useState<GeneratedNarrative[]>([
-    {
-      id: '1',
-      title: 'Weekly Performance Summary',
-      summary: 'This week showed significant improvement in workflow completion rates, with Engineering department leading the charge at 94% completion rate. The implementation of new automation tools appears to be driving efficiency gains across all departments.',
-      keyFindings: [
-        'Overall completion rate increased by 12% compared to last week',
-        'Engineering department achieved 94% completion rate (highest)',
-        'Average task completion time decreased by 8 minutes',
-        'New automation tools reduced manual errors by 23%'
-      ],
-      recommendations: [
-        'Expand automation tools to Marketing and Sales departments',
-        'Investigate HR department bottlenecks causing 67% completion rate',
-        'Schedule training sessions for teams with completion rates below 80%'
-      ],
-      confidence: 0.92,
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    },
-    {
-      id: '2',
-      title: 'Anomaly Detection Alert',
-      summary: 'An unusual pattern has been detected in the approval workflow process. Approval times have increased by 45% over the past 3 days, primarily affecting the Finance department workflows.',
-      keyFindings: [
-        'Approval times increased from 2.3 hours to 3.4 hours average',
-        'Finance department most affected with 67% longer approval times',
-        'Peak delays occurring between 2-4 PM daily',
-        'No corresponding increase in approval volumes detected'
-      ],
-      recommendations: [
-        'Review Finance department approver availability during peak hours',
-        'Consider implementing backup approver system',
-        'Investigate potential system performance issues'
-      ],
-      confidence: 0.87,
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    }
-  ]);
+  const [query, setQuery] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [narratives, setNarratives] = useState<ReportNarrative[]>([]);
 
-  const handleSendMessage = async () => {
-    if (!currentMessage.trim()) return;
+  const exampleQueries = [
+    "Show me performance metrics for the last quarter",
+    "Compare user productivity across departments",
+    "Analyze workflow completion trends this month",
+    "What are the bottlenecks in our processes?",
+    "Generate an executive summary for this week"
+  ];
 
+  const handleGenerateReport = async () => {
+    if (!query.trim()) return;
+
+    setIsGenerating(true);
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: currentMessage,
-      timestamp: new Date(),
+      content: query,
+      timestamp: new Date()
     };
 
     setChatMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
-    setIsProcessing(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
+    try {
+      // Simulate AI processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const aiResponse = generateAIResponse(query);
+      const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: `Based on your query about "${currentMessage}", I can see that workflow performance has been trending upward this month. The completion rate increased by 15% compared to last month, with the Engineering department leading at 94% completion rate. Would you like me to dive deeper into any specific aspect?`,
+        type: 'ai',
+        content: aiResponse.content,
         timestamp: new Date(),
+        confidence: aiResponse.confidence,
+        reportData: aiResponse.reportData
       };
-      setChatMessages(prev => [...prev, aiResponse]);
-      setIsProcessing(false);
-    }, 2000);
+
+      setChatMessages(prev => [...prev, aiMessage]);
+
+      if (aiResponse.narrative) {
+        setNarratives(prev => [...prev, aiResponse.narrative]);
+      }
+
+      toast.success('Report generated successfully!');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setIsGenerating(false);
+      setQuery('');
+    }
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.9) return 'bg-green-100 text-green-800';
-    if (confidence >= 0.8) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+  const generateAIResponse = (userQuery: string) => {
+    const query = userQuery.toLowerCase();
+    
+    if (query.includes('performance') || query.includes('metrics')) {
+      return {
+        content: "I've analyzed your performance metrics for the requested period. The data shows strong overall performance with 87% completion rates across departments. Engineering leads with 94% completion, while HR shows the most room for improvement at 67%. Would you like me to dive deeper into any specific department or metric?",
+        confidence: 0.92,
+        reportData: {
+          completionRate: 87,
+          topDepartment: 'Engineering',
+          improvementArea: 'HR'
+        },
+        narrative: {
+          title: 'Performance Analysis Report',
+          summary: 'Comprehensive analysis of organizational performance metrics showing strong completion rates with targeted improvement opportunities.',
+          keyFindings: [
+            'Overall completion rate of 87% exceeds industry benchmark',
+            'Engineering department leads with 94% completion rate',
+            'HR department requires attention with 67% completion rate',
+            'Peak productivity observed Tuesday-Thursday',
+            'Mobile workflow usage correlates with 15% faster completion'
+          ],
+          recommendations: [
+            'Implement HR department process optimization',
+            'Expand mobile workflow capabilities',
+            'Schedule critical tasks during peak productivity hours',
+            'Cross-train teams to balance workload distribution'
+          ],
+          confidence: 0.92
+        }
+      };
+    } else if (query.includes('trend') || query.includes('month')) {
+      return {
+        content: "This month's trends show a positive trajectory with 12% improvement in completion rates compared to last month. The main drivers are increased automation adoption and improved team collaboration. I notice workflow volumes peak mid-week and productivity is highest in the mornings.",
+        confidence: 0.89,
+        reportData: {
+          monthlyImprovement: 12,
+          peakDays: ['Tuesday', 'Wednesday', 'Thursday']
+        }
+      };
+    } else if (query.includes('department') || query.includes('compare')) {
+      return {
+        content: "Comparing departmental productivity, I see clear performance patterns. Engineering (94%) and Marketing (87%) are your top performers, while Sales (78%) and HR (67%) have optimization opportunities. The performance gaps suggest different workflow complexities and resource allocations.",
+        confidence: 0.88,
+        reportData: {
+          rankings: [
+            { dept: 'Engineering', score: 94 },
+            { dept: 'Marketing', score: 87 },
+            { dept: 'Sales', score: 78 },
+            { dept: 'HR', score: 67 }
+          ]
+        }
+      };
+    } else if (query.includes('bottleneck') || query.includes('problem')) {
+      return {
+        content: "I've identified several process bottlenecks: approval delays in Finance (avg 2.3 days), resource allocation conflicts in Project Management, and communication gaps between Sales and Engineering. These issues contribute to approximately 23% of workflow delays.",
+        confidence: 0.85,
+        reportData: {
+          bottlenecks: ['Finance approvals', 'Resource allocation', 'Cross-team communication']
+        }
+      };
+    } else {
+      return {
+        content: "I can help you analyze various aspects of your workflow data. Try asking about performance metrics, trends, departmental comparisons, or process bottlenecks. I can also generate executive summaries and detailed reports based on your specific needs.",
+        confidence: 0.75,
+        reportData: null
+      };
+    }
+  };
+
+  const handleExampleQuery = (exampleQuery: string) => {
+    setQuery(exampleQuery);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">AI-Powered Report Insights</h2>
-        <p className="text-gray-600 mt-1">Natural language analysis and interactive report conversations</p>
+        <h2 className="text-2xl font-bold text-gray-900">{t('reports.naturalLanguage.title')}</h2>
+        <p className="text-gray-600 mt-1">{t('reports.naturalLanguage.description')}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Generated Narratives */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chat Interface */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                {t('reports.naturalLanguage.chat')}
+              </CardTitle>
+              <CardDescription>
+                Ask questions about your workflow data in natural language
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ScrollArea className="h-96 w-full border rounded-lg p-4">
+                {chatMessages.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">
+                    <Brain className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p>Start a conversation by asking about your workflow data</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {chatMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] p-3 rounded-lg ${
+                            message.type === 'user'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          <p>{message.content}</p>
+                          {message.confidence && (
+                            <div className="mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {t('reports.naturalLanguage.confidence')}: {Math.round(message.confidence * 100)}%
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+              
+              <div className="flex gap-2">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t('reports.naturalLanguage.placeholder')}
+                  onKeyPress={(e) => e.key === 'Enter' && handleGenerateReport()}
+                  disabled={isGenerating}
+                />
+                <Button 
+                  onClick={handleGenerateReport}
+                  disabled={isGenerating || !query.trim()}
+                >
+                  {isGenerating ? (
+                    <Brain className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Example Queries & Quick Actions */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Example Queries
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {exampleQueries.map((example, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="w-full text-left justify-start h-auto p-3"
+                  onClick={() => handleExampleQuery(example)}
+                >
+                  <span className="text-sm">{example}</span>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Quick Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Active Workflows</span>
+                <Badge>24</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Completion Rate</span>
+                <Badge variant="secondary">87%</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Top Department</span>
+                <Badge variant="outline">Engineering</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Generated Narratives */}
+      {narratives.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Generated Report Narratives
+              {t('reports.naturalLanguage.narratives')}
             </CardTitle>
             <CardDescription>
-              AI-generated insights and summaries from your workflow data
+              AI-generated report narratives from your conversations
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-96">
-              <div className="space-y-4">
-                {narratives.map((narrative) => (
-                  <div key={narrative.id} className="p-4 border rounded-lg space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-medium text-gray-900">{narrative.title}</h4>
-                      <Badge className={getConfidenceColor(narrative.confidence)}>
-                        {Math.round(narrative.confidence * 100)}% confidence
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {narrative.summary}
-                    </p>
-                    
-                    <div className="space-y-2">
-                      <h5 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" />
-                        Key Findings
-                      </h5>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        {narrative.keyFindings.slice(0, 2).map((finding, index) => (
-                          <li key={index} className="flex items-start gap-1">
-                            <span className="text-blue-500 mt-1">•</span>
+            <div className="space-y-6">
+              {narratives.map((narrative, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold">{narrative.title}</h3>
+                    <Badge variant="outline">
+                      {Math.round(narrative.confidence * 100)}% confidence
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-4">{narrative.summary}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-600 mb-2">Key Findings</h4>
+                      <ul className="text-sm space-y-1">
+                        {narrative.keyFindings.map((finding, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <TrendingUp className="h-3 w-3 mt-1 text-green-500 flex-shrink-0" />
                             {finding}
                           </li>
                         ))}
                       </ul>
                     </div>
                     
-                    <div className="space-y-2">
-                      <h5 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        Recommendations
-                      </h5>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        {narrative.recommendations.slice(0, 2).map((rec, index) => (
-                          <li key={index} className="flex items-start gap-1">
-                            <span className="text-green-500 mt-1">•</span>
+                    <div>
+                      <h4 className="font-medium text-sm text-gray-600 mb-2">Recommendations</h4>
+                      <ul className="text-sm space-y-1">
+                        {narrative.recommendations.map((rec, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <Users className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                             {rec}
                           </li>
                         ))}
                       </ul>
                     </div>
-                    
-                    <div className="text-xs text-gray-400">
-                      Generated {narrative.timestamp.toLocaleTimeString()}
-                    </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Interactive Chat */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Interactive Report Chat
-            </CardTitle>
-            <CardDescription>
-              Ask questions about your reports and get instant AI-powered answers
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ScrollArea className="h-64 border rounded-lg p-3">
-              <div className="space-y-3">
-                {chatMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                        message.type === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <p>{message.content}</p>
-                      <div className={`text-xs mt-1 ${
-                        message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
-                        {message.timestamp.toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="bg-gray-100 text-gray-900 p-3 rounded-lg text-sm">
-                      <div className="flex items-center gap-2">
-                        <Brain className="h-4 w-4 animate-spin" />
-                        Analyzing your data...
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-            
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ask about your workflow data..."
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                disabled={isProcessing}
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={isProcessing || !currentMessage.trim()}
-                size="sm"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="text-xs text-gray-500">
-              Try asking: "Why did performance drop last week?" or "Show me top performing departments"
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 }
