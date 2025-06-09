@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
 import { DashboardTasks } from './DashboardTasks';
+import { MyReusableWorkflows } from './MyReusableWorkflows';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +68,11 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
       {/* My Assigned Tasks Section - Show for ALL users */}
       <div className="space-y-6">
         <DashboardTasks onViewAllTasks={handleViewAllTasks} />
+      </div>
+
+      {/* My Reusable Workflows Section - Show for ALL users */}
+      <div className="space-y-6">
+        <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
       </div>
 
       {/* Saved Workflows Section - Only show for users who can edit workflows */}
