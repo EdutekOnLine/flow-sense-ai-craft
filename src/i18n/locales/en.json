@@ -15,7 +15,11 @@
     "confirm": "Confirm",
     "search": "Search",
     "welcome": "Welcome",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "start": "Start",
+    "done": "Done",
+    "completing": "Completing...",
+    "assigned": "Assigned"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -48,7 +52,11 @@
     "noReusableWorkflows": "No reusable workflows available",
     "reusableWorkflowsInfo": "You'll see reusable workflows you can start here",
     "welcomeTitle": "Welcome to the Workflow System",
-    "welcomeMessage": "Workflow functionality is available for admins and managers. Contact your administrator to get workflow creation permissions."
+    "welcomeMessage": "Workflow functionality is available for admins and managers. Contact your administrator to get workflow creation permissions.",
+    "noPendingTasks": "No pending tasks",
+    "allCaughtUp": "You're all caught up!",
+    "workflowsMoved": "Workflows moved to \"My Saved Workflows\"",
+    "workflowsMovedDescription": "All workflow management is now handled in the \"My Saved Workflows\" section."
   },
   "workflow": {
     "launch": "Launch",
@@ -78,6 +86,21 @@
     "inProgress": "In Progress",
     "filterByStatus": "Filter by status",
     "allAssignments": "All Assignments",
+    "completed": "Completed",
+    "skipped": "Skipped"
+  },
+  "tasks": {
+    "completeTask": "Complete Task",
+    "completionNotes": "Completion Notes",
+    "completionNotesPlaceholder": "Add notes about completing this task...",
+    "completeTaskAction": "Complete Task",
+    "viewAllTasks": "View All Tasks",
+    "taskCount": "{{count}} tasks"
+  },
+  "status": {
+    "pending": "Pending",
+    "inProgress": "In Progress", 
+    "active": "Active",
     "completed": "Completed",
     "skipped": "Skipped"
   },

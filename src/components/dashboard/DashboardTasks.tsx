@@ -15,7 +15,7 @@ interface DashboardTasksProps {
 
 export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const { assignments, isLoading, updateAssignmentStatus, completeStep } = useWorkflowAssignments();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [notes, setNotes] = useState('');
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -42,6 +42,21 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusTranslation = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return t('status.pending');
+      case 'in_progress':
+        return t('status.inProgress');
+      case 'completed':
+        return t('status.completed');
+      case 'skipped':
+        return t('status.skipped');
+      default:
+        return status;
     }
   };
 
@@ -77,18 +92,18 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
-            {pendingCount} Pending
+            {pendingCount} {t('status.pending')}
           </Badge>
           <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-            {inProgressCount} Active
+            {inProgressCount} {t('status.active')}
           </Badge>
         </div>
       </div>
 
       {dashboardTasks.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-gray-600 text-sm">No pending tasks</p>
-          <p className="text-gray-500 text-xs mt-1">You're all caught up!</p>
+          <p className="text-gray-600 text-sm">{t('dashboard.noPendingTasks')}</p>
+          <p className="text-gray-500 text-xs mt-1">{t('dashboard.allCaughtUp')}</p>
         </div>
       ) : (
         <>
@@ -103,13 +118,13 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     {assignment.workflow_steps.workflows.name}
                   </p>
                   <p className="text-xs text-blue-500 mt-1">
-                    Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
+                    {t('common.assigned')} {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 ml-2">
                   {getStatusIcon(assignment.status)}
                   <Badge className={`text-xs ${getStatusColor(assignment.status)}`}>
-                    {assignment.status.replace('_', ' ')}
+                    {getStatusTranslation(assignment.status)}
                   </Badge>
                 </div>
               </div>
@@ -123,7 +138,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                   >
                     <PlayCircle className="h-3 w-3 mr-1" />
-                    Start
+                    {t('common.start')}
                   </Button>
                 )}
                 
@@ -136,12 +151,12 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                         disabled={isCompleting}
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Done
+                        {t('common.done')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Complete Task</DialogTitle>
+                        <DialogTitle>{t('tasks.completeTask')}</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4 pt-4">
                         <div>
@@ -152,11 +167,11 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                         </div>
                         
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Completion Notes</label>
+                          <label className="text-sm font-medium">{t('tasks.completionNotes')}</label>
                           <Textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Add notes about completing this task..."
+                            placeholder={t('tasks.completionNotesPlaceholder')}
                             rows={3}
                           />
                         </div>
@@ -166,7 +181,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                             variant="outline"
                             onClick={() => setNotes('')}
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </Button>
                           <Button
                             className="bg-green-600 hover:bg-green-700"
@@ -174,7 +189,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                             disabled={isCompleting}
                           >
                             <ArrowRight className="h-4 w-4 mr-1" />
-                            {isCompleting ? 'Completing...' : 'Complete Task'}
+                            {isCompleting ? t('common.completing') : t('tasks.completeTaskAction')}
                           </Button>
                         </div>
                       </div>
@@ -193,7 +208,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
               className="w-full"
             >
               <Inbox className="h-4 w-4 mr-2" />
-              View All Tasks ({assignments.length})
+              {t('tasks.viewAllTasks')} ({assignments.length})
             </Button>
           </div>
         </>

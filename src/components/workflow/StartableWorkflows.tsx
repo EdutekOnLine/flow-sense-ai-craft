@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface StartableWorkflowsProps {
   workflows: any[];
@@ -14,6 +15,8 @@ export function StartableWorkflows({
   onStartWorkflow, 
   isLoading
 }: StartableWorkflowsProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -27,9 +30,9 @@ export function StartableWorkflows({
     <Card>
       <CardContent className="p-8 text-center">
         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Workflows moved to "My Saved Workflows"</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dashboard.workflowsMoved')}</h3>
         <p className="text-gray-600">
-          All workflow management is now handled in the "My Saved Workflows" section.
+          {t('dashboard.workflowsMovedDescription')}
         </p>
       </CardContent>
     </Card>

@@ -15,7 +15,11 @@
     "confirm": "تأكيد",
     "search": "بحث",
     "welcome": "أهلاً وسهلاً",
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "start": "بدء",
+    "done": "تم",
+    "completing": "جاري الإكمال...",
+    "assigned": "مسند"
   },
   "navigation": {
     "dashboard": "لوحة التحكم",
@@ -48,7 +52,11 @@
     "noReusableWorkflows": "لا توجد سير عمل قابلة للإعادة",
     "reusableWorkflowsInfo": "ستظهر سير العمل القابلة للإعادة التي يمكنك بدؤها هنا",
     "welcomeTitle": "مرحباً بك في نظام سير العمل",
-    "welcomeMessage": "وظائف سير العمل متاحة للمدراء والمشرفين. تواصل مع المدير للحصول على صلاحيات إنشاء سير العمل."
+    "welcomeMessage": "وظائف سير العمل متاحة للمدراء والمشرفين. تواصل مع المدير للحصول على صلاحيات إنشاء سير العمل.",
+    "noPendingTasks": "لا توجد مهام معلقة",
+    "allCaughtUp": "لقد أنجزت كل شيء!",
+    "workflowsMoved": "تم نقل سير العمل إلى \"سير العمل المحفوظة\"",
+    "workflowsMovedDescription": "تتم إدارة جميع سير العمل الآن في قسم \"سير العمل المحفوظة\"."
   },
   "workflow": {
     "launch": "تشغيل",
@@ -78,6 +86,21 @@
     "inProgress": "قيد التنفيذ",
     "filterByStatus": "تصفية حسب الحالة",
     "allAssignments": "جميع التعيينات",
+    "completed": "مكتمل",
+    "skipped": "تم التخطي"
+  },
+  "tasks": {
+    "completeTask": "إكمال المهمة",
+    "completionNotes": "ملاحظات الإكمال",
+    "completionNotesPlaceholder": "أضف ملاحظات حول إكمال هذه المهمة...",
+    "completeTaskAction": "إكمال المهمة",
+    "viewAllTasks": "عرض جميع المهام",
+    "taskCount": "{{count}} مهمة"
+  },
+  "status": {
+    "pending": "في الانتظار",
+    "inProgress": "قيد التنفيذ",
+    "active": "نشط",
     "completed": "مكتمل",
     "skipped": "تم التخطي"
   },
