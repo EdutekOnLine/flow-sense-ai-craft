@@ -55,9 +55,13 @@ export function useWorkflowInstances() {
 
     try {
       setIsLoading(true);
+      // Only fetch workflow instances that have valid saved workflows
       const { data, error } = await supabase
         .from('workflow_instances')
-        .select('*')
+        .select(`
+          *,
+          saved_workflows!inner(id, name)
+        `)
         .eq('started_by', user.id)
         .order('created_at', { ascending: false });
 
@@ -184,10 +188,13 @@ export function useWorkflowInstances() {
       const { data: newWorkflowInstance, error: instanceError } = await supabase
         .from('workflow_instances')
         .insert({
-          workflow_id: newWorkflow.id,
+          workflow_id: savedWorkflowId, // Link to the saved workflow, not the transient workflow
           started_by: user.id,
           current_step_id: firstStepId,
-          start_data: { nodeIdToStepIdMap }, // Store the mapping for future reference
+          start_data: { 
+            nodeIdToStepIdMap,
+            transient_workflow_id: newWorkflow.id // Store reference to the transient workflow
+          },
           status: 'active'
         })
         .select()
@@ -264,6 +271,40 @@ export function useWorkflowInstances() {
     }
   }, [user, fetchWorkflowInstances]);
 
+  const cancelWorkflowInstance = useCallback(async (instanceId: string) => {
+    try {
+      const { error } = await supabase.rpc('cancel_workflow_instance', {
+        instance_id: instanceId
+      });
+
+      if (error) throw error;
+
+      await fetchWorkflowInstances();
+      toast.success('Workflow cancelled successfully');
+    } catch (error) {
+      console.error('Error cancelling workflow instance:', error);
+      toast.error('Failed to cancel workflow');
+      throw error;
+    }
+  }, [fetchWorkflowInstances]);
+
+  const completeWorkflowInstance = useCallback(async (instanceId: string) => {
+    try {
+      const { error } = await supabase.rpc('complete_workflow_instance', {
+        instance_id: instanceId
+      });
+
+      if (error) throw error;
+
+      await fetchWorkflowInstances();
+      toast.success('Workflow completed successfully');
+    } catch (error) {
+      console.error('Error completing workflow instance:', error);
+      toast.error('Failed to complete workflow');
+      throw error;
+    }
+  }, [fetchWorkflowInstances]);
+
   const refreshWorkflows = useCallback(async () => {
     await fetchWorkflowInstances();
   }, [fetchWorkflowInstances]);
@@ -277,6 +318,8 @@ export function useWorkflowInstances() {
     startableWorkflows: [], // No longer needed
     isLoading,
     startWorkflow,
+    cancelWorkflowInstance,
+    completeWorkflowInstance,
     refreshWorkflows
   };
 }

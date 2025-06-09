@@ -34,10 +34,13 @@ export function useRealtimeDashboardMetrics() {
         .select('status, created_at')
         .eq('assigned_to', profile.id);
 
-      // Fetch workflow instances
+      // Fetch workflow instances - ONLY include those with valid saved_workflows
       const { data: instances } = await supabase
         .from('workflow_instances')
-        .select('status')
+        .select(`
+          status,
+          saved_workflows!inner(id)
+        `)
         .eq('started_by', profile.id);
 
       // Fetch saved workflows based on role
@@ -59,6 +62,7 @@ export function useRealtimeDashboardMetrics() {
           a.status === 'completed' && 
           new Date(a.created_at) >= today
         ).length || 0,
+        // Only count workflow instances that have valid saved workflows
         activeWorkflows: instances?.filter(i => i.status === 'active').length || 0,
         myReusableWorkflows: workflows?.filter(w => w.is_reusable).length || 0,
         totalSavedWorkflows: workflows?.length || 0,
