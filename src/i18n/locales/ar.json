@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "جاري التحميل...",
@@ -37,6 +36,12 @@
   "dashboard": {
     "title": "لوحة التحكم",
     "subtitle": "مرحباً بك في مركز قيادة سير العمل",
+    "pendingTasks": "المهام المعلقة",
+    "activeTasks": "المهام النشطة",
+    "completedToday": "مكتملة اليوم",
+    "activeWorkflows": "سير العمل النشطة",
+    "reusableWorkflows": "سير العمل القابلة للإعادة",
+    "totalWorkflows": "إجمالي سير العمل",
     "myAssignedTasks": "المهام المسندة إلي",
     "myAssignedTasksDescription": "مهام سير العمل المسندة إليك وحالتها الحالية",
     "allSavedWorkflows": "جميع سير العمل المحفوظة",
