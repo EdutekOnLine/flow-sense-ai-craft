@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useMyReusableWorkflows } from '@/hooks/useMyReusableWorkflows';
 import { useUsers } from '@/hooks/useUsers';
 import { StartWorkflowDialog } from '@/components/workflow/StartWorkflowDialog';
-import { Repeat, Calendar, User, Play, RefreshCw } from 'lucide-react';
+import { Repeat, Calendar, User, Rocket, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
@@ -119,10 +119,10 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                     trigger={
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
                       >
-                        <Play className="h-3 w-3 mr-1" />
-                        Start
+                        <Rocket className="h-3 w-3 mr-1" />
+                        Launch
                       </Button>
                     }
                   />

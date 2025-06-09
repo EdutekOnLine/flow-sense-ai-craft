@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Play, Loader2 } from 'lucide-react';
+import { Rocket, Loader2 } from 'lucide-react';
 import { StartableWorkflow } from '@/hooks/useWorkflowInstances';
 
 interface StartWorkflowDialogProps {
@@ -30,7 +30,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
       setIsOpen(false);
       setFormData({});
     } catch (error) {
-      console.error('Failed to start workflow:', error);
+      console.error('Failed to launch workflow:', error);
     } finally {
       setIsStarting(false);
     }
@@ -100,20 +100,20 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
   // Default trigger if none provided
   const defaultTrigger = (
     <Button
-      className="bg-green-600 hover:bg-green-700"
+      className="bg-purple-600 hover:bg-purple-700"
       size="sm"
       disabled={isStarting}
     >
       {isStarting ? (
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
       ) : (
-        <Play className="h-4 w-4 mr-2" />
+        <Rocket className="h-4 w-4 mr-2" />
       )}
-      {isStarting ? 'Starting...' : 'Start Workflow'}
+      {isStarting ? 'Launching...' : 'Launch Workflow'}
     </Button>
   );
 
-  // If no inputs required, show simple start button
+  // If no inputs required, show simple launch button
   if (!hasInputs) {
     return trigger ? (
       <div onClick={handleStart} style={{ cursor: 'pointer', display: 'inline-block' }}>
@@ -123,15 +123,15 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
       <Button
         onClick={handleStart}
         disabled={isStarting}
-        className="bg-green-600 hover:bg-green-700"
+        className="bg-purple-600 hover:bg-purple-700"
         size="sm"
       >
         {isStarting ? (
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
         ) : (
-          <Play className="h-4 w-4 mr-2" />
+          <Rocket className="h-4 w-4 mr-2" />
         )}
-        {isStarting ? 'Starting...' : 'Start Workflow'}
+        {isStarting ? 'Launching...' : 'Launch Workflow'}
       </Button>
     );
   }
@@ -144,7 +144,7 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Start {workflow.name}</DialogTitle>
+          <DialogTitle>Launch {workflow.name}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 pt-4">
@@ -172,14 +172,14 @@ export function StartWorkflowDialog({ workflow, onStartWorkflow, trigger }: Star
             <Button
               onClick={handleStart}
               disabled={isStarting}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-purple-600 hover:bg-purple-700"
             >
               {isStarting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Play className="h-4 w-4 mr-2" />
+                <Rocket className="h-4 w-4 mr-2" />
               )}
-              {isStarting ? 'Starting...' : 'Start Workflow'}
+              {isStarting ? 'Launching...' : 'Launch Workflow'}
             </Button>
           </div>
         </div>
