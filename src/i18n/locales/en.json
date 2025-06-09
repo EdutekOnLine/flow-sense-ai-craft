@@ -113,6 +113,44 @@
       "chat": "Interactive Report Chat",
       "askQuestion": "Ask about your workflow data...",
       "confidence": "confidence"
+    },
+    "templates": {
+      "title": "Report Templates",
+      "description": "Pre-configured report templates for common business scenarios",
+      "categories": {
+        "executive": "Executive",
+        "operational": "Operational", 
+        "compliance": "Compliance",
+        "predictive": "Predictive"
+      },
+      "executive": {
+        "summary": {
+          "name": "Executive Summary",
+          "description": "High-level overview with key performance indicators and strategic insights"
+        }
+      },
+      "operational": {
+        "performance": {
+          "name": "Performance Analysis",
+          "description": "Detailed operational metrics and team productivity analysis"
+        },
+        "resource": {
+          "name": "Resource Utilization",
+          "description": "Workload distribution and capacity optimization insights"
+        }
+      },
+      "compliance": {
+        "audit": {
+          "name": "Compliance Audit",
+          "description": "Process adherence and regulatory compliance assessment"
+        }
+      },
+      "predictive": {
+        "forecast": {
+          "name": "Predictive Analytics",
+          "description": "Future performance forecasting and trend predictions"
+        }
+      }
     }
   },
   "workflowBuilder": {

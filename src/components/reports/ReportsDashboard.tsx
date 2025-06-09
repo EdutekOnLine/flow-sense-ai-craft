@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings, Template } from 'lucide-react';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { WorkflowPerformanceChart } from './WorkflowPerformanceChart';
 import { UserPerformanceTable } from './UserPerformanceTable';
@@ -14,6 +15,7 @@ import AdvancedAIInsights from './AdvancedAIInsights';
 import { WorkflowTrendsChart } from './WorkflowTrendsChart';
 import ReportBuilder from './ReportBuilder';
 import NaturalLanguageReports from './NaturalLanguageReports';
+import ReportTemplates from './ReportTemplates';
 import { useAIInsights, useGenerateAIInsights } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 
@@ -62,10 +64,14 @@ export default function ReportsDashboard() {
       )}
 
       <Tabs defaultValue="analytics" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <Template className="h-4 w-4" />
+            Templates
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -125,6 +131,10 @@ export default function ReportsDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6">
+          <ReportTemplates />
         </TabsContent>
 
         <TabsContent value="builder" className="space-y-6">
