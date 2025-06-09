@@ -8,6 +8,7 @@ export interface User {
   last_name: string | null;
   email: string;
   role: string;
+  department: string | null;
 }
 
 export function useUsers() {
@@ -16,7 +17,7 @@ export function useUsers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, role')
+        .select('id, first_name, last_name, email, role, department')
         .order('first_name', { ascending: true });
 
       if (error) {

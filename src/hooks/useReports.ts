@@ -54,62 +54,22 @@ export function useWorkflowPerformanceReport(filters: ReportFilters) {
         setIsLoading(true);
         setError(null);
 
-        let query = `
-          SELECT 
-            wi.workflow_id,
-            sw.name as workflow_name,
-            sw.created_by,
-            COUNT(*) as total_instances,
-            COUNT(CASE WHEN wi.status = 'completed' THEN 1 END) as completed_instances,
-            COUNT(CASE WHEN wi.status = 'active' THEN 1 END) as active_instances,
-            COUNT(CASE WHEN wi.status = 'cancelled' THEN 1 END) as cancelled_instances,
-            AVG(CASE 
-              WHEN wi.completed_at IS NOT NULL 
-              THEN EXTRACT(EPOCH FROM (wi.completed_at - wi.created_at))/3600 
-            END) as avg_completion_hours,
-            MIN(wi.created_at) as first_instance,
-            MAX(wi.created_at) as latest_instance
-          FROM workflow_instances wi
-          JOIN saved_workflows sw ON sw.id = wi.workflow_id
-          WHERE 1=1
-        `;
+        // Fetch workflow instances with related workflow data
+        const { data: instancesData, error: instancesError } = await supabase
+          .from('workflow_instances')
+          .select(`
+            workflow_id,
+            status,
+            created_at,
+            completed_at,
+            saved_workflows!inner(name, created_by)
+          `);
 
-        const params: any[] = [];
-        let paramIndex = 1;
+        if (instancesError) throw instancesError;
 
-        if (filters.workflowId) {
-          query += ` AND wi.workflow_id = $${paramIndex}`;
-          params.push(filters.workflowId);
-          paramIndex++;
-        }
-
-        query += ` GROUP BY wi.workflow_id, sw.name, sw.created_by ORDER BY total_instances DESC`;
-
-        const { data: reportData, error: reportError } = await supabase.rpc('custom_query', {
-          query_text: query,
-          params: params
-        });
-
-        if (reportError) {
-          // Fallback to a simpler query if custom_query doesn't exist
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('workflow_instances')
-            .select(`
-              workflow_id,
-              status,
-              created_at,
-              completed_at,
-              saved_workflows!inner(name, created_by)
-            `);
-
-          if (fallbackError) throw fallbackError;
-
-          // Process the data manually
-          const processedData = processWorkflowData(fallbackData || []);
-          setData(processedData);
-        } else {
-          setData(reportData || []);
-        }
+        // Process the data manually
+        const processedData = processWorkflowData(instancesData || [], filters);
+        setData(processedData);
       } catch (err) {
         console.error('Error fetching workflow performance data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -138,7 +98,7 @@ export function useUserActivityReport(filters: ReportFilters) {
         setIsLoading(true);
         setError(null);
 
-        // Use a simpler approach with existing tables
+        // Fetch profiles and assignments separately
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('*');
@@ -182,7 +142,7 @@ export function useDepartmentAnalyticsReport(filters: ReportFilters) {
         setIsLoading(true);
         setError(null);
 
-        // Use a simpler approach with existing tables
+        // Fetch profiles and assignments separately
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('*')
@@ -214,8 +174,13 @@ export function useDepartmentAnalyticsReport(filters: ReportFilters) {
 }
 
 // Helper functions to process data manually
-function processWorkflowData(rawData: any[]): WorkflowPerformanceData[] {
-  const groupedData = rawData.reduce((acc, item) => {
+function processWorkflowData(rawData: any[], filters: ReportFilters): WorkflowPerformanceData[] {
+  // Filter by workflow if specified
+  const filteredData = filters.workflowId 
+    ? rawData.filter(item => item.workflow_id === filters.workflowId)
+    : rawData;
+
+  const groupedData = filteredData.reduce((acc, item) => {
     const key = item.workflow_id;
     if (!acc[key]) {
       acc[key] = {
@@ -227,7 +192,7 @@ function processWorkflowData(rawData: any[]): WorkflowPerformanceData[] {
     }
     acc[key].instances.push(item);
     return acc;
-  }, {});
+  }, {} as Record<string, any>);
 
   return Object.values(groupedData).map((group: any) => {
     const instances = group.instances;
@@ -241,8 +206,10 @@ function processWorkflowData(rawData: any[]): WorkflowPerformanceData[] {
       .map((i: any) => (new Date(i.completed_at).getTime() - new Date(i.created_at).getTime()) / (1000 * 60 * 60));
     
     const avgCompletionHours = completedTimes.length > 0 
-      ? completedTimes.reduce((sum, time) => sum + time, 0) / completedTimes.length 
+      ? completedTimes.reduce((sum: number, time: number) => sum + time, 0) / completedTimes.length 
       : 0;
+
+    const createdTimes = instances.map((i: any) => new Date(i.created_at).getTime());
 
     return {
       workflow_id: group.workflow_id,
@@ -253,8 +220,8 @@ function processWorkflowData(rawData: any[]): WorkflowPerformanceData[] {
       active_instances: activeInstances,
       cancelled_instances: cancelledInstances,
       avg_completion_hours: avgCompletionHours,
-      first_instance: Math.min(...instances.map((i: any) => new Date(i.created_at).getTime())).toString(),
-      latest_instance: Math.max(...instances.map((i: any) => new Date(i.created_at).getTime())).toString()
+      first_instance: new Date(Math.min(...createdTimes)).toISOString(),
+      latest_instance: new Date(Math.max(...createdTimes)).toISOString()
     };
   });
 }
@@ -272,7 +239,7 @@ function processUserActivityData(profiles: any[], assignments: any[], filters: R
       .map(a => (new Date(a.completed_at).getTime() - new Date(a.created_at).getTime()) / (1000 * 60 * 60));
     
     const avgCompletionHours = completedTimes.length > 0 
-      ? completedTimes.reduce((sum, time) => sum + time, 0) / completedTimes.length 
+      ? completedTimes.reduce((sum: number, time: number) => sum + time, 0) / completedTimes.length 
       : 0;
 
     const overdueAssignments = userAssignments.filter(a => 
@@ -311,7 +278,7 @@ function processDepartmentData(profiles: any[], assignments: any[], filters: Rep
     }
     acc[dept].users.push(profile);
     return acc;
-  }, {});
+  }, {} as Record<string, any>);
 
   return Object.values(departmentGroups).map((group: any) => {
     const userIds = group.users.map((u: any) => u.id);
@@ -326,7 +293,7 @@ function processDepartmentData(profiles: any[], assignments: any[], filters: Rep
       .map(a => (new Date(a.completed_at).getTime() - new Date(a.created_at).getTime()) / (1000 * 60 * 60));
     
     const avgCompletionHours = completedTimes.length > 0 
-      ? completedTimes.reduce((sum, time) => sum + time, 0) / completedTimes.length 
+      ? completedTimes.reduce((sum: number, time: number) => sum + time, 0) / completedTimes.length 
       : 0;
 
     return {
