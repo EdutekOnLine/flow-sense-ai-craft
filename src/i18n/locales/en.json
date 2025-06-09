@@ -29,6 +29,11 @@
     "allSavedWorkflowsDescription": "View and manage all workflows in the organization",
     "welcomeTitle": "Welcome to NeuraFlow!",
     "welcomeMessage": "You can view your assigned tasks and start reusable workflows here. Contact your administrator for workflow creation access.",
+    "noReusableWorkflows": "No reusable workflows available",
+    "reusableWorkflowsInfo": "Reusable workflows allow you to start new instances of predefined workflow templates",
+    "pendingTasks": "Pending Tasks",
+    "activeTasks": "Active Tasks",
+    "reusableWorkflows": "Reusable Workflows",
     "metrics": {
       "totalWorkflows": "Total Workflows",
       "activeWorkflows": "Active Workflows",
@@ -38,7 +43,13 @@
   },
   "workflow": {
     "launchSuccess": "Workflow launched successfully!",
-    "launchError": "Failed to launch workflow. Please try again."
+    "launchError": "Failed to launch workflow. Please try again.",
+    "unassigned": "Unassigned",
+    "reusable": "Reusable",
+    "updated": "Updated",
+    "startsWith": "Starts with",
+    "steps": "steps",
+    "launch": "Launch"
   },
   "languages": {
     "english": "English",
@@ -75,7 +86,13 @@
   "workflowBuilder": {
     "title": "Workflow Builder",
     "newWorkflow": "New Workflow",
-    "loadWorkflow": "Load Workflow"
+    "loadWorkflow": "Load Workflow",
+    "workflowSteps": "Workflow Steps",
+    "dragAndDrop": "Drag and drop steps to build your workflow",
+    "triggers": "Triggers",
+    "actions": "Actions",
+    "conditions": "Conditions",
+    "utilities": "Utilities"
   },
   "users": {
     "title": "User Management",

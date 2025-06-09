@@ -29,6 +29,11 @@
     "allSavedWorkflowsDescription": "عرض وإدارة جميع سير العمل في المنظمة",
     "welcomeTitle": "مرحباً بك في NeuraFlow!",
     "welcomeMessage": "يمكنك عرض مهامك المُسندة وبدء سير العمل القابل للإعادة هنا. اتصل بالمدير للحصول على صلاحية إنشاء سير العمل.",
+    "noReusableWorkflows": "لا توجد سير عمل قابلة للإعادة",
+    "reusableWorkflowsInfo": "سير العمل القابلة للإعادة تسمح لك ببدء حالات جديدة من قوالب سير العمل المحددة مسبقاً",
+    "pendingTasks": "المهام المعلقة",
+    "activeTasks": "المهام النشطة",
+    "reusableWorkflows": "سير العمل القابل للإعادة",
     "metrics": {
       "totalWorkflows": "إجمالي سير العمل",
       "activeWorkflows": "سير العمل النشط",
@@ -38,7 +43,13 @@
   },
   "workflow": {
     "launchSuccess": "تم إطلاق سير العمل بنجاح!",
-    "launchError": "فشل في إطلاق سير العمل. يرجى المحاولة مرة أخرى."
+    "launchError": "فشل في إطلاق سير العمل. يرجى المحاولة مرة أخرى.",
+    "unassigned": "غير مُسند",
+    "reusable": "قابل للإعادة",
+    "updated": "محدث",
+    "startsWith": "يبدأ بـ",
+    "steps": "خطوات",
+    "launch": "إطلاق"
   },
   "languages": {
     "english": "الإنجليزية",
@@ -75,7 +86,13 @@
   "workflowBuilder": {
     "title": "منشئ سير العمل",
     "newWorkflow": "سير عمل جديد",
-    "loadWorkflow": "تحميل سير العمل"
+    "loadWorkflow": "تحميل سير العمل",
+    "workflowSteps": "خطوات سير العمل",
+    "dragAndDrop": "اسحب وأفلت الخطوات لبناء سير العمل",
+    "triggers": "المحفزات",
+    "actions": "الإجراءات",
+    "conditions": "الشروط",
+    "utilities": "الأدوات المساعدة"
   },
   "users": {
     "title": "إدارة المستخدمين",
