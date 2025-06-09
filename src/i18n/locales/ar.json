@@ -34,6 +34,13 @@
     "pendingTasks": "المهام المعلقة",
     "activeTasks": "المهام النشطة",
     "reusableWorkflows": "سير العمل القابل للإعادة",
+    "noSavedWorkflows": "لم يتم العثور على سير عمل محفوظ",
+    "createFirstWorkflow": "أنشئ أول سير عمل للبدء",
+    "noPendingTasks": "لا توجد مهام معلقة",
+    "allCaughtUp": "لقد أنجزت كل شيء!",
+    "completedToday": "مكتمل اليوم",
+    "workflowsMoved": "تم نقل سير العمل",
+    "workflowsMovedDescription": "سير العمل القابلة للإعادة تُدار الآن في قسم 'سير العمل القابل للإعادة' أعلاه.",
     "metrics": {
       "totalWorkflows": "إجمالي سير العمل",
       "activeWorkflows": "سير العمل النشط",
@@ -49,7 +56,13 @@
     "updated": "محدث",
     "startsWith": "يبدأ بـ",
     "steps": "خطوات",
-    "launch": "إطلاق"
+    "launch": "إطلاق",
+    "launching": "جاري الإطلاق...",
+    "deleteConfirm": "هل أنت متأكد من حذف سير العمل هذا؟",
+    "oneTime": "مرة واحدة",
+    "assignedTo": "مُسند إلى",
+    "nodes": "عقد",
+    "moreWorkflows": "المزيد من سير العمل"
   },
   "languages": {
     "english": "الإنجليزية",
@@ -92,7 +105,13 @@
     "triggers": "المحفزات",
     "actions": "الإجراءات",
     "conditions": "الشروط",
-    "utilities": "الأدوات المساعدة"
+    "utilities": "الأدوات المساعدة",
+    "new": "جديد",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "aiGenerate": "إنشاء بالذكاء الاصطناعي",
+    "explainWorkflow": "شرح سير العمل",
+    "aiAssistant": "مساعد الذكاء الاصطناعي"
   },
   "users": {
     "title": "إدارة المستخدمين",
@@ -105,5 +124,27 @@
     "pending": "معلق",
     "inProgress": "قيد التنفيذ",
     "completed": "مكتمل"
+  },
+  "status": {
+    "pending": "معلق",
+    "inProgress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "skipped": "مُتجاهل",
+    "active": "نشط"
+  },
+  "common": {
+    "assigned": "مُسند",
+    "start": "بدء",
+    "done": "تم",
+    "cancel": "إلغاء",
+    "completing": "جاري الإنجاز...",
+    "open": "فتح"
+  },
+  "tasks": {
+    "completeTask": "إنجاز المهمة",
+    "completionNotes": "ملاحظات الإنجاز",
+    "completionNotesPlaceholder": "أضف أي ملاحظات حول إنجاز هذه المهمة...",
+    "completeTaskAction": "إنجاز المهمة",
+    "viewAllTasks": "عرض جميع المهام"
   }
 }
