@@ -273,9 +273,15 @@ export function useWorkflowInstances() {
 
   const cancelWorkflowInstance = useCallback(async (instanceId: string) => {
     try {
-      const { error } = await supabase.rpc('cancel_workflow_instance', {
-        instance_id: instanceId
-      });
+      // Use direct database update instead of RPC function
+      const { error } = await supabase
+        .from('workflow_instances')
+        .update({ 
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', instanceId)
+        .eq('status', 'active'); // Only update if currently active
 
       if (error) throw error;
 
@@ -290,9 +296,16 @@ export function useWorkflowInstances() {
 
   const completeWorkflowInstance = useCallback(async (instanceId: string) => {
     try {
-      const { error } = await supabase.rpc('complete_workflow_instance', {
-        instance_id: instanceId
-      });
+      // Use direct database update instead of RPC function
+      const { error } = await supabase
+        .from('workflow_instances')
+        .update({ 
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', instanceId)
+        .eq('status', 'active'); // Only update if currently active
 
       if (error) throw error;
 
