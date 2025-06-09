@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings, Layout } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Brain, RefreshCw, FileText, MessageSquare, Settings, Layout, Target } from 'lucide-react';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { WorkflowPerformanceChart } from './WorkflowPerformanceChart';
 import { UserPerformanceTable } from './UserPerformanceTable';
@@ -17,6 +17,9 @@ import ReportBuilder from './ReportBuilder';
 import NaturalLanguageReports from './NaturalLanguageReports';
 import ReportTemplates from './ReportTemplates';
 import ReportInsightsPanel from './ReportInsightsPanel';
+import EnhancedNaturalLanguageReports from './EnhancedNaturalLanguageReports';
+import PredictiveAnalyticsDashboard from './PredictiveAnalyticsDashboard';
+import IntelligentRecommendationsEngine from './IntelligentRecommendationsEngine';
 import { useAIInsights, useGenerateAIInsights } from '@/hooks/useAnalytics';
 import { toast } from 'sonner';
 
