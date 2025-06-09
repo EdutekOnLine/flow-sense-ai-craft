@@ -27,13 +27,8 @@ export function useMyReusableWorkflows() {
 
       if (error) throw error;
 
-      // Filter workflows where user is creator OR assigned to first step
+      // Filter workflows where user is assigned to first step
       const filteredWorkflows = (data || []).filter(workflow => {
-        // User is creator
-        if (workflow.created_by === user.id) {
-          return true;
-        }
-
         // Check if user is assigned to the first step
         const nodes = Array.isArray(workflow.nodes) ? workflow.nodes : [];
         if (nodes.length === 0) return false;
