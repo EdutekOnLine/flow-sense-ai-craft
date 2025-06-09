@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -114,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'workflow-inbox':
         return <WorkflowInbox />;
       case 'users':
-        return profile?.role === 'admin' ? <UserManagement /> : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
+        return (profile?.role === 'admin' || profile?.role === 'root') ? <UserManagement /> : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
       case 'workflow-builder':
         // Allow all users to access workflow builder - it will handle permissions internally
         return <WorkflowBuilder />;
