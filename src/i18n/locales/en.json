@@ -65,7 +65,21 @@
     "moreWorkflows": "And {{count}} more workflows...",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?",
     "launchSuccess": "Workflow launched successfully!",
-    "launchError": "Failed to launch workflow. Please try again."
+    "launchError": "Failed to launch workflow. Please try again.",
+    "createAssignments": "Create Assignments",
+    "creatingAssignments": "Creating...",
+    "myActiveTasks": "My Active Tasks",
+    "myActiveTasksDescription": "Tasks ready for you to work on in active workflows",
+    "noActiveTasks": "No active tasks",
+    "noActiveTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
+    "checkForNewTasks": "Check for New Tasks",
+    "refresh": "Refresh",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "filterByStatus": "Filter by status",
+    "allAssignments": "All Assignments",
+    "completed": "Completed",
+    "skipped": "Skipped"
   },
   "workflowBuilder": {
     "aiGenerate": "AI Generate",

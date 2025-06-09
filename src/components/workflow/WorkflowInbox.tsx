@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,13 +7,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWorkflowAssignments } from '@/hooks/useWorkflowAssignments';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import { formatLocalizedDistanceToNow } from '@/utils/localization';
+import { getRTLAwareFlexDirection, getRTLAwareTextAlign } from '@/utils/rtl';
 
 type AssignmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 export function WorkflowInbox() {
   const { assignments, isLoading, updateAssignmentStatus, completeStep, refetch } = useWorkflowAssignments();
+  const { t, i18n } = useTranslation();
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [notes, setNotes] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -133,27 +135,27 @@ export function WorkflowInbox() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className={`flex items-center justify-between ${getRTLAwareFlexDirection()}`}>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Active Tasks</h2>
-          <p className="text-gray-600">Tasks ready for you to work on in active workflows</p>
+          <h2 className={`text-2xl font-bold text-gray-900 ${getRTLAwareTextAlign()}`}>{t('workflow.myActiveTasks')}</h2>
+          <p className={`text-gray-600 ${getRTLAwareTextAlign()}`}>{t('workflow.myActiveTasksDescription')}</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className={`flex items-center gap-4 ${getRTLAwareFlexDirection()}`}>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${getRTLAwareFlexDirection()}`}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('workflow.refresh')}
           </Button>
           <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-            {pendingCount} Pending
+            {pendingCount} {t('workflow.pending')}
           </Badge>
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {inProgressCount} In Progress
+            {inProgressCount} {t('workflow.inProgress')}
           </Badge>
         </div>
       </div>
@@ -161,14 +163,14 @@ export function WorkflowInbox() {
       <div className="flex items-center gap-4">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t('workflow.filterByStatus')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Assignments</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="skipped">Skipped</SelectItem>
+            <SelectItem value="all">{t('workflow.allAssignments')}</SelectItem>
+            <SelectItem value="pending">{t('workflow.pending')}</SelectItem>
+            <SelectItem value="in_progress">{t('workflow.inProgress')}</SelectItem>
+            <SelectItem value="completed">{t('workflow.completed')}</SelectItem>
+            <SelectItem value="skipped">{t('workflow.skipped')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -176,12 +178,12 @@ export function WorkflowInbox() {
       <div className="grid gap-4">
         {filteredAssignments.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No active tasks</h3>
+            <CardContent className={`p-8 text-center ${getRTLAwareTextAlign('center')}`}>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('workflow.noActiveTasks')}</h3>
               <p className="text-gray-600">
                 {statusFilter === 'all' 
-                  ? "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you."
-                  : `No tasks with status "${statusFilter}" are currently ready for you.`
+                  ? t('workflow.noActiveTasksMessage')
+                  : `${t('workflow.filterByStatus')} "${t(`workflow.${statusFilter}`)}"`
                 }
               </p>
               <Button
@@ -189,10 +191,10 @@ export function WorkflowInbox() {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="flex items-center gap-2 mt-4"
+                className={`flex items-center gap-2 mt-4 mx-auto ${getRTLAwareFlexDirection()}`}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Check for New Tasks
+                {t('workflow.checkForNewTasks')}
               </Button>
             </CardContent>
           </Card>
@@ -200,66 +202,66 @@ export function WorkflowInbox() {
           filteredAssignments.map((assignment) => (
             <Card key={assignment.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">
+                <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
+                  <div className="space-y-1 flex-1">
+                    <CardTitle className={`text-lg ${getRTLAwareTextAlign()}`}>
                       {assignment.workflow_steps.name}
                     </CardTitle>
-                    <p className="text-sm text-gray-600">
+                    <p className={`text-sm text-gray-600 ${getRTLAwareTextAlign()}`}>
                       Workflow: {assignment.workflow_steps.workflows.name}
                     </p>
                     {assignment.workflow_instance && (
-                      <div className="flex items-center gap-2 text-xs text-blue-600">
+                      <div className={`flex items-center gap-2 text-xs text-blue-600 ${getRTLAwareFlexDirection()}`}>
                         <Workflow className="h-3 w-3" />
-                        Instance started {formatDistanceToNow(new Date(assignment.workflow_instance.created_at), { addSuffix: true })}
+                        Instance started {formatLocalizedDistanceToNow(new Date(assignment.workflow_instance.created_at), i18n.language, { addSuffix: true })}
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className={`flex items-center gap-2 ${getRTLAwareFlexDirection()}`}>
                     {getStatusIcon(assignment.status)}
                     <Badge className={getStatusColor(assignment.status)}>
-                      {assignment.status.replace('_', ' ')}
+                      {t(`workflow.${assignment.status.replace('_', '')}`) || assignment.status.replace('_', ' ')}
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {assignment.workflow_steps.description && (
-                  <p className="text-sm text-gray-700">
+                  <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>
                     {assignment.workflow_steps.description}
                   </p>
                 )}
                 
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
+                <div className={`flex items-center gap-4 text-xs text-gray-500 ${getRTLAwareFlexDirection()}`}>
+                  <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
                     <Calendar className="h-3 w-3" />
-                    Assigned {formatDistanceToNow(new Date(assignment.created_at), { addSuffix: true })}
+                    Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language, { addSuffix: true })}
                   </div>
                   {assignment.due_date && (
-                    <div className="flex items-center gap-1">
+                    <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
                       <Clock className="h-3 w-3" />
-                      Due {formatDistanceToNow(new Date(assignment.due_date), { addSuffix: true })}
+                      Due {formatLocalizedDistanceToNow(new Date(assignment.due_date), i18n.language, { addSuffix: true })}
                     </div>
                   )}
                 </div>
 
                 {assignment.notes && (
                   <div className="bg-gray-50 p-3 rounded-md">
-                    <p className="text-sm text-gray-700">{assignment.notes}</p>
+                    <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>{assignment.notes}</p>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 pt-2 border-t">
+                <div className={`flex items-center gap-2 pt-2 border-t ${getRTLAwareFlexDirection()}`}>
                   {assignment.status !== 'completed' && (
                     <>
                       {assignment.status === 'pending' && (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="bg-blue-50 hover:bg-blue-100"
+                          className={`bg-blue-50 hover:bg-blue-100 ${getRTLAwareFlexDirection()}`}
                           onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                         >
-                          <PlayCircle className="h-4 w-4 mr-1" />
+                          <PlayCircle className="h-4 w-4 me-1" />
                           Start Working
                         </Button>
                       )}
@@ -268,10 +270,10 @@ export function WorkflowInbox() {
                         <DialogTrigger asChild>
                           <Button
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            className={`bg-green-600 hover:bg-green-700 ${getRTLAwareFlexDirection()}`}
                             disabled={isCompleting}
                           >
-                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <CheckCircle className="h-4 w-4 me-1" />
                             {isCompleting ? 'Completing...' : 'Mark as Done'}
                           </Button>
                         </DialogTrigger>
@@ -297,19 +299,19 @@ export function WorkflowInbox() {
                               />
                             </div>
 
-                            <div className="flex gap-2 justify-end">
+                            <div className={`flex gap-2 justify-end ${getRTLAwareFlexDirection()}`}>
                               <Button
                                 variant="outline"
                                 onClick={() => setNotes('')}
                               >
-                                Cancel
+                                {t('common.cancel')}
                               </Button>
                               <Button
                                 className="bg-green-600 hover:bg-green-700"
                                 onClick={() => handleCompleteStep(assignment)}
                                 disabled={isCompleting}
                               >
-                                <ArrowRight className="h-4 w-4 mr-1" />
+                                <ArrowRight className="h-4 w-4 me-1" />
                                 {isCompleting ? 'Completing...' : 'Complete & Advance Workflow'}
                               </Button>
                             </div>
@@ -352,7 +354,7 @@ export function WorkflowInbox() {
                               />
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className={`flex gap-2 ${getRTLAwareFlexDirection()}`}>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -376,9 +378,9 @@ export function WorkflowInbox() {
                   )}
                   
                   {assignment.status === 'completed' && assignment.completed_at && (
-                    <div className="flex items-center gap-2 text-sm text-green-600">
+                    <div className={`flex items-center gap-2 text-sm text-green-600 ${getRTLAwareFlexDirection()}`}>
                       <CheckCircle className="h-4 w-4" />
-                      Completed {formatDistanceToNow(new Date(assignment.completed_at), { addSuffix: true })}
+                      Completed {formatLocalizedDistanceToNow(new Date(assignment.completed_at), i18n.language, { addSuffix: true })}
                     </div>
                   )}
                 </div>

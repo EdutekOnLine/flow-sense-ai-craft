@@ -65,7 +65,21 @@
     "moreWorkflows": "و {{count}} سير عمل أخرى...",
     "deleteConfirm": "هل أنت متأكد من حذف \"{{name}}\"؟",
     "launchSuccess": "تم تشغيل سير العمل بنجاح!",
-    "launchError": "فشل في تشغيل سير العمل. يرجى المحاولة مرة أخرى."
+    "launchError": "فشل في تشغيل سير العمل. يرجى المحاولة مرة أخرى.",
+    "createAssignments": "إنشاء التعيينات",
+    "creatingAssignments": "جاري الإنشاء...",
+    "myActiveTasks": "مهامي النشطة",
+    "myActiveTasksDescription": "المهام الجاهزة للعمل عليها في سير العمل النشطة",
+    "noActiveTasks": "لا توجد مهام نشطة",
+    "noActiveTasksMessage": "ليس لديك أي مهام جاهزة للعمل عليها في الوقت الحالي. ستظهر المهام هنا عند بدء سير العمل وإسنادها إليك.",
+    "checkForNewTasks": "البحث عن مهام جديدة",
+    "refresh": "تحديث",
+    "pending": "في الانتظار",
+    "inProgress": "قيد التنفيذ",
+    "filterByStatus": "تصفية حسب الحالة",
+    "allAssignments": "جميع التعيينات",
+    "completed": "مكتمل",
+    "skipped": "تم التخطي"
   },
   "workflowBuilder": {
     "aiGenerate": "توليد بالذكاء الاصطناعي",

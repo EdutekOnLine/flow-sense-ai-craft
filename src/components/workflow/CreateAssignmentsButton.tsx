@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useWorkflowStepAssignments } from '@/hooks/useWorkflowStepAssignments';
+import { useTranslation } from 'react-i18next';
 import { Play } from 'lucide-react';
 
 interface CreateAssignmentsButtonProps {
@@ -12,6 +13,7 @@ interface CreateAssignmentsButtonProps {
 export function CreateAssignmentsButton({ workflowId, workflowName }: CreateAssignmentsButtonProps) {
   const [isCreating, setIsCreating] = useState(false);
   const { createAssignmentsForWorkflow } = useWorkflowStepAssignments();
+  const { t } = useTranslation();
 
   const handleCreateAssignments = async () => {
     setIsCreating(true);
@@ -31,8 +33,8 @@ export function CreateAssignmentsButton({ workflowId, workflowName }: CreateAssi
       size="sm"
       className="bg-green-600 hover:bg-green-700"
     >
-      <Play className="h-4 w-4 mr-2" />
-      {isCreating ? 'Creating...' : 'Create Assignments'}
+      <Play className="h-4 w-4 me-2" />
+      {isCreating ? t('workflow.launching') : t('workflow.launch')}
     </Button>
   );
 }
