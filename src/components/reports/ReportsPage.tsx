@@ -7,11 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReportBuilder } from './ReportBuilder';
 import { PredefinedReports } from './PredefinedReports';
 import { SavedReports } from './SavedReports';
-import { BarChart3, Settings, FileText, Plus } from 'lucide-react';
+import { AIReportBuilder } from './AIReportBuilder';
+import { BarChart3, Settings, FileText, Plus, Sparkles } from 'lucide-react';
 
 export function ReportsPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('builder');
+  const [activeTab, setActiveTab] = useState('ai-assistant');
 
   return (
     <div className="space-y-6">
@@ -27,7 +28,11 @@ export function ReportsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="ai-assistant" className="flex items-center space-x-2">
+            <Sparkles className="h-4 w-4" />
+            <span>{t('reports.aiAssistant')}</span>
+          </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center space-x-2">
             <Settings className="h-4 w-4" />
             <span>{t('reports.reportBuilder')}</span>
@@ -41,6 +46,10 @@ export function ReportsPage() {
             <span>{t('reports.savedReports')}</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-assistant">
+          <AIReportBuilder />
+        </TabsContent>
 
         <TabsContent value="builder">
           <ReportBuilder />
