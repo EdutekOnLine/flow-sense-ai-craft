@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Copy, Trash2, Edit } from 'lucide-react';
+import { UserPlus, Copy, Trash2, Edit, Users, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EditUserDialog } from './EditUserDialog';
 import {
@@ -63,13 +64,8 @@ export default function UserManagement() {
   const canEditUser = (targetUser: UserProfile) => {
     if (!profile) return false;
     
-    // Root users can edit all users
     if (profile.role === 'root') return true;
-    
-    // Admin users can edit all users except root users
     if (profile.role === 'admin' && targetUser.role !== 'root') return true;
-    
-    // Users can edit themselves
     if (profile.id === targetUser.id) return true;
     
     return false;
@@ -77,14 +73,8 @@ export default function UserManagement() {
 
   const canDeleteUser = (targetUser: UserProfile) => {
     if (!profile) return false;
-    
-    // Cannot delete yourself
     if (profile.id === targetUser.id) return false;
-    
-    // Root users can delete all non-root users
     if (profile.role === 'root' && targetUser.role !== 'root') return true;
-    
-    // Admin users can delete employees and managers
     if (profile.role === 'admin' && ['employee', 'manager'].includes(targetUser.role)) return true;
     
     return false;
@@ -92,19 +82,11 @@ export default function UserManagement() {
 
   const canSeeUser = (targetUser: UserProfile) => {
     if (!profile) return false;
-    
-    // Users can always see themselves
     if (profile.id === targetUser.id) return true;
-    
-    // Root users can see all users
     if (profile.role === 'root') return true;
-    
-    // Admin users can see all users except other admins and root (unless it's themselves)
     if (profile.role === 'admin') {
       return !['admin', 'root'].includes(targetUser.role) || targetUser.id === profile.id;
     }
-    
-    // Manager users can see all users except root
     if (profile.role === 'manager') {
       return targetUser.role !== 'root';
     }
@@ -116,7 +98,6 @@ export default function UserManagement() {
     return profile && ['root', 'admin'].includes(profile.role);
   };
 
-  // Fetch existing users
   const { data: allUsers = [] } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -130,10 +111,8 @@ export default function UserManagement() {
     },
   });
 
-  // Filter users based on permissions
   const users = allUsers.filter(canSeeUser);
 
-  // Fetch pending invitations
   const { data: invitations = [] } = useQuery({
     queryKey: ['invitations'],
     queryFn: async () => {
@@ -147,10 +126,8 @@ export default function UserManagement() {
     },
   });
 
-  // Create invitation mutation with email sending
   const createInvitation = useMutation({
     mutationFn: async (invitation: typeof inviteForm) => {
-      // First create the invitation in the database
       const { data, error } = await supabase
         .from('user_invitations')
         .insert([{
@@ -166,7 +143,6 @@ export default function UserManagement() {
 
       console.log('Created invitation record:', data);
 
-      // Then send the invitation email
       const emailResponse = await supabase.functions.invoke('send-user-invitation', {
         body: {
           email: invitation.email,
@@ -210,7 +186,6 @@ export default function UserManagement() {
     },
   });
 
-  // Delete invitation mutation
   const deleteInvitation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -236,7 +211,6 @@ export default function UserManagement() {
     },
   });
 
-  // Delete user mutation
   const deleteUser = useMutation({
     mutationFn: async (userId: string) => {
       const { data, error } = await supabase.functions.invoke('delete-user', {
@@ -295,7 +269,6 @@ export default function UserManagement() {
     }
   };
 
-  // Show access denied message for employees
   if (profile?.role === 'employee') {
     return (
       <div className="text-center py-8">
@@ -308,14 +281,47 @@ export default function UserManagement() {
   const isManagerRole = profile?.role === 'manager';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Gradient Header */}
+      <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border border-green-200 rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-emerald-50/80 to-green-50/80 rounded-xl"></div>
+        <div className="relative">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="h-8 w-8 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold text-gray-900">
+                {isManagerRole ? t('users.teamMembers') : t('navigation.users')}
+              </h1>
+              <p className="text-lg text-gray-600">
+                {isManagerRole ? t('users.viewTeamMembers') : t('users.manageUsersDescription')}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
+                  {users.length} Active Users
+                </span>
+                {isManagerRole && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Shield className="h-3 w-3 mr-1" />
+                    {t('users.viewOnly')}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Invite New User - Only show for root and admin */}
         {canInviteUsers() && (
-          <Card>
+          <Card className="bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <UserPlus className="h-5 w-5 mr-2" />
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <UserPlus className="h-4 w-4 text-white" />
+                </div>
                 {t('users.inviteNewUser')}
               </CardTitle>
             </CardHeader>
@@ -328,12 +334,13 @@ export default function UserManagement() {
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                   placeholder={t('users.emailPlaceholder')}
+                  className="bg-white/80 backdrop-blur-sm"
                 />
               </div>
               <div>
                 <Label htmlFor="role">{t('users.roleLabel')}</Label>
                 <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white/80 backdrop-blur-sm">
                     <SelectValue placeholder={t('users.selectRolePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -350,12 +357,13 @@ export default function UserManagement() {
                   value={inviteForm.department}
                   onChange={(e) => setInviteForm({ ...inviteForm, department: e.target.value })}
                   placeholder={t('users.departmentPlaceholder')}
+                  className="bg-white/80 backdrop-blur-sm"
                 />
               </div>
               <Button 
                 onClick={handleInviteUser} 
                 disabled={createInvitation.isPending}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
                 {createInvitation.isPending ? t('users.creating') : t('users.sendInvitation')}
               </Button>
@@ -364,19 +372,23 @@ export default function UserManagement() {
         )}
 
         {/* Active Users */}
-        <Card className={canInviteUsers() ? '' : 'lg:col-span-2'}>
+        <Card className={`bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50 ${canInviteUsers() ? '' : 'lg:col-span-2'}`}>
           <CardHeader>
-            <CardTitle>
-              {isManagerRole ? t('users.teamMembers') : t('users.activeUsers')} ({users.length})
-              {isManagerRole && <span className="text-sm font-normal text-gray-600 ml-2">{t('users.viewOnly')}</span>}
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <Users className="h-4 w-4 text-white" />
+                </div>
+                {isManagerRole ? t('users.teamMembers') : t('users.activeUsers')} ({users.length})
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={user.id} className="flex items-center justify-between p-4 bg-white/60 backdrop-blur-sm border border-green-200/50 rounded-lg">
                   <div>
-                    <p className="font-medium">{user.first_name} {user.last_name}</p>
+                    <p className="font-medium text-gray-900">{user.first_name} {user.last_name}</p>
                     <p className="text-sm text-gray-600">{user.email}</p>
                     {user.department && (
                       <p className="text-xs text-gray-500">{user.department}</p>
@@ -386,18 +398,16 @@ export default function UserManagement() {
                     <Badge className={getRoleBadgeColor(user.role)}>
                       {t(`users.${user.role}`).toUpperCase()}
                     </Badge>
-                    {/* Show edit button only if user can edit and it's not a manager viewing */}
                     {canEditUser(user) && !isManagerRole && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setEditingUser(user)}
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                     )}
-                    {/* Show delete button only if user can delete */}
                     {canDeleteUser(user) && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -443,67 +453,74 @@ export default function UserManagement() {
 
       {/* Pending Invitations - Only show for root and admin */}
       {canInviteUsers() && (
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50">
           <CardHeader>
-            <CardTitle>{t('users.pendingInvitations')} ({invitations.filter(inv => !inv.used_at).length})</CardTitle>
+            <CardTitle className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                <Copy className="h-4 w-4 text-white" />
+              </div>
+              {t('users.pendingInvitations')} ({invitations.filter(inv => !inv.used_at).length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('users.email')}</TableHead>
-                  <TableHead>{t('users.role')}</TableHead>
-                  <TableHead>{t('users.department')}</TableHead>
-                  <TableHead>{t('users.expires')}</TableHead>
-                  <TableHead>{t('users.status')}</TableHead>
-                  <TableHead>{t('users.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invitations.map((invitation) => (
-                  <TableRow key={invitation.id}>
-                    <TableCell>{invitation.email}</TableCell>
-                    <TableCell>
-                      <Badge className={getRoleBadgeColor(invitation.role)}>
-                        {t(`users.${invitation.role}`).toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{invitation.department || '-'}</TableCell>
-                    <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {invitation.used_at ? (
-                        <Badge className="bg-green-100 text-green-800">{t('users.used')}</Badge>
-                      ) : new Date(invitation.expires_at) < new Date() ? (
-                        <Badge className="bg-gray-100 text-gray-800">{t('users.expired')}</Badge>
-                      ) : (
-                        <Badge className="bg-yellow-100 text-yellow-800">{t('users.pending')}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {!invitation.used_at && new Date(invitation.expires_at) > new Date() && (
+            <div className="bg-white/60 backdrop-blur-sm rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('users.email')}</TableHead>
+                    <TableHead>{t('users.role')}</TableHead>
+                    <TableHead>{t('users.department')}</TableHead>
+                    <TableHead>{t('users.expires')}</TableHead>
+                    <TableHead>{t('users.status')}</TableHead>
+                    <TableHead>{t('users.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invitations.map((invitation) => (
+                    <TableRow key={invitation.id}>
+                      <TableCell>{invitation.email}</TableCell>
+                      <TableCell>
+                        <Badge className={getRoleBadgeColor(invitation.role)}>
+                          {t(`users.${invitation.role}`).toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{invitation.department || '-'}</TableCell>
+                      <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {invitation.used_at ? (
+                          <Badge className="bg-green-100 text-green-800">{t('users.used')}</Badge>
+                        ) : new Date(invitation.expires_at) < new Date() ? (
+                          <Badge className="bg-gray-100 text-gray-800">{t('users.expired')}</Badge>
+                        ) : (
+                          <Badge className="bg-yellow-100 text-yellow-800">{t('users.pending')}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {!invitation.used_at && new Date(invitation.expires_at) > new Date() && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyInvitationLink(invitation.invitation_token)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => copyInvitationLink(invitation.invitation_token)}
+                            onClick={() => deleteInvitation.mutate(invitation.id)}
+                            disabled={deleteInvitation.isPending}
                           >
-                            <Copy className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteInvitation.mutate(invitation.id)}
-                          disabled={deleteInvitation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

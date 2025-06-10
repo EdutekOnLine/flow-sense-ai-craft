@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow, RefreshCw } from 'lucide-react';
+import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow, RefreshCw, Inbox } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -134,260 +134,288 @@ export function WorkflowInbox() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className={`flex items-center justify-between ${getRTLAwareFlexDirection()}`}>
-        <div>
-          <h2 className={`text-2xl font-bold text-gray-900 ${getRTLAwareTextAlign()}`}>{t('workflow.myActiveTasks')}</h2>
-          <p className={`text-gray-600 ${getRTLAwareTextAlign()}`}>{t('workflow.myActiveTasksDescription')}</p>
-        </div>
-        <div className={`flex items-center gap-4 ${getRTLAwareFlexDirection()}`}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className={`flex items-center gap-2 ${getRTLAwareFlexDirection()}`}
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {t('workflow.refresh')}
-          </Button>
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-            {pendingCount} {t('workflow.pending')}
-          </Badge>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {inProgressCount} {t('workflow.inProgress')}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder={t('workflow.filterByStatus')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('workflow.allAssignments')}</SelectItem>
-            <SelectItem value="pending">{t('workflow.pending')}</SelectItem>
-            <SelectItem value="in_progress">{t('workflow.inProgress')}</SelectItem>
-            <SelectItem value="completed">{t('workflow.completed')}</SelectItem>
-            <SelectItem value="skipped">{t('workflow.skipped')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid gap-4">
-        {filteredAssignments.length === 0 ? (
-          <Card>
-            <CardContent className={`p-8 text-center ${getRTLAwareTextAlign('center')}`}>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('workflow.noActiveTasks')}</h3>
-              <p className="text-gray-600">
-                {statusFilter === 'all' 
-                  ? t('workflow.noActiveTasksMessage')
-                  : `${t('workflow.filterByStatus')} "${t(`workflow.${statusFilter}`)}"`
-                }
-              </p>
+    <div className="space-y-8">
+      {/* Gradient Header */}
+      <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-blue-50/80 rounded-xl"></div>
+        <div className="relative">
+          <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
+            <div className={`flex items-start gap-4 ${getRTLAwareTextAlign('start')}`}>
+              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                <Inbox className="h-8 w-8 text-white" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold text-gray-900">{t('workflow.myActiveTasks')}</h1>
+                <p className="text-lg text-gray-600">{t('workflow.myActiveTasksDescription')}</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 px-3 py-1">
+                    {pendingCount} {t('workflow.pending')}
+                  </Badge>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-3 py-1">
+                    {inProgressCount} {t('workflow.inProgress')}
+                  </Badge>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                    LIVE
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className={`flex items-center gap-4 ${getRTLAwareFlexDirection()}`}>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className={`flex items-center gap-2 mt-4 mx-auto ${getRTLAwareFlexDirection()}`}
+                className={`bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50 flex items-center gap-2 ${getRTLAwareFlexDirection()}`}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {t('workflow.checkForNewTasks')}
+                {t('workflow.refresh')}
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredAssignments.map((assignment) => (
-            <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
-                  <div className="space-y-1 flex-1">
-                    <CardTitle className={`text-lg ${getRTLAwareTextAlign()}`}>
-                      {assignment.workflow_steps.name}
-                    </CardTitle>
-                    <p className={`text-sm text-gray-600 ${getRTLAwareTextAlign()}`}>
-                      Workflow: {assignment.workflow_steps.workflows.name}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="space-y-6">
+        {/* Filter Controls */}
+        <Card className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48 bg-white/80 backdrop-blur-sm">
+                  <SelectValue placeholder={t('workflow.filterByStatus')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('workflow.allAssignments')}</SelectItem>
+                  <SelectItem value="pending">{t('workflow.pending')}</SelectItem>
+                  <SelectItem value="in_progress">{t('workflow.inProgress')}</SelectItem>
+                  <SelectItem value="completed">{t('workflow.completed')}</SelectItem>
+                  <SelectItem value="skipped">{t('workflow.skipped')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Grid */}
+        <div className="grid gap-4">
+          {filteredAssignments.length === 0 ? (
+            <Card className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50">
+              <CardContent className={`p-8 text-center ${getRTLAwareTextAlign('center')}`}>
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Inbox className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('workflow.noActiveTasks')}</h3>
+                <p className="text-gray-600 mb-4">
+                  {statusFilter === 'all' 
+                    ? t('workflow.noActiveTasksMessage')
+                    : `${t('workflow.filterByStatus')} "${t(`workflow.${statusFilter}`)}"`
+                  }
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className={`bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50 flex items-center gap-2 mx-auto ${getRTLAwareFlexDirection()}`}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {t('workflow.checkForNewTasks')}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredAssignments.map((assignment) => (
+              <Card key={assignment.id} className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
+                    <div className="space-y-1 flex-1">
+                      <CardTitle className={`text-lg ${getRTLAwareTextAlign()}`}>
+                        {assignment.workflow_steps.name}
+                      </CardTitle>
+                      <p className={`text-sm text-gray-600 ${getRTLAwareTextAlign()}`}>
+                        Workflow: {assignment.workflow_steps.workflows.name}
+                      </p>
+                      {assignment.workflow_instance && (
+                        <div className={`flex items-center gap-2 text-xs text-blue-600 ${getRTLAwareFlexDirection()}`}>
+                          <Workflow className="h-3 w-3" />
+                          Instance started {formatLocalizedDistanceToNow(new Date(assignment.workflow_instance.created_at), i18n.language, { addSuffix: true })}
+                        </div>
+                      )}
+                    </div>
+                    <div className={`flex items-center gap-2 ${getRTLAwareFlexDirection()}`}>
+                      {getStatusIcon(assignment.status)}
+                      <Badge className={getStatusColor(assignment.status)}>
+                        {t(`workflow.${assignment.status.replace('_', '')}`) || assignment.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {assignment.workflow_steps.description && (
+                    <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>
+                      {assignment.workflow_steps.description}
                     </p>
-                    {assignment.workflow_instance && (
-                      <div className={`flex items-center gap-2 text-xs text-blue-600 ${getRTLAwareFlexDirection()}`}>
-                        <Workflow className="h-3 w-3" />
-                        Instance started {formatLocalizedDistanceToNow(new Date(assignment.workflow_instance.created_at), i18n.language, { addSuffix: true })}
+                  )}
+                  
+                  <div className={`flex items-center gap-4 text-xs text-gray-500 ${getRTLAwareFlexDirection()}`}>
+                    <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
+                      <Calendar className="h-3 w-3" />
+                      Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language, { addSuffix: true })}
+                    </div>
+                    {assignment.due_date && (
+                      <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
+                        <Clock className="h-3 w-3" />
+                        Due {formatLocalizedDistanceToNow(new Date(assignment.due_date), i18n.language, { addSuffix: true })}
                       </div>
                     )}
                   </div>
-                  <div className={`flex items-center gap-2 ${getRTLAwareFlexDirection()}`}>
-                    {getStatusIcon(assignment.status)}
-                    <Badge className={getStatusColor(assignment.status)}>
-                      {t(`workflow.${assignment.status.replace('_', '')}`) || assignment.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {assignment.workflow_steps.description && (
-                  <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>
-                    {assignment.workflow_steps.description}
-                  </p>
-                )}
-                
-                <div className={`flex items-center gap-4 text-xs text-gray-500 ${getRTLAwareFlexDirection()}`}>
-                  <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
-                    <Calendar className="h-3 w-3" />
-                    Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language, { addSuffix: true })}
-                  </div>
-                  {assignment.due_date && (
-                    <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
-                      <Clock className="h-3 w-3" />
-                      Due {formatLocalizedDistanceToNow(new Date(assignment.due_date), i18n.language, { addSuffix: true })}
+
+                  {assignment.notes && (
+                    <div className="bg-gray-50 p-3 rounded-md">
+                      <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>{assignment.notes}</p>
                     </div>
                   )}
-                </div>
 
-                {assignment.notes && (
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>{assignment.notes}</p>
-                  </div>
-                )}
-
-                <div className={`flex items-center gap-2 pt-2 border-t ${getRTLAwareFlexDirection()}`}>
-                  {assignment.status !== 'completed' && (
-                    <>
-                      {assignment.status === 'pending' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className={`bg-blue-50 hover:bg-blue-100 ${getRTLAwareFlexDirection()}`}
-                          onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
-                        >
-                          <PlayCircle className="h-4 w-4 me-1" />
-                          Start Working
-                        </Button>
-                      )}
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
+                  <div className={`flex items-center gap-2 pt-2 border-t ${getRTLAwareFlexDirection()}`}>
+                    {assignment.status !== 'completed' && (
+                      <>
+                        {assignment.status === 'pending' && (
                           <Button
                             size="sm"
-                            className={`bg-green-600 hover:bg-green-700 ${getRTLAwareFlexDirection()}`}
-                            disabled={isCompleting}
+                            variant="outline"
+                            className={`bg-blue-50 hover:bg-blue-100 ${getRTLAwareFlexDirection()}`}
+                            onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                           >
-                            <CheckCircle className="h-4 w-4 me-1" />
-                            {isCompleting ? 'Completing...' : 'Mark as Done'}
+                            <PlayCircle className="h-4 w-4 me-1" />
+                            Start Working
                           </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Complete Step</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 pt-4">
-                            <div>
-                              <h4 className="font-medium mb-2">Step: {assignment.workflow_steps.name}</h4>
-                              <p className="text-sm text-gray-600">
-                                Workflow: {assignment.workflow_steps.workflows.name}
-                              </p>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium">Completion Notes</label>
-                              <Textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Add notes about the completion of this step..."
-                                rows={3}
-                              />
-                            </div>
+                        )}
+                        
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              className={`bg-green-600 hover:bg-green-700 ${getRTLAwareFlexDirection()}`}
+                              disabled={isCompleting}
+                            >
+                              <CheckCircle className="h-4 w-4 me-1" />
+                              {isCompleting ? 'Completing...' : 'Mark as Done'}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Complete Step</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-4">
+                              <div>
+                                <h4 className="font-medium mb-2">Step: {assignment.workflow_steps.name}</h4>
+                                <p className="text-sm text-gray-600">
+                                  Workflow: {assignment.workflow_steps.workflows.name}
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium">Completion Notes</label>
+                                <Textarea
+                                  value={notes}
+                                  onChange={(e) => setNotes(e.target.value)}
+                                  placeholder="Add notes about the completion of this step..."
+                                  rows={3}
+                                />
+                              </div>
 
-                            <div className={`flex gap-2 justify-end ${getRTLAwareFlexDirection()}`}>
-                              <Button
-                                variant="outline"
-                                onClick={() => setNotes('')}
-                              >
-                                {t('common.cancel')}
-                              </Button>
-                              <Button
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => handleCompleteStep(assignment)}
-                                disabled={isCompleting}
-                              >
-                                <ArrowRight className="h-4 w-4 me-1" />
-                                {isCompleting ? 'Completing...' : 'Complete & Advance Workflow'}
-                              </Button>
+                              <div className={`flex gap-2 justify-end ${getRTLAwareFlexDirection()}`}>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setNotes('')}
+                                >
+                                  {t('common.cancel')}
+                                </Button>
+                                <Button
+                                  className="bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleCompleteStep(assignment)}
+                                  disabled={isCompleting}
+                                >
+                                  <ArrowRight className="h-4 w-4 me-1" />
+                                  {isCompleting ? 'Completing...' : 'Complete & Advance Workflow'}
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                          </DialogContent>
+                        </Dialog>
 
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setSelectedAssignment(assignment);
-                              setNotes(assignment.notes || '');
-                            }}
-                          >
-                            Update Status
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Update Assignment Status</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 pt-4">
-                            <div>
-                              <h4 className="font-medium mb-2">Step: {selectedAssignment?.workflow_steps.name}</h4>
-                              <p className="text-sm text-gray-600">
-                                Workflow: {selectedAssignment?.workflow_steps.workflows.name}
-                              </p>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium">Notes (optional)</label>
-                              <Textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Add any notes about this step..."
-                                rows={3}
-                              />
-                            </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setNotes(assignment.notes || '');
+                              }}
+                            >
+                              Update Status
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Update Assignment Status</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-4">
+                              <div>
+                                <h4 className="font-medium mb-2">Step: {selectedAssignment?.workflow_steps.name}</h4>
+                                <p className="text-sm text-gray-600">
+                                  Workflow: {selectedAssignment?.workflow_steps.workflows.name}
+                                </p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium">Notes (optional)</label>
+                                <Textarea
+                                  value={notes}
+                                  onChange={(e) => setNotes(e.target.value)}
+                                  placeholder="Add any notes about this step..."
+                                  rows={3}
+                                />
+                              </div>
 
-                            <div className={`flex gap-2 ${getRTLAwareFlexDirection()}`}>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="bg-blue-50 hover:bg-blue-100"
-                                onClick={() => handleStatusUpdate('in_progress')}
-                              >
-                                Start Working
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleStatusUpdate('skipped')}
-                              >
-                                Skip
-                              </Button>
+                              <div className={`flex gap-2 ${getRTLAwareFlexDirection()}`}>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-blue-50 hover:bg-blue-100"
+                                  onClick={() => handleStatusUpdate('in_progress')}
+                                >
+                                  Start Working
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleStatusUpdate('skipped')}
+                                >
+                                  Skip
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </>
-                  )}
-                  
-                  {assignment.status === 'completed' && assignment.completed_at && (
-                    <div className={`flex items-center gap-2 text-sm text-green-600 ${getRTLAwareFlexDirection()}`}>
-                      <CheckCircle className="h-4 w-4" />
-                      Completed {formatLocalizedDistanceToNow(new Date(assignment.completed_at), i18n.language, { addSuffix: true })}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    )}
+                    
+                    {assignment.status === 'completed' && assignment.completed_at && (
+                      <div className={`flex items-center gap-2 text-sm text-green-600 ${getRTLAwareFlexDirection()}`}>
+                        <CheckCircle className="h-4 w-4" />
+                        Completed {formatLocalizedDistanceToNow(new Date(assignment.completed_at), i18n.language, { addSuffix: true })}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
