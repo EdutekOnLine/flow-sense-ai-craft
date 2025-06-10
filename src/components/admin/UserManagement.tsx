@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +47,7 @@ interface UserProfile {
 }
 
 export default function UserManagement() {
+  const { t } = useTranslation();
   const [isInviting, setIsInviting] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [inviteForm, setInviteForm] = useState({
@@ -194,15 +195,15 @@ export default function UserManagement() {
     },
     onSuccess: (data) => {
       toast({
-        title: 'Invitation sent!',
-        description: `Invitation email sent to ${data.email}`,
+        title: t('users.invitationSent'),
+        description: t('users.invitationSentMessage', { email: data.email }),
       });
       setInviteForm({ email: '', role: 'employee', department: '' });
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error creating invitation',
+        title: t('users.errorCreatingInvitation'),
         description: error.message,
         variant: 'destructive',
       });
@@ -221,14 +222,14 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Invitation deleted',
-        description: 'The invitation has been removed.',
+        title: t('users.invitationDeleted'),
+        description: t('users.invitationDeletedMessage'),
       });
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error deleting invitation',
+        title: t('users.errorDeletingInvitation'),
         description: error.message,
         variant: 'destructive',
       });
@@ -250,14 +251,14 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'User deleted',
-        description: 'The user has been successfully removed.',
+        title: t('users.userDeleted'),
+        description: t('users.userDeletedMessage'),
       });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error deleting user',
+        title: t('users.errorDeletingUser'),
         description: error.message,
         variant: 'destructive',
       });
@@ -267,8 +268,8 @@ export default function UserManagement() {
   const handleInviteUser = () => {
     if (!inviteForm.email) {
       toast({
-        title: 'Email required',
-        description: 'Please enter an email address.',
+        title: t('users.emailRequired'),
+        description: t('users.enterEmail'),
         variant: 'destructive',
       });
       return;
@@ -280,8 +281,8 @@ export default function UserManagement() {
     const inviteUrl = `${window.location.origin}/?invite=${token}`;
     navigator.clipboard.writeText(inviteUrl);
     toast({
-      title: 'Invitation link copied!',
-      description: 'Share this link with the invited user.',
+      title: t('users.invitationLinkCopied'),
+      description: t('users.shareInvitationLink'),
     });
   };
 
@@ -298,8 +299,8 @@ export default function UserManagement() {
   if (profile?.role === 'employee') {
     return (
       <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-        <p className="text-gray-600">You don't have permission to access user management.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('users.accessDenied')}</h2>
+        <p className="text-gray-600">{t('users.noPermission')}</p>
       </div>
     );
   }
@@ -315,40 +316,40 @@ export default function UserManagement() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <UserPlus className="h-5 w-5 mr-2" />
-                Invite New User
+                {t('users.inviteNewUser')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t('users.emailAddress')}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  placeholder="user@company.com"
+                  placeholder={t('users.emailPlaceholder')}
                 />
               </div>
               <div>
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role">{t('users.roleLabel')}</Label>
                 <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={t('users.selectRolePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="employee">Employee</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="employee">{t('users.employee')}</SelectItem>
+                    <SelectItem value="manager">{t('users.manager')}</SelectItem>
+                    <SelectItem value="admin">{t('users.administrator')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="department">Department (Optional)</Label>
+                <Label htmlFor="department">{t('users.departmentLabel')}</Label>
                 <Input
                   id="department"
                   value={inviteForm.department}
                   onChange={(e) => setInviteForm({ ...inviteForm, department: e.target.value })}
-                  placeholder="Engineering, Marketing, etc."
+                  placeholder={t('users.departmentPlaceholder')}
                 />
               </div>
               <Button 
@@ -356,7 +357,7 @@ export default function UserManagement() {
                 disabled={createInvitation.isPending}
                 className="w-full"
               >
-                {createInvitation.isPending ? 'Creating...' : 'Send Invitation'}
+                {createInvitation.isPending ? t('users.creating') : t('users.sendInvitation')}
               </Button>
             </CardContent>
           </Card>
@@ -366,8 +367,8 @@ export default function UserManagement() {
         <Card className={canInviteUsers() ? '' : 'lg:col-span-2'}>
           <CardHeader>
             <CardTitle>
-              {isManagerRole ? 'Team Members' : 'Active Users'} ({users.length})
-              {isManagerRole && <span className="text-sm font-normal text-gray-600 ml-2">(View Only)</span>}
+              {isManagerRole ? t('users.teamMembers') : t('users.activeUsers')} ({users.length})
+              {isManagerRole && <span className="text-sm font-normal text-gray-600 ml-2">{t('users.viewOnly')}</span>}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -383,7 +384,7 @@ export default function UserManagement() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role.toUpperCase()}
+                      {t(`users.${user.role}`).toUpperCase()}
                     </Badge>
                     {/* Show edit button only if user can edit and it's not a manager viewing */}
                     {canEditUser(user) && !isManagerRole && (
@@ -410,20 +411,23 @@ export default function UserManagement() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogTitle>{t('users.deleteUserConfirm')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete {user.first_name} {user.last_name} ({user.email})? 
-                              This action cannot be undone and will permanently remove their account and all associated data.
+                              {t('users.deleteUserMessage', {
+                                firstName: user.first_name,
+                                lastName: user.last_name,
+                                email: user.email
+                              })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => deleteUser.mutate(user.id)}
                               className="bg-red-600 hover:bg-red-700"
                               disabled={deleteUser.isPending}
                             >
-                              {deleteUser.isPending ? 'Deleting...' : 'Delete User'}
+                              {deleteUser.isPending ? t('users.deleting') : t('users.deleteUser')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -441,18 +445,18 @@ export default function UserManagement() {
       {canInviteUsers() && (
         <Card>
           <CardHeader>
-            <CardTitle>Pending Invitations ({invitations.filter(inv => !inv.used_at).length})</CardTitle>
+            <CardTitle>{t('users.pendingInvitations')} ({invitations.filter(inv => !inv.used_at).length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('users.email')}</TableHead>
+                  <TableHead>{t('users.role')}</TableHead>
+                  <TableHead>{t('users.department')}</TableHead>
+                  <TableHead>{t('users.expires')}</TableHead>
+                  <TableHead>{t('users.status')}</TableHead>
+                  <TableHead>{t('users.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -461,18 +465,18 @@ export default function UserManagement() {
                     <TableCell>{invitation.email}</TableCell>
                     <TableCell>
                       <Badge className={getRoleBadgeColor(invitation.role)}>
-                        {invitation.role.toUpperCase()}
+                        {t(`users.${invitation.role}`).toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell>{invitation.department || '-'}</TableCell>
                     <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       {invitation.used_at ? (
-                        <Badge className="bg-green-100 text-green-800">Used</Badge>
+                        <Badge className="bg-green-100 text-green-800">{t('users.used')}</Badge>
                       ) : new Date(invitation.expires_at) < new Date() ? (
-                        <Badge className="bg-gray-100 text-gray-800">Expired</Badge>
+                        <Badge className="bg-gray-100 text-gray-800">{t('users.expired')}</Badge>
                       ) : (
-                        <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                        <Badge className="bg-yellow-100 text-yellow-800">{t('users.pending')}</Badge>
                       )}
                     </TableCell>
                     <TableCell>
