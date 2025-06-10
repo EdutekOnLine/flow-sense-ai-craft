@@ -2,7 +2,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, Users, FileText, TrendingUp, Activity, Calendar } from 'lucide-react';
 
@@ -60,11 +59,6 @@ const predefinedReports = [
 export function PredefinedReports() {
   const { t } = useTranslation();
 
-  const generateReport = (reportId: string) => {
-    console.log('Generating predefined report:', reportId);
-    // This would trigger the predefined report generation
-  };
-
   const groupedReports = predefinedReports.reduce((acc, report) => {
     if (!acc[report.category]) {
       acc[report.category] = [];
@@ -101,16 +95,8 @@ export function PredefinedReports() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-gray-600">{report.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">
-                        Source: {report.dataSource}
-                      </span>
-                      <Button 
-                        size="sm"
-                        onClick={() => generateReport(report.id)}
-                      >
-                        {t('reports.generate')}
-                      </Button>
+                    <div className="text-xs text-gray-500">
+                      Source: {report.dataSource}
                     </div>
                   </CardContent>
                 </Card>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar, User, Play, Share, Trash2 } from 'lucide-react';
+import { FileText, Calendar, User } from 'lucide-react';
 
 // Mock data for saved reports
 const savedReports = [
@@ -48,21 +48,6 @@ const savedReports = [
 
 export function SavedReports() {
   const { t } = useTranslation();
-
-  const runReport = (reportId: string) => {
-    console.log('Running saved report:', reportId);
-    // This would run the saved report
-  };
-
-  const shareReport = (reportId: string) => {
-    console.log('Sharing report:', reportId);
-    // This would open a share dialog
-  };
-
-  const deleteReport = (reportId: string) => {
-    console.log('Deleting report:', reportId);
-    // This would delete the report
-  };
 
   return (
     <div className="space-y-6">
@@ -119,33 +104,6 @@ export function SavedReports() {
                   <div>Data Source: {report.dataSource}</div>
                   <div>Filters: {report.filters} | Columns: {report.columns}</div>
                   <div>Last Run: {new Date(report.lastRun).toLocaleDateString()}</div>
-                </div>
-
-                <div className="flex justify-between items-center pt-2">
-                  <div className="flex space-x-2">
-                    <Button 
-                      size="sm"
-                      onClick={() => runReport(report.id)}
-                    >
-                      <Play className="h-4 w-4 mr-1" />
-                      {t('reports.run')}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => shareReport(report.id)}
-                    >
-                      <Share className="h-4 w-4 mr-1" />
-                      {t('reports.share')}
-                    </Button>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => deleteReport(report.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </CardContent>
             </Card>
