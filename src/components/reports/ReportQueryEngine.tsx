@@ -7,7 +7,41 @@ export class ReportQueryEngine {
     const { dataSource, selectedColumns, filters } = config;
 
     try {
-      let query = supabase.from(dataSource).select(selectedColumns.join(', '));
+      // Type-safe data source handling
+      let query: any;
+      
+      // Map data sources to actual Supabase tables/views
+      switch (dataSource) {
+        case 'workflow_performance':
+          query = supabase.from('workflow_performance_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'user_performance':
+          query = supabase.from('user_performance_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'department_analytics':
+          query = supabase.from('department_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_trends':
+          query = supabase.from('workflow_trends').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_steps':
+          query = supabase.from('workflow_steps').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_step_assignments':
+          query = supabase.from('workflow_step_assignments').select(selectedColumns.join(', '));
+          break;
+        case 'notifications':
+          query = supabase.from('notifications').select(selectedColumns.join(', '));
+          break;
+        case 'workflows':
+          query = supabase.from('workflows').select(selectedColumns.join(', '));
+          break;
+        case 'profiles':
+          query = supabase.from('profiles').select(selectedColumns.join(', '));
+          break;
+        default:
+          throw new Error(`Unsupported data source: ${dataSource}`);
+      }
 
       // Apply filters
       filters.forEach(filter => {
@@ -22,7 +56,7 @@ export class ReportQueryEngine {
             query = query.ilike(filter.column, `%${filter.value}%`);
             break;
           case 'not_contains':
-            query = query.not('like', `%${filter.value}%`);
+            query = query.not(filter.column, 'ilike', `%${filter.value}%`);
             break;
           case 'starts_with':
             query = query.ilike(filter.column, `${filter.value}%`);
@@ -46,7 +80,7 @@ export class ReportQueryEngine {
             query = query.is(filter.column, null);
             break;
           case 'is_not_null':
-            query = query.not('is', null);
+            query = query.not(filter.column, 'is', null);
             break;
           case 'in':
             if (typeof filter.value === 'string') {
@@ -57,7 +91,7 @@ export class ReportQueryEngine {
           case 'not_in':
             if (typeof filter.value === 'string') {
               const values = filter.value.split(',').map(v => v.trim());
-              query = query.not('in', filter.column, values);
+              query = query.not(filter.column, 'in', values);
             }
             break;
         }
