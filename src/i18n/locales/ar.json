@@ -212,6 +212,7 @@
     "admin": "مدير",
     "manager": "مشرف",
     "employee": "موظف",
+    "root": "مدير النظام",
     "active": "نشط",
     "inactive": "غير نشط",
     "searchPlaceholder": "البحث في المستخدمين...",

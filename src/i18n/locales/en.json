@@ -297,6 +297,7 @@
     "admin": "Admin",
     "manager": "Manager",
     "employee": "Employee",
+    "root": "Root Admin",
     "active": "Active",
     "inactive": "Inactive",
     "searchPlaceholder": "Search users...",
