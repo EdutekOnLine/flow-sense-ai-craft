@@ -1,4 +1,3 @@
-
 {
   "navigation": {
     "dashboard": "Dashboard",
@@ -43,6 +42,7 @@
     "completedWorkflows": "Completed Workflows",
     "tasksAssigned": "Tasks Assigned",
     "recentActivity": "Recent Activity",
+    "recentActivityDescription": "Track the latest workflow actions and updates",
     "quickActions": "Quick Actions",
     "createWorkflow": "Create Workflow",
     "viewReports": "View Reports",
