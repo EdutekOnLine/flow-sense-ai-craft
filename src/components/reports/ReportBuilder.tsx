@@ -8,10 +8,13 @@ import { CriteriaBuilder } from './CriteriaBuilder';
 import { ColumnSelector } from './ColumnSelector';
 import { DynamicReportTable } from './DynamicReportTable';
 import { ReportConfig, FilterCriteria } from './types';
+import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export function ReportBuilder() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
     dataSource: '',
     selectedColumns: [],
@@ -47,28 +50,35 @@ export function ReportBuilder() {
 
   const generateReport = async () => {
     if (!reportConfig.dataSource || reportConfig.selectedColumns.length === 0) {
+      toast({
+        title: 'Missing Configuration',
+        description: 'Please select a data source and at least one column',
+        variant: 'destructive'
+      });
       return;
     }
 
     setIsGenerating(true);
     try {
-      // This will be implemented in the query engine
-      const response = await fetch('/api/reports/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reportConfig)
+      const data = await ReportQueryEngine.generateReport(reportConfig);
+      setReportData(data);
+      toast({
+        title: 'Report Generated',
+        description: `Successfully generated report with ${data.length} rows`,
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setReportData(data);
-      }
     } catch (error) {
       console.error('Failed to generate report:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate report. Please check your configuration.',
+        variant: 'destructive'
+      });
     } finally {
       setIsGenerating(false);
     }
   };
+
+  const canGenerate = reportConfig.dataSource && reportConfig.selectedColumns.length > 0;
 
   return (
     <div className="space-y-6">
@@ -81,7 +91,7 @@ export function ReportBuilder() {
           </Button>
           <Button 
             onClick={generateReport}
-            disabled={!reportConfig.dataSource || reportConfig.selectedColumns.length === 0 || isGenerating}
+            disabled={!canGenerate || isGenerating}
           >
             <Play className="h-4 w-4 mr-2" />
             {isGenerating ? t('reports.generating') : t('reports.generateReport')}
@@ -137,25 +147,39 @@ export function ReportBuilder() {
         </div>
 
         <div>
-          {reportData.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {t('reports.preview')}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                {t('reports.preview')}
+                {reportData.length > 0 && (
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
                     {t('reports.export')}
                   </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!reportConfig.dataSource ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>{t('reports.selectDataSourceFirst')}</p>
+                </div>
+              ) : reportConfig.selectedColumns.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>{t('reports.selectColumnsFirst')}</p>
+                </div>
+              ) : reportData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>{t('reports.clickGenerateToSeeResults')}</p>
+                </div>
+              ) : (
                 <DynamicReportTable
                   data={reportData}
                   columns={reportConfig.selectedColumns}
                 />
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

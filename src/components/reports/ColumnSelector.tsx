@@ -2,7 +2,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ReportQueryEngine } from './ReportQueryEngine';
 
 interface ColumnSelectorProps {
   dataSource: string;
@@ -10,110 +10,68 @@ interface ColumnSelectorProps {
   onChange: (columns: string[]) => void;
 }
 
-const columnDefinitions: Record<string, Array<{ id: string; name: string; dataType: string }>> = {
-  workflow_performance: [
-    { id: 'name', name: 'Workflow Name', dataType: 'text' },
-    { id: 'status', name: 'Status', dataType: 'text' },
-    { id: 'completion_percentage', name: 'Completion %', dataType: 'number' },
-    { id: 'total_steps', name: 'Total Steps', dataType: 'number' },
-    { id: 'completed_steps', name: 'Completed Steps', dataType: 'number' },
-    { id: 'created_by_name', name: 'Created By', dataType: 'text' },
-    { id: 'assigned_to_name', name: 'Assigned To', dataType: 'text' },
-    { id: 'created_at', name: 'Created Date', dataType: 'date' },
-    { id: 'total_estimated_hours', name: 'Estimated Hours', dataType: 'number' },
-    { id: 'total_actual_hours', name: 'Actual Hours', dataType: 'number' }
-  ],
-  user_performance: [
-    { id: 'full_name', name: 'User Name', dataType: 'text' },
-    { id: 'role', name: 'Role', dataType: 'text' },
-    { id: 'department', name: 'Department', dataType: 'text' },
-    { id: 'workflows_created', name: 'Workflows Created', dataType: 'number' },
-    { id: 'workflows_assigned', name: 'Workflows Assigned', dataType: 'number' },
-    { id: 'steps_assigned', name: 'Tasks Assigned', dataType: 'number' },
-    { id: 'steps_completed', name: 'Tasks Completed', dataType: 'number' },
-    { id: 'completion_rate', name: 'Completion Rate %', dataType: 'number' },
-    { id: 'total_estimated_hours', name: 'Estimated Hours', dataType: 'number' },
-    { id: 'total_actual_hours', name: 'Actual Hours', dataType: 'number' }
-  ],
-  workflow_step_assignments: [
-    { id: 'workflow_step_id', name: 'Task ID', dataType: 'text' },
-    { id: 'assigned_to', name: 'Assigned To', dataType: 'text' },
-    { id: 'assigned_by', name: 'Assigned By', dataType: 'text' },
-    { id: 'status', name: 'Status', dataType: 'text' },
-    { id: 'created_at', name: 'Created Date', dataType: 'date' },
-    { id: 'completed_at', name: 'Completed Date', dataType: 'date' },
-    { id: 'due_date', name: 'Due Date', dataType: 'date' },
-    { id: 'notes', name: 'Notes', dataType: 'text' }
-  ],
-  department_analytics: [
-    { id: 'department', name: 'Department', dataType: 'text' },
-    { id: 'total_users', name: 'Total Users', dataType: 'number' },
-    { id: 'workflows_created', name: 'Workflows Created', dataType: 'number' },
-    { id: 'total_steps', name: 'Total Steps', dataType: 'number' },
-    { id: 'completed_steps', name: 'Completed Steps', dataType: 'number' },
-    { id: 'department_completion_rate', name: 'Completion Rate %', dataType: 'number' },
-    { id: 'total_estimated_hours', name: 'Estimated Hours', dataType: 'number' },
-    { id: 'total_actual_hours', name: 'Actual Hours', dataType: 'number' }
-  ]
-};
-
 export function ColumnSelector({ dataSource, selectedColumns, onChange }: ColumnSelectorProps) {
   const { t } = useTranslation();
-  const columns = columnDefinitions[dataSource] || [];
+  
+  const availableColumns = ReportQueryEngine.getAvailableColumns(dataSource);
 
-  const handleColumnToggle = (columnId: string, checked: boolean) => {
+  const handleColumnToggle = (column: string, checked: boolean) => {
     if (checked) {
-      onChange([...selectedColumns, columnId]);
+      onChange([...selectedColumns, column]);
     } else {
-      onChange(selectedColumns.filter(id => id !== columnId));
+      onChange(selectedColumns.filter(col => col !== column));
     }
   };
 
   const handleSelectAll = () => {
-    onChange(columns.map(col => col.id));
+    if (selectedColumns.length === availableColumns.length) {
+      onChange([]);
+    } else {
+      onChange(availableColumns);
+    }
   };
 
-  const handleSelectNone = () => {
-    onChange([]);
+  const getColumnDisplayName = (column: string): string => {
+    return column
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
   };
+
+  if (availableColumns.length === 0) {
+    return (
+      <div className="text-center py-4 text-gray-500">
+        <p>{t('reports.noColumnsAvailable')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between">
-        <span className="text-sm font-medium">{t('reports.selectColumns')}</span>
-        <div className="space-x-2">
-          <button
-            onClick={handleSelectAll}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            {t('reports.selectAll')}
-          </button>
-          <button
-            onClick={handleSelectNone}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            {t('reports.selectNone')}
-          </button>
-        </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="select-all"
+          checked={selectedColumns.length === availableColumns.length}
+          onCheckedChange={handleSelectAll}
+        />
+        <label htmlFor="select-all" className="text-sm font-medium">
+          {t('reports.selectAll')} ({selectedColumns.length}/{availableColumns.length})
+        </label>
       </div>
       
-      <ScrollArea className="h-64">
-        <div className="space-y-2">
-          {columns.map((column) => (
-            <div key={column.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={column.id}
-                checked={selectedColumns.includes(column.id)}
-                onCheckedChange={(checked) => handleColumnToggle(column.id, checked as boolean)}
-              />
-              <label htmlFor={column.id} className="text-sm">
-                {column.name}
-                <span className="text-xs text-gray-500 ml-1">({column.dataType})</span>
-              </label>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {availableColumns.map((column) => (
+          <div key={column} className="flex items-center space-x-2">
+            <Checkbox
+              id={column}
+              checked={selectedColumns.includes(column)}
+              onCheckedChange={(checked) => handleColumnToggle(column, checked as boolean)}
+            />
+            <label htmlFor={column} className="text-sm">
+              {getColumnDisplayName(column)}
+            </label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
