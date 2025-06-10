@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,11 @@ interface AIReportResponse {
   explanation: string;
 }
 
-export function AIReportBuilder() {
+export interface AIReportBuilderRef {
+  focusInput: () => void;
+}
+
+export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -29,6 +32,15 @@ export function AIReportBuilder() {
   const [aiExplanation, setAiExplanation] = useState<string>('');
   const [reportData, setReportData] = useState<any[]>([]);
   const [error, setError] = useState<string>('');
+  const naturalLanguageInputRef = useRef<{ focusInput: () => void } | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    focusInput: () => {
+      if (naturalLanguageInputRef.current) {
+        naturalLanguageInputRef.current.focusInput();
+      }
+    }
+  }));
 
   const handleQuerySubmit = async (query: string) => {
     setIsGenerating(true);
@@ -132,6 +144,7 @@ export function AIReportBuilder() {
             </CardHeader>
             <CardContent>
               <NaturalLanguageInput 
+                ref={naturalLanguageInputRef}
                 onQuerySubmit={handleQuerySubmit}
                 isLoading={isGenerating || isLoadingData}
               />
@@ -224,4 +237,6 @@ export function AIReportBuilder() {
       </div>
     </div>
   );
-}
+});
+
+AIReportBuilder.displayName = 'AIReportBuilder';
