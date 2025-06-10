@@ -25,28 +25,40 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Auto-detect actual columns from data if available
+  // Auto-detect ALL columns from ALL rows in the dataset
   const actualColumns = React.useMemo(() => {
     if (data.length === 0) {
       console.log('No data available, using provided columns:', columns);
       return columns;
     }
     
-    // Get all keys from the first row, excluding internal fields
-    const dataKeys = Object.keys(data[0]).filter(key => !key.startsWith('_'));
-    console.log('Data keys found:', dataKeys);
-    console.log('Provided columns:', columns);
+    // Scan ALL rows to collect ALL unique column names
+    const allColumnNames = new Set<string>();
     
-    // If we have data keys that don't match the provided columns, use the data keys
+    data.forEach(row => {
+      Object.keys(row).forEach(key => {
+        // Exclude internal fields that start with underscore
+        if (!key.startsWith('_')) {
+          allColumnNames.add(key);
+        }
+      });
+    });
+    
+    const dataKeys = Array.from(allColumnNames);
+    console.log('All data keys found across all rows:', dataKeys);
+    console.log('Provided columns:', columns);
+    console.log('Total rows scanned:', data.length);
+    
+    // If we have data keys, use them instead of provided columns
     if (dataKeys.length > 0) {
-      return dataKeys;
+      return dataKeys.sort(); // Sort for consistent display order
     }
     
     return columns;
   }, [data, columns]);
 
   console.log('Using columns for display:', actualColumns);
-  console.log('Sample data row:', data.length > 0 ? data[0] : 'No data');
+  console.log('Sample data rows:', data.slice(0, 3));
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
