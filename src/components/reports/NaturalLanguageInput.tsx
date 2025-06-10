@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 interface NaturalLanguageInputProps {
   onQuerySubmit: (query: string) => void;
@@ -14,17 +15,6 @@ interface NaturalLanguageInputProps {
 export interface NaturalLanguageInputRef {
   focusInput: () => void;
 }
-
-const exampleQueries = [
-  "Show me all completed workflows by department this month",
-  "List users with completion rates above 80%",
-  "Display overdue tasks grouped by assigned user", 
-  "Generate a report of workflow trends over the last 30 days",
-  "Show me the top performing departments by completion rate",
-  "List all pending notifications for managers",
-  "Display workflow steps that took longer than estimated",
-  "Show user performance metrics for the engineering department"
-];
 
 export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalLanguageInputProps>(
   ({ onQuerySubmit, isLoading }, ref) => {
@@ -54,13 +44,16 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
       }
     };
 
+    // Get example queries from translation
+    const exampleQueries = t('reports.exampleQueries', { returnObjects: true }) as string[];
+
     return (
       <div className="space-y-6">
         <Card>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="ai-query" className="block text-sm font-medium mb-2">
+                <label htmlFor="ai-query" className={`block text-sm font-medium mb-2 ${getRTLAwareTextAlign('start')}`}>
                   {t('reports.aiQuery')}
                 </label>
                 <Textarea
@@ -70,22 +63,23 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   rows={3}
-                  className="w-full"
+                  className={`w-full ${getRTLAwareTextAlign('start')}`}
+                  dir="auto"
                 />
               </div>
               <Button 
                 type="submit" 
                 disabled={!query.trim() || isLoading}
-                className="w-full"
+                className="w-full rtl:flex-row-reverse"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className={`h-4 w-4 animate-spin ${getRTLAwareIconPosition('before')}`} />
                     {t('reports.generatingReport')}
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4 mr-2" />
+                    <Sparkles className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
                     {t('reports.generateAIReport')}
                   </>
                 )}
@@ -96,7 +90,9 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
 
         <Card>
           <CardContent className="p-6">
-            <h3 className="text-sm font-medium mb-3">{t('reports.exampleQueries')}</h3>
+            <h3 className={`text-sm font-medium mb-3 ${getRTLAwareTextAlign('start')}`}>
+              {t('reports.exampleQueries')}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {exampleQueries.map((example, index) => (
                 <Button
@@ -104,7 +100,7 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
                   variant="outline"
                   size="sm"
                   onClick={() => handleExampleClick(example)}
-                  className="text-left justify-start h-auto p-3 whitespace-normal"
+                  className={`${getRTLAwareTextAlign('start')} justify-start h-auto p-3 whitespace-normal`}
                   disabled={isLoading}
                 >
                   {example}

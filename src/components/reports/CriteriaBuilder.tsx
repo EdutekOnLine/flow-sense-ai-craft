@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { FilterCriteria, FilterOperator } from './types';
 import { Plus, Trash2 } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareSpacing, getRTLAwareIconPosition } from '@/utils/rtl';
 
 interface CriteriaBuilderProps {
   dataSource: string;
@@ -13,17 +14,17 @@ interface CriteriaBuilderProps {
   onChange: (filters: FilterCriteria[]) => void;
 }
 
-const operators: Array<{ value: FilterOperator; label: string }> = [
-  { value: 'equals', label: 'Equals' },
-  { value: 'not_equals', label: 'Not Equals' },
-  { value: 'contains', label: 'Contains' },
-  { value: 'not_contains', label: 'Does Not Contain' },
-  { value: 'greater_than', label: 'Greater Than' },
-  { value: 'less_than', label: 'Less Than' },
-  { value: 'greater_equal', label: 'Greater or Equal' },
-  { value: 'less_equal', label: 'Less or Equal' },
-  { value: 'is_null', label: 'Is Empty' },
-  { value: 'is_not_null', label: 'Is Not Empty' }
+const operators: Array<{ value: FilterOperator; labelKey: string }> = [
+  { value: 'equals', labelKey: 'reports.operators.equals' },
+  { value: 'not_equals', labelKey: 'reports.operators.not_equals' },
+  { value: 'contains', labelKey: 'reports.operators.contains' },
+  { value: 'not_contains', labelKey: 'reports.operators.not_contains' },
+  { value: 'greater_than', labelKey: 'reports.operators.greater_than' },
+  { value: 'less_than', labelKey: 'reports.operators.less_than' },
+  { value: 'greater_equal', labelKey: 'reports.operators.greater_equal' },
+  { value: 'less_equal', labelKey: 'reports.operators.less_equal' },
+  { value: 'is_null', labelKey: 'reports.operators.is_null' },
+  { value: 'is_not_null', labelKey: 'reports.operators.is_not_null' }
 ];
 
 const columnDefinitions: Record<string, Array<{ id: string; name: string; dataType: string }>> = {
@@ -68,10 +69,12 @@ export function CriteriaBuilder({ dataSource, filters, onChange }: CriteriaBuild
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium">{t('reports.filters')}</span>
-        <Button onClick={addFilter} size="sm" variant="outline">
-          <Plus className="h-4 w-4 mr-1" />
+      <div className={`flex justify-between items-center rtl:flex-row-reverse`}>
+        <span className={`text-sm font-medium ${getRTLAwareTextAlign('start')}`}>
+          {t('reports.filters')}
+        </span>
+        <Button onClick={addFilter} size="sm" variant="outline" className="rtl:flex-row-reverse">
+          <Plus className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
           {t('reports.addFilter')}
         </Button>
       </div>
@@ -93,7 +96,7 @@ export function CriteriaBuilder({ dataSource, filters, onChange }: CriteriaBuild
                 </SelectTrigger>
                 <SelectContent>
                   {columns.map((column) => (
-                    <SelectItem key={column.id} value={column.id}>
+                    <SelectItem key={column.id} value={column.id} className={getRTLAwareTextAlign('start')}>
                       {column.name}
                     </SelectItem>
                   ))}
@@ -111,8 +114,8 @@ export function CriteriaBuilder({ dataSource, filters, onChange }: CriteriaBuild
                 </SelectTrigger>
                 <SelectContent>
                   {operators.map((op) => (
-                    <SelectItem key={op.value} value={op.value}>
-                      {op.label}
+                    <SelectItem key={op.value} value={op.value} className={getRTLAwareTextAlign('start')}>
+                      {t(op.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -122,7 +125,7 @@ export function CriteriaBuilder({ dataSource, filters, onChange }: CriteriaBuild
             <div className="col-span-4">
               {!['is_null', 'is_not_null'].includes(filter.operator) && (
                 <Input
-                  className="h-8"
+                  className={`h-8 ${getRTLAwareTextAlign('start')}`}
                   type={filter.dataType === 'number' ? 'number' : 'text'}
                   value={filter.value as string}
                   onChange={(e) => updateFilter(filter.id, 'value', e.target.value)}

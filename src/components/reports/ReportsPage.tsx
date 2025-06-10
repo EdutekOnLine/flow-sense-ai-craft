@@ -9,6 +9,7 @@ import { PredefinedReports } from './PredefinedReports';
 import { SavedReports } from './SavedReports';
 import { AIReportBuilder } from './AIReportBuilder';
 import { BarChart3, FileBarChart, FileText, Plus, Sparkles } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 export function ReportsPage() {
   const { t } = useTranslation();
@@ -69,29 +70,30 @@ export function ReportsPage() {
   };
 
   const getButtonIcon = () => {
+    const iconClass = getRTLAwareIconPosition('before');
     switch (activeTab) {
       case 'ai-assistant':
-        return <Sparkles className="h-4 w-4 mr-2" />;
+        return <Sparkles className={`h-4 w-4 ${iconClass}`} />;
       case 'builder':
-        return <FileBarChart className="h-4 w-4 mr-2" />;
+        return <FileBarChart className={`h-4 w-4 ${iconClass}`} />;
       case 'predefined':
-        return <Plus className="h-4 w-4 mr-2" />;
+        return <Plus className={`h-4 w-4 ${iconClass}`} />;
       case 'saved':
-        return <Plus className="h-4 w-4 mr-2" />;
+        return <Plus className={`h-4 w-4 ${iconClass}`} />;
       default:
-        return <Plus className="h-4 w-4 mr-2" />;
+        return <Plus className={`h-4 w-4 ${iconClass}`} />;
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className={`flex items-center justify-between rtl:flex-row-reverse`}>
+        <div className={getRTLAwareTextAlign('start')}>
           <h1 className="text-3xl font-bold">{t('navigation.reports')}</h1>
           <p className="text-gray-600 mt-1">{t('reports.subtitle')}</p>
         </div>
         {(activeTab === 'ai-assistant' || activeTab === 'builder') && (
-          <Button onClick={handleNewReport}>
+          <Button onClick={handleNewReport} className="rtl:flex-row-reverse">
             {getButtonIcon()}
             {getButtonText()}
           </Button>
@@ -100,19 +102,19 @@ export function ReportsPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="ai-assistant" className="flex items-center space-x-2">
+          <TabsTrigger value="ai-assistant" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
             <Sparkles className="h-4 w-4" />
             <span>{t('reports.aiAssistant')}</span>
           </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center space-x-2">
+          <TabsTrigger value="builder" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
             <FileBarChart className="h-4 w-4" />
             <span>{t('reports.reportBuilder')}</span>
           </TabsTrigger>
-          <TabsTrigger value="predefined" className="flex items-center space-x-2">
+          <TabsTrigger value="predefined" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
             <BarChart3 className="h-4 w-4" />
             <span>{t('reports.predefinedReports')}</span>
           </TabsTrigger>
-          <TabsTrigger value="saved" className="flex items-center space-x-2">
+          <TabsTrigger value="saved" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
             <FileText className="h-4 w-4" />
             <span>{t('reports.savedReports')}</span>
           </TabsTrigger>

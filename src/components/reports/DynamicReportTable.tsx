@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareSpacing, getRTLAwareIconPosition } from '@/utils/rtl';
 
 interface DynamicReportTableProps {
   data: any[];
@@ -113,17 +114,18 @@ export function DynamicReportTable({ data, columns }: DynamicReportTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className={`flex justify-between items-center rtl:flex-row-reverse`}>
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className={`absolute top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 ${getRTLAwareSpacing('margin', 'start', '3')} rtl:right-3 ltr:left-3`} />
           <Input
             placeholder={t('reports.searchData')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className={`${getRTLAwareSpacing('padding', 'start', '10')} ${getRTLAwareTextAlign('start')}`}
+            dir="auto"
           />
         </div>
-        <div className="text-sm text-gray-500">
+        <div className={`text-sm text-gray-500 ${getRTLAwareSpacing('margin', 'start', '4')}`}>
           {t('reports.showingResults', { 
             count: filteredAndSortedData.length, 
             total: data.length 
@@ -136,13 +138,15 @@ export function DynamicReportTable({ data, columns }: DynamicReportTableProps) {
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column} className="font-medium">
+                <TableHead key={column} className={`font-medium ${getRTLAwareTextAlign('start')}`}>
                   <Button
                     variant="ghost"
-                    className="h-auto p-0 font-medium"
+                    className={`h-auto p-0 font-medium rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}
                     onClick={() => handleSort(column)}
                   >
-                    <span className="mr-2">{getColumnDisplayName(column)}</span>
+                    <span className={getRTLAwareSpacing('margin', 'end', '2')}>
+                      {getColumnDisplayName(column)}
+                    </span>
                     {getSortIcon(column)}
                   </Button>
                 </TableHead>
@@ -153,7 +157,7 @@ export function DynamicReportTable({ data, columns }: DynamicReportTableProps) {
             {filteredAndSortedData.map((row, index) => (
               <TableRow key={index}>
                 {columns.map((column) => (
-                  <TableCell key={column}>
+                  <TableCell key={column} className={getRTLAwareTextAlign('start')}>
                     {formatCellValue(row[column], column)}
                   </TableCell>
                 ))}
