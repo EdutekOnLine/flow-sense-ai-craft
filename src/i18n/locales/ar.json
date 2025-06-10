@@ -1,4 +1,3 @@
-
 {
   "common": {
     "loading": "جاري التحميل...",
@@ -314,6 +313,8 @@
     "shared": "مشارك",
     "run": "تشغيل",
     "share": "مشاركة",
+    "noPredefinedReports": "لا توجد تقارير محددة مسبقاً",
+    "predefinedReportsWillBeAdded": "سيتم إضافة التقارير المحددة مسبقاً قريباً",
     "generateAIReport": "إنشاء تقرير بالذكاء الاصطناعي",
     "aiAssistant": "مساعد الذكاء الاصطناعي",
     "aiReportBuilder": "منشئ التقارير بالذكاء الاصطناعي",

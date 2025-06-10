@@ -1,4 +1,3 @@
-
 {
   "navigation": {
     "dashboard": "Dashboard",
@@ -291,6 +290,8 @@
     "shared": "Shared",
     "run": "Run",
     "share": "Share",
+    "noPredefinedReports": "No Predefined Reports",
+    "predefinedReportsWillBeAdded": "Predefined reports will be added soon",
     "dataSources": {
       "workflow_performance": "Workflow Performance",
       "user_performance": "User Performance",
