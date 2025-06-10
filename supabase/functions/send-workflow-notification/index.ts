@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
           <p>Please log in to your NeuraFlow dashboard to view and manage this assignment.</p>
           
           <div style="margin: 30px 0;">
-            <a href="${Deno.env.get('SITE_URL') || 'http://localhost:3000'}" 
+            <a href="${Deno.env.get('SITE_URL') || 'https://neuraflowai.app'}" 
                style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
               View Assignment
             </a>
