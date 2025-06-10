@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,7 +86,7 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className={`flex items-start justify-between gap-4 rtl:flex-row-reverse`}>
+      <div className={`flex items-start justify-between gap-4`}>
         <div className={`flex-1 space-y-1 ${getRTLAwareTextAlign('start')}`}>
           <h1 className="text-3xl font-bold">{t('navigation.reports')}</h1>
           <p className="text-muted-foreground">{t('reports.subtitle')}</p>
