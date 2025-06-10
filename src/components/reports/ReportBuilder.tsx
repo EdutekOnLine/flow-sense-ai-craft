@@ -10,6 +10,7 @@ import { ReportConfig, FilterCriteria } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 export interface ReportBuilderRef {
   resetBuilder: () => void;
@@ -98,18 +99,19 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{t('reports.reportBuilder')}</h1>
-        <div className="flex space-x-2">
-          <Button variant="outline" disabled>
-            <Save className="h-4 w-4 mr-2" />
+      <div className={`flex items-center justify-between rtl:flex-row-reverse`}>
+        <h1 className={`text-3xl font-bold ${getRTLAwareTextAlign('start')}`}>{t('reports.reportBuilder')}</h1>
+        <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
+          <Button variant="outline" disabled className="rtl:flex-row-reverse">
+            <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
             {t('common.save')}
           </Button>
           <Button 
             onClick={generateReport}
             disabled={!canGenerate || isGenerating}
+            className="rtl:flex-row-reverse"
           >
-            <Play className="h-4 w-4 mr-2" />
+            <Play className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
             {isGenerating ? t('reports.generating') : t('reports.generateReport')}
           </Button>
         </div>
@@ -119,7 +121,7 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('reports.dataSource')}</CardTitle>
+              <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.dataSource')}</CardTitle>
             </CardHeader>
             <CardContent>
               <DataSourceSelector
@@ -132,7 +134,7 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
           {reportConfig.dataSource && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('reports.selectColumns')}</CardTitle>
+                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.selectColumns')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ColumnSelector
@@ -149,7 +151,7 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
           {reportConfig.dataSource && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('reports.filters')}</CardTitle>
+                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.filters')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <CriteriaBuilder
@@ -165,11 +167,11 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                {t('reports.preview')}
+              <CardTitle className={`flex items-center justify-between rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
+                <span>{t('reports.preview')}</span>
                 {reportData.length > 0 && (
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
+                  <Button variant="outline" size="sm" className="rtl:flex-row-reverse">
+                    <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
                     {t('reports.export')}
                   </Button>
                 )}
@@ -178,15 +180,15 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
             <CardContent>
               {!reportConfig.dataSource ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.selectDataSourceFirst')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.selectDataSourceFirst')}</p>
                 </div>
               ) : reportConfig.selectedColumns.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.selectColumnsFirst')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.selectColumnsFirst')}</p>
                 </div>
               ) : reportData.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.clickGenerateToSeeResults')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.clickGenerateToSeeResults')}</p>
                 </div>
               ) : (
                 <DynamicReportTable

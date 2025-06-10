@@ -10,6 +10,7 @@ import { ReportQueryEngine } from './ReportQueryEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Save, Download, RefreshCw } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 interface AIReportResponse {
   dataSource: string;
@@ -117,19 +118,19 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className={`flex items-center justify-between rtl:flex-row-reverse`}>
+        <div className={getRTLAwareTextAlign('start')}>
           <h1 className="text-3xl font-bold">{t('reports.aiReportBuilder')}</h1>
           <p className="text-gray-600 mt-1">{t('reports.aiSubtitle')}</p>
         </div>
         {reportData.length > 0 && (
-          <div className="flex space-x-2">
-            <Button variant="outline" disabled>
-              <Save className="h-4 w-4 mr-2" />
+          <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
+            <Button variant="outline" disabled className="rtl:flex-row-reverse">
+              <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
               {t('common.save')}
             </Button>
-            <Button variant="outline" disabled>
-              <Download className="h-4 w-4 mr-2" />
+            <Button variant="outline" disabled className="rtl:flex-row-reverse">
+              <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
               {t('reports.export')}
             </Button>
           </div>
@@ -140,7 +141,7 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('reports.naturalLanguageQuery')}</CardTitle>
+              <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.naturalLanguageQuery')}</CardTitle>
             </CardHeader>
             <CardContent>
               <NaturalLanguageInput 
@@ -154,15 +155,16 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
           {reportConfig && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {t('reports.generatedConfiguration')}
+                <CardTitle className={`flex items-center justify-between rtl:flex-row-reverse`}>
+                  <span className={getRTLAwareTextAlign('start')}>{t('reports.generatedConfiguration')}</span>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={handleRefresh}
                     disabled={isLoadingData}
+                    className="rtl:flex-row-reverse"
                   >
-                    <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${getRTLAwareIconPosition('before')} ${isLoadingData ? 'animate-spin' : ''}`} />
                     {t('common.refresh')}
                   </Button>
                 </CardTitle>
@@ -170,11 +172,11 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
               <CardContent className="space-y-4">
                 {aiExplanation && (
                   <Alert>
-                    <AlertDescription>{aiExplanation}</AlertDescription>
+                    <AlertDescription className={getRTLAwareTextAlign('start')}>{aiExplanation}</AlertDescription>
                   </Alert>
                 )}
                 
-                <div className="space-y-2">
+                <div className={`space-y-2 ${getRTLAwareTextAlign('start')}`}>
                   <div>
                     <span className="font-medium">{t('reports.dataSource')}: </span>
                     <span className="text-sm">{reportConfig.dataSource}</span>
@@ -188,7 +190,7 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
                       <span className="font-medium">{t('reports.filters')}: </span>
                       <ul className="text-sm mt-1 space-y-1">
                         {reportConfig.filters.map((filter, index) => (
-                          <li key={index} className="ml-4">
+                          <li key={index} className={`ml-4 rtl:mr-4 rtl:ml-0 ${getRTLAwareTextAlign('start')}`}>
                             • {filter.column} {filter.operator} {filter.value}
                           </li>
                         ))}
@@ -204,26 +206,26 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>
+              <CardTitle className={getRTLAwareTextAlign('start')}>
                 {reportConfig ? reportConfig.name : t('reports.reportPreview')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {error ? (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription className={getRTLAwareTextAlign('start')}>{error}</AlertDescription>
                 </Alert>
               ) : !reportConfig ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.enterQueryToGenerate')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.enterQueryToGenerate')}</p>
                 </div>
               ) : isLoadingData ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.loadingReportData')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.loadingReportData')}</p>
                 </div>
               ) : reportData.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>{t('reports.noDataFound')}</p>
+                  <p className={getRTLAwareTextAlign('center')}>{t('reports.noDataFound')}</p>
                 </div>
               ) : (
                 <DynamicReportTable

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Calendar, User, Play, Share, Trash2 } from 'lucide-react';
+import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 // Mock data for saved reports
 const savedReports = [
@@ -66,7 +67,7 @@ export function SavedReports() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
+      <div className={`text-center ${getRTLAwareTextAlign('center')}`}>
         <h2 className="text-2xl font-bold mb-2">{t('reports.savedReports')}</h2>
         <p className="text-gray-600">{t('reports.savedDescription')}</p>
       </div>
@@ -89,12 +90,12 @@ export function SavedReports() {
           {savedReports.map((report) => (
             <Card key={report.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+                <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
+                  <div className={`space-y-1 ${getRTLAwareTextAlign('start')}`}>
                     <CardTitle className="text-lg">{report.name}</CardTitle>
                     <p className="text-sm text-gray-600">{report.description}</p>
                   </div>
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-1 rtl:space-x-reverse">
                     {report.isShared && (
                       <Badge variant="secondary" className="text-xs">
                         {t('reports.shared')}
@@ -105,37 +106,39 @@ export function SavedReports() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
+                  <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
                     <User className="h-4 w-4 text-gray-400" />
                     <span>{report.createdBy}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span>{new Date(report.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-500 space-y-1">
+                <div className={`text-xs text-gray-500 space-y-1 ${getRTLAwareTextAlign('start')}`}>
                   <div>Data Source: {report.dataSource}</div>
                   <div>Filters: {report.filters} | Columns: {report.columns}</div>
                   <div>Last Run: {new Date(report.lastRun).toLocaleDateString()}</div>
                 </div>
 
-                <div className="flex justify-between items-center pt-2">
-                  <div className="flex space-x-2">
+                <div className={`flex justify-between items-center pt-2 rtl:flex-row-reverse`}>
+                  <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
                     <Button 
                       size="sm"
                       onClick={() => runReport(report.id)}
+                      className="rtl:flex-row-reverse"
                     >
-                      <Play className="h-4 w-4 mr-1" />
+                      <Play className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
                       {t('reports.run')}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => shareReport(report.id)}
+                      className="rtl:flex-row-reverse"
                     >
-                      <Share className="h-4 w-4 mr-1" />
+                      <Share className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
                       {t('reports.share')}
                     </Button>
                   </div>
