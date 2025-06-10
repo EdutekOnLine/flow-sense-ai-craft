@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DataSourceSelector } from './DataSourceSelector';
-import { CriteriaBuilder } from './CriteriaBuilder';
-import { ColumnSelector } from './ColumnSelector';
+import { MultiDataSourceSelector } from './MultiDataSourceSelector';
+import { MultiCriteriaBuilder } from './MultiCriteriaBuilder';
+import { MultiColumnSelector } from './MultiColumnSelector';
 import { DynamicReportTable } from './DynamicReportTable';
-import { ReportConfig, FilterCriteria } from './types';
+import { ReportConfig, FilterCriteria, DataSourceWithJoins, SelectedColumn } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -16,7 +16,7 @@ export function ReportBuilder() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
-    dataSource: '',
+    dataSources: [],
     selectedColumns: [],
     filters: [],
     name: ''
@@ -24,17 +24,21 @@ export function ReportBuilder() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleDataSourceChange = (dataSource: string) => {
+  const handleDataSourcesChange = (dataSources: DataSourceWithJoins[]) => {
     setReportConfig(prev => ({
       ...prev,
-      dataSource,
-      selectedColumns: [],
-      filters: []
+      dataSources,
+      selectedColumns: prev.selectedColumns.filter(col => 
+        dataSources.some(ds => ds.sourceId === col.sourceId)
+      ),
+      filters: prev.filters.filter(filter => 
+        dataSources.some(ds => ds.sourceId === filter.sourceId)
+      )
     }));
     setReportData([]);
   };
 
-  const handleColumnsChange = (columns: string[]) => {
+  const handleColumnsChange = (columns: SelectedColumn[]) => {
     setReportConfig(prev => ({
       ...prev,
       selectedColumns: columns
@@ -49,10 +53,10 @@ export function ReportBuilder() {
   };
 
   const generateReport = async () => {
-    if (!reportConfig.dataSource || reportConfig.selectedColumns.length === 0) {
+    if (reportConfig.dataSources.length === 0 || reportConfig.selectedColumns.length === 0) {
       toast({
         title: 'Missing Configuration',
-        description: 'Please select a data source and at least one column',
+        description: 'Please select at least one data source and columns',
         variant: 'destructive'
       });
       return;
@@ -64,7 +68,7 @@ export function ReportBuilder() {
       setReportData(data);
       toast({
         title: 'Report Generated',
-        description: `Successfully generated report with ${data.length} rows`,
+        description: `Successfully generated report with ${data.length} rows from ${reportConfig.dataSources.length} data source(s)`,
       });
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -78,7 +82,7 @@ export function ReportBuilder() {
     }
   };
 
-  const canGenerate = reportConfig.dataSource && reportConfig.selectedColumns.length > 0;
+  const canGenerate = reportConfig.dataSources.length > 0 && reportConfig.selectedColumns.length > 0;
 
   return (
     <div className="space-y-6">
@@ -103,24 +107,24 @@ export function ReportBuilder() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('reports.dataSource')}</CardTitle>
+              <CardTitle>{t('reports.dataSources')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <DataSourceSelector
-                value={reportConfig.dataSource}
-                onChange={handleDataSourceChange}
+              <MultiDataSourceSelector
+                dataSources={reportConfig.dataSources}
+                onChange={handleDataSourcesChange}
               />
             </CardContent>
           </Card>
 
-          {reportConfig.dataSource && (
+          {reportConfig.dataSources.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>{t('reports.selectColumns')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ColumnSelector
-                  dataSource={reportConfig.dataSource}
+                <MultiColumnSelector
+                  dataSources={reportConfig.dataSources}
                   selectedColumns={reportConfig.selectedColumns}
                   onChange={handleColumnsChange}
                 />
@@ -130,14 +134,14 @@ export function ReportBuilder() {
         </div>
 
         <div className="space-y-6">
-          {reportConfig.dataSource && (
+          {reportConfig.dataSources.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>{t('reports.filters')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <CriteriaBuilder
-                  dataSource={reportConfig.dataSource}
+                <MultiCriteriaBuilder
+                  dataSources={reportConfig.dataSources}
                   filters={reportConfig.filters}
                   onChange={handleFiltersChange}
                 />
@@ -160,7 +164,7 @@ export function ReportBuilder() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!reportConfig.dataSource ? (
+              {reportConfig.dataSources.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>{t('reports.selectDataSourceFirst')}</p>
                 </div>
@@ -175,7 +179,7 @@ export function ReportBuilder() {
               ) : (
                 <DynamicReportTable
                   data={reportData}
-                  columns={reportConfig.selectedColumns}
+                  columns={reportConfig.selectedColumns.map(col => col.alias || col.column)}
                 />
               )}
             </CardContent>
