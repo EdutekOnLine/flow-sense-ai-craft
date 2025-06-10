@@ -90,10 +90,12 @@ export function ReportsPage() {
           <h1 className="text-3xl font-bold">{t('navigation.reports')}</h1>
           <p className="text-gray-600 mt-1">{t('reports.subtitle')}</p>
         </div>
-        <Button onClick={handleNewReport}>
-          {getButtonIcon()}
-          {getButtonText()}
-        </Button>
+        {(activeTab === 'ai-assistant' || activeTab === 'builder') && (
+          <Button onClick={handleNewReport}>
+            {getButtonIcon()}
+            {getButtonText()}
+          </Button>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
