@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ReportConfig, DataSourceWithJoins, SelectedColumn } from './types';
 
@@ -15,145 +16,13 @@ export class ReportQueryEngine {
       if (dataSources.length === 1) {
         return await this.generateSingleSourceReport(dataSources[0], selectedColumns, filters);
       } else {
-        // Check if we can do meaningful joins
-        const joinableResults = await this.generateJoinedReport(dataSources, selectedColumns, filters);
-        if (joinableResults.length > 0) {
-          return joinableResults;
-        }
-        
-        // Fall back to multi-section report
+        // For multiple sources, generate multi-section report
         return await this.generateMultiSectionReport(dataSources, selectedColumns, filters);
       }
     } catch (error) {
       console.error('Failed to generate report:', error);
       throw error;
     }
-  }
-
-  private static async generateJoinedReport(
-    dataSources: DataSourceWithJoins[], 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    console.log('Attempting to generate joined report');
-    
-    // Check for common join relationships
-    const hasWorkflowRelationship = this.hasWorkflowRelationship(dataSources);
-    const hasUserRelationship = this.hasUserRelationship(dataSources);
-    
-    if (hasWorkflowRelationship) {
-      return await this.generateWorkflowJoinedReport(dataSources, selectedColumns, filters);
-    } else if (hasUserRelationship) {
-      return await this.generateUserJoinedReport(dataSources, selectedColumns, filters);
-    }
-    
-    return [];
-  }
-
-  private static hasWorkflowRelationship(dataSources: DataSourceWithJoins[]): boolean {
-    const sourceIds = dataSources.map(ds => ds.sourceId);
-    const workflowRelatedSources = ['workflows', 'workflow_steps', 'workflow_step_assignments', 'workflow_performance'];
-    return sourceIds.some(id => workflowRelatedSources.includes(id)) && sourceIds.length > 1;
-  }
-
-  private static hasUserRelationship(dataSources: DataSourceWithJoins[]): boolean {
-    const sourceIds = dataSources.map(ds => ds.sourceId);
-    return sourceIds.includes('profiles') && sourceIds.length > 1;
-  }
-
-  private static async generateWorkflowJoinedReport(
-    dataSources: DataSourceWithJoins[], 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    console.log('Generating workflow-based joined report');
-    
-    // Build a query that joins workflow-related tables
-    const workflowColumns = selectedColumns
-      .filter(col => col.sourceId === 'workflows')
-      .map(col => `w.${col.column} as workflow_${col.column}`);
-    
-    const stepColumns = selectedColumns
-      .filter(col => col.sourceId === 'workflow_steps')
-      .map(col => `ws.${col.column} as step_${col.column}`);
-    
-    const performanceColumns = selectedColumns
-      .filter(col => col.sourceId === 'workflow_performance')
-      .map(col => `wp.${col.column} as performance_${col.column}`);
-    
-    const allColumns = [...workflowColumns, ...stepColumns, ...performanceColumns];
-    
-    if (allColumns.length === 0) return [];
-    
-    let query = supabase
-      .from('workflows as w' as any)
-      .select(allColumns.join(', '));
-    
-    // Add joins based on available data sources
-    if (dataSources.some(ds => ds.sourceId === 'workflow_steps')) {
-      query = query.leftJoin('workflow_steps as ws', 'w.id', 'ws.workflow_id');
-    }
-    
-    if (dataSources.some(ds => ds.sourceId === 'workflow_performance')) {
-      query = query.leftJoin('workflow_performance_analytics as wp', 'w.id', 'wp.id');
-    }
-    
-    // Apply filters
-    this.applyFiltersToJoinedQuery(query, filters);
-    
-    query = query.limit(1000);
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('Joined query error:', error);
-      return [];
-    }
-    
-    console.log('Joined query result:', { rowCount: data?.length, sampleRow: data?.[0] });
-    return data || [];
-  }
-
-  private static async generateUserJoinedReport(
-    dataSources: DataSourceWithJoins[], 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    console.log('Generating user-based joined report');
-    
-    // Build a query that joins user-related tables
-    const profileColumns = selectedColumns
-      .filter(col => col.sourceId === 'profiles')
-      .map(col => `p.${col.column} as user_${col.column}`);
-    
-    const userPerfColumns = selectedColumns
-      .filter(col => col.sourceId === 'user_performance')
-      .map(col => `up.${col.column} as performance_${col.column}`);
-    
-    const allColumns = [...profileColumns, ...userPerfColumns];
-    
-    if (allColumns.length === 0) return [];
-    
-    let query = supabase
-      .from('profiles as p' as any)
-      .select(allColumns.join(', '));
-    
-    if (dataSources.some(ds => ds.sourceId === 'user_performance')) {
-      query = query.leftJoin('user_performance_analytics as up', 'p.id', 'up.id');
-    }
-    
-    this.applyFiltersToJoinedQuery(query, filters);
-    query = query.limit(1000);
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      console.error('User joined query error:', error);
-      return [];
-    }
-    
-    console.log('User joined query result:', { rowCount: data?.length, sampleRow: data?.[0] });
-    return data || [];
   }
 
   private static async generateMultiSectionReport(
@@ -288,24 +157,6 @@ export class ReportQueryEngine {
 
     console.log('Query result:', { rowCount: data?.length, sampleRow: data?.[0] });
     return data || [];
-  }
-
-  private static applyFiltersToJoinedQuery(query: any, filters: any[]) {
-    filters.forEach(filter => {
-      // For joined queries, we need to prefix the column with the appropriate table alias
-      let column = filter.column;
-      
-      // Add table prefixes based on source
-      if (filter.sourceId === 'workflows') {
-        column = `w.${column}`;
-      } else if (filter.sourceId === 'workflow_steps') {
-        column = `ws.${column}`;
-      } else if (filter.sourceId === 'profiles') {
-        column = `p.${column}`;
-      }
-      
-      this.applySingleFilter(query, column, filter);
-    });
   }
 
   private static applyFilters(query: any, filters: any[]) {
