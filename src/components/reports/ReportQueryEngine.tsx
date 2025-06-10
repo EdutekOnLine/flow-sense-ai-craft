@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ReportConfig, DataSourceWithJoins, SelectedColumn } from './types';
 
@@ -37,34 +38,36 @@ export class ReportQueryEngine {
 
     let query: any;
     
-    // Map data sources to actual Supabase tables/views
+    // Map data sources to actual Supabase tables/views using type assertions
+    const tableName = this.getTableName(dataSource.sourceId);
+    
     switch (dataSource.sourceId) {
       case 'workflow_performance':
-        query = supabase.from('workflow_performance_analytics').select(sourceColumns.join(', '));
+        query = supabase.from('workflow_performance_analytics' as any).select(sourceColumns.join(', '));
         break;
       case 'user_performance':
-        query = supabase.from('user_performance_analytics').select(sourceColumns.join(', '));
+        query = supabase.from('user_performance_analytics' as any).select(sourceColumns.join(', '));
         break;
       case 'department_analytics':
-        query = supabase.from('department_analytics').select(sourceColumns.join(', '));
+        query = supabase.from('department_analytics' as any).select(sourceColumns.join(', '));
         break;
       case 'workflow_trends':
-        query = supabase.from('workflow_trends').select(sourceColumns.join(', '));
+        query = supabase.from('workflow_trends' as any).select(sourceColumns.join(', '));
         break;
       case 'workflow_steps':
-        query = supabase.from('workflow_steps').select(sourceColumns.join(', '));
+        query = supabase.from('workflow_steps' as any).select(sourceColumns.join(', '));
         break;
       case 'workflow_step_assignments':
-        query = supabase.from('workflow_step_assignments').select(sourceColumns.join(', '));
+        query = supabase.from('workflow_step_assignments' as any).select(sourceColumns.join(', '));
         break;
       case 'notifications':
-        query = supabase.from('notifications').select(sourceColumns.join(', '));
+        query = supabase.from('notifications' as any).select(sourceColumns.join(', '));
         break;
       case 'workflows':
-        query = supabase.from('workflows').select(sourceColumns.join(', '));
+        query = supabase.from('workflows' as any).select(sourceColumns.join(', '));
         break;
       case 'profiles':
-        query = supabase.from('profiles').select(sourceColumns.join(', '));
+        query = supabase.from('profiles' as any).select(sourceColumns.join(', '));
         break;
       default:
         throw new Error(`Unsupported data source: ${dataSource.sourceId}`);
@@ -94,7 +97,7 @@ export class ReportQueryEngine {
   ): Promise<any[]> {
     // For multi-source reports, we'll use Supabase's select with joins
     const primarySource = dataSources[0];
-    const primaryTable = this.getTableName(primarySource.sourceId);
+    const primaryTableName = this.getTableName(primarySource.sourceId);
     
     // Build the select statement with joins
     let selectClause = selectedColumns.map(col => {
@@ -104,8 +107,41 @@ export class ReportQueryEngine {
     }).join(', ');
 
     // Build join clauses
-    let joinedTables = new Set([primaryTable]);
-    let query = supabase.from(primaryTable).select(selectClause);
+    let joinedTables = new Set([primaryTableName]);
+    let query: any;
+
+    // Use type assertion for the primary table
+    switch (primarySource.sourceId) {
+      case 'workflow_performance':
+        query = supabase.from('workflow_performance_analytics' as any).select(selectClause);
+        break;
+      case 'user_performance':
+        query = supabase.from('user_performance_analytics' as any).select(selectClause);
+        break;
+      case 'department_analytics':
+        query = supabase.from('department_analytics' as any).select(selectClause);
+        break;
+      case 'workflow_trends':
+        query = supabase.from('workflow_trends' as any).select(selectClause);
+        break;
+      case 'workflow_steps':
+        query = supabase.from('workflow_steps' as any).select(selectClause);
+        break;
+      case 'workflow_step_assignments':
+        query = supabase.from('workflow_step_assignments' as any).select(selectClause);
+        break;
+      case 'notifications':
+        query = supabase.from('notifications' as any).select(selectClause);
+        break;
+      case 'workflows':
+        query = supabase.from('workflows' as any).select(selectClause);
+        break;
+      case 'profiles':
+        query = supabase.from('profiles' as any).select(selectClause);
+        break;
+      default:
+        throw new Error(`Unsupported primary data source: ${primarySource.sourceId}`);
+    }
 
     // For complex joins, we might need to use raw SQL or multiple queries
     // This is a simplified approach - in practice, you might need a more sophisticated query builder
