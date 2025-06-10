@@ -87,36 +87,38 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div className={`flex items-center justify-between rtl:flex-row-reverse`}>
-        <div className={getRTLAwareTextAlign('start')}>
+      <div className={`flex items-start justify-between gap-4 rtl:flex-row-reverse`}>
+        <div className={`flex-1 space-y-1 ${getRTLAwareTextAlign('start')}`}>
           <h1 className="text-3xl font-bold">{t('navigation.reports')}</h1>
-          <p className="text-gray-600 mt-1">{t('reports.subtitle')}</p>
+          <p className="text-muted-foreground">{t('reports.subtitle')}</p>
         </div>
         {(activeTab === 'ai-assistant' || activeTab === 'builder') && (
-          <Button onClick={handleNewReport} className="rtl:flex-row-reverse">
-            {getButtonIcon()}
-            {getButtonText()}
-          </Button>
+          <div className="flex-shrink-0">
+            <Button onClick={handleNewReport} className={`flex items-center gap-2 rtl:flex-row-reverse`}>
+              {getButtonIcon()}
+              <span>{getButtonText()}</span>
+            </Button>
+          </div>
         )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" dir="ltr">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="ai-assistant" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
-            <Sparkles className="h-4 w-4" />
-            <span>{t('reports.aiAssistant')}</span>
+          <TabsTrigger value="ai-assistant" className={`flex items-center gap-2 rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
+            <Sparkles className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{t('reports.aiAssistant')}</span>
           </TabsTrigger>
-          <TabsTrigger value="builder" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
-            <FileBarChart className="h-4 w-4" />
-            <span>{t('reports.reportBuilder')}</span>
+          <TabsTrigger value="builder" className={`flex items-center gap-2 rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
+            <FileBarChart className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{t('reports.reportBuilder')}</span>
           </TabsTrigger>
-          <TabsTrigger value="predefined" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
-            <BarChart3 className="h-4 w-4" />
-            <span>{t('reports.predefinedReports')}</span>
+          <TabsTrigger value="predefined" className={`flex items-center gap-2 rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
+            <BarChart3 className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{t('reports.predefinedReports')}</span>
           </TabsTrigger>
-          <TabsTrigger value="saved" className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
-            <FileText className="h-4 w-4" />
-            <span>{t('reports.savedReports')}</span>
+          <TabsTrigger value="saved" className={`flex items-center gap-2 rtl:flex-row-reverse ${getRTLAwareTextAlign('center')}`}>
+            <FileText className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{t('reports.savedReports')}</span>
           </TabsTrigger>
         </TabsList>
 

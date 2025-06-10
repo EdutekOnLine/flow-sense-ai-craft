@@ -70,17 +70,17 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
               <Button 
                 type="submit" 
                 disabled={!query.trim() || isLoading}
-                className="w-full rtl:flex-row-reverse"
+                className={`w-full flex items-center justify-center gap-2 rtl:flex-row-reverse`}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className={`h-4 w-4 animate-spin ${getRTLAwareIconPosition('before')}`} />
-                    {t('reports.generatingReport')}
+                    <span>{t('reports.generatingReport')}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-                    {t('reports.generateAIReport')}
+                    <span>{t('reports.generateAIReport')}</span>
                   </>
                 )}
               </Button>
@@ -93,17 +93,20 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
             <h3 className={`text-sm font-medium mb-3 ${getRTLAwareTextAlign('start')}`}>
               {t('reports.exampleQueriesTitle')}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2" dir="ltr">
               {exampleQueries.map((example, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   size="sm"
                   onClick={() => handleExampleClick(example)}
-                  className={`${getRTLAwareTextAlign('start')} justify-start h-auto p-3 whitespace-normal`}
+                  className={`h-auto p-3 whitespace-normal text-start leading-relaxed ${getRTLAwareTextAlign('start')}`}
                   disabled={isLoading}
+                  dir="auto"
                 >
-                  {example}
+                  <span className={`block w-full ${getRTLAwareTextAlign('start')}`}>
+                    {example}
+                  </span>
                 </Button>
               ))}
             </div>
