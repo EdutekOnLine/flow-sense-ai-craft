@@ -1,3 +1,4 @@
+
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -221,5 +222,3 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
 ReportBuilderComponent.displayName = 'ReportBuilder';
 
 export const ReportBuilder = ReportBuilderComponent;
-
-}
