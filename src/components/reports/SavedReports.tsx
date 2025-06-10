@@ -7,45 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Calendar, User, Play, Share, Trash2 } from 'lucide-react';
 import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
-// Mock data for saved reports
-const savedReports = [
-  {
-    id: '1',
-    name: 'Q4 Workflow Performance',
-    description: 'Quarterly performance analysis for all departments',
-    dataSource: 'workflow_performance_analytics',
-    createdBy: 'John Doe',
-    createdAt: '2024-01-15',
-    lastRun: '2024-01-20',
-    isShared: true,
-    filters: 3,
-    columns: 8
-  },
-  {
-    id: '2',
-    name: 'Developer Team Productivity',
-    description: 'Monthly productivity report for development team',
-    dataSource: 'user_performance_analytics',
-    createdBy: 'Jane Smith',
-    createdAt: '2024-01-10',
-    lastRun: '2024-01-18',
-    isShared: false,
-    filters: 2,
-    columns: 6
-  },
-  {
-    id: '3',
-    name: 'Overdue Tasks Report',
-    description: 'Tasks that are past their due dates',
-    dataSource: 'workflow_step_assignments',
-    createdBy: 'Mike Johnson',
-    createdAt: '2024-01-08',
-    lastRun: '2024-01-19',
-    isShared: true,
-    filters: 1,
-    columns: 5
-  }
-];
+// Mock data for saved reports - cleared for fresh start
+const savedReports: any[] = [];
 
 export function SavedReports() {
   const { t } = useTranslation();
