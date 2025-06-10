@@ -15,7 +15,7 @@ export interface ReportBuilderRef {
   resetBuilder: () => void;
 }
 
-export const ReportBuilder = forwardRef<ReportBuilderRef>((props, ref) => {
+const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
@@ -202,4 +202,6 @@ export const ReportBuilder = forwardRef<ReportBuilderRef>((props, ref) => {
   );
 });
 
-ReportBuilder.displayName = 'ReportBuilder';
+ReportBuilderComponent.displayName = 'ReportBuilder';
+
+export const ReportBuilder = ReportBuilderComponent;
