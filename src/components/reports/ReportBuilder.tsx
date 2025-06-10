@@ -8,7 +8,7 @@ import { ColumnSelector } from './ColumnSelector';
 import { DynamicReportTable } from './DynamicReportTable';
 import { ReportConfig, FilterCriteria } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
-import { Play, Save, Download } from 'lucide-react';
+import { Play, Save, Download, FileBarChart } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
@@ -99,105 +99,119 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
-      <div className={`flex items-center justify-between rtl:flex-row-reverse`}>
-        <h1 className={`text-3xl font-bold ${getRTLAwareTextAlign('start')}`}>{t('reports.reportBuilder')}</h1>
-        <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
-          <Button variant="outline" disabled className="rtl:flex-row-reverse">
-            <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-            {t('common.save')}
-          </Button>
-          <Button 
-            onClick={generateReport}
-            disabled={!canGenerate || isGenerating}
-            className="rtl:flex-row-reverse"
-          >
-            <Play className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-            {isGenerating ? t('reports.generating') : t('reports.generateReport')}
-          </Button>
+      {/* Section Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl">
+          <FileBarChart className="h-6 w-6 text-white" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{t('reports.reportBuilder')}</h2>
+          <p className="text-gray-600">Build custom reports with advanced filtering and data selection</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.dataSource')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DataSourceSelector
-                value={reportConfig.dataSource}
-                onChange={handleDataSourceChange}
-              />
-            </CardContent>
-          </Card>
+      {/* Main Content Card */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+        <div className={`flex items-center justify-between mb-6 rtl:flex-row-reverse`}>
+          <h3 className={`text-lg font-semibold ${getRTLAwareTextAlign('start')}`}>Report Configuration</h3>
+          <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
+            <Button variant="outline" disabled className="rtl:flex-row-reverse">
+              <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
+              {t('common.save')}
+            </Button>
+            <Button 
+              onClick={generateReport}
+              disabled={!canGenerate || isGenerating}
+              className="rtl:flex-row-reverse"
+            >
+              <Play className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
+              {isGenerating ? t('reports.generating') : t('reports.generateReport')}
+            </Button>
+          </div>
+        </div>
 
-          {reportConfig.dataSource && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.selectColumns')}</CardTitle>
+                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.dataSource')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ColumnSelector
-                  dataSource={reportConfig.dataSource}
-                  selectedColumns={reportConfig.selectedColumns}
-                  onChange={handleColumnsChange}
+                <DataSourceSelector
+                  value={reportConfig.dataSource}
+                  onChange={handleDataSourceChange}
                 />
               </CardContent>
             </Card>
-          )}
-        </div>
 
-        <div className="space-y-6">
-          {reportConfig.dataSource && (
+            {reportConfig.dataSource && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.selectColumns')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ColumnSelector
+                    dataSource={reportConfig.dataSource}
+                    selectedColumns={reportConfig.selectedColumns}
+                    onChange={handleColumnsChange}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            {reportConfig.dataSource && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.filters')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CriteriaBuilder
+                    dataSource={reportConfig.dataSource}
+                    filters={reportConfig.filters}
+                    onChange={handleFiltersChange}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div>
             <Card>
               <CardHeader>
-                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.filters')}</CardTitle>
+                <CardTitle className={`flex items-center justify-between rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
+                  <span>{t('reports.preview')}</span>
+                  {reportData.length > 0 && (
+                    <Button variant="outline" size="sm" className="rtl:flex-row-reverse">
+                      <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
+                      {t('reports.export')}
+                    </Button>
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CriteriaBuilder
-                  dataSource={reportConfig.dataSource}
-                  filters={reportConfig.filters}
-                  onChange={handleFiltersChange}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className={`flex items-center justify-between rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
-                <span>{t('reports.preview')}</span>
-                {reportData.length > 0 && (
-                  <Button variant="outline" size="sm" className="rtl:flex-row-reverse">
-                    <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-                    {t('reports.export')}
-                  </Button>
+                {!reportConfig.dataSource ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.selectDataSourceFirst')}</p>
+                  </div>
+                ) : reportConfig.selectedColumns.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.selectColumnsFirst')}</p>
+                  </div>
+                ) : reportData.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.clickGenerateToSeeResults')}</p>
+                  </div>
+                ) : (
+                  <DynamicReportTable
+                    data={reportData}
+                    columns={reportConfig.selectedColumns}
+                  />
                 )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!reportConfig.dataSource ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.selectDataSourceFirst')}</p>
-                </div>
-              ) : reportConfig.selectedColumns.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.selectColumnsFirst')}</p>
-                </div>
-              ) : reportData.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.clickGenerateToSeeResults')}</p>
-                </div>
-              ) : (
-                <DynamicReportTable
-                  data={reportData}
-                  columns={reportConfig.selectedColumns}
-                />
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
@@ -207,3 +221,5 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
 ReportBuilderComponent.displayName = 'ReportBuilder';
 
 export const ReportBuilder = ReportBuilderComponent;
+
+}

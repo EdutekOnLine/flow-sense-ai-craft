@@ -1,4 +1,3 @@
-
 import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { ReportConfig, FilterCriteria } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { Save, Download, RefreshCw } from 'lucide-react';
+import { Save, Download, RefreshCw, Sparkles } from 'lucide-react';
 import { getRTLAwareTextAlign, getRTLAwareIconPosition } from '@/utils/rtl';
 
 interface AIReportResponse {
@@ -119,123 +118,132 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
-      <div className={`flex items-start justify-between gap-4 rtl:flex-row-reverse`}>
-        <div className={`flex-1 space-y-1 ${getRTLAwareTextAlign('start')}`}>
-          <h1 className="text-3xl font-bold">{t('reports.aiReportBuilder')}</h1>
-          <p className="text-muted-foreground">{t('reports.aiSubtitle')}</p>
+      {/* Section Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+          <Sparkles className="h-6 w-6 text-white" />
         </div>
-        {reportData.length > 0 && (
-          <div className={`flex items-center gap-2 rtl:flex-row-reverse flex-shrink-0`}>
-            <Button variant="outline" disabled className={`flex items-center gap-2 rtl:flex-row-reverse`}>
-              <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-              <span>{t('common.save')}</span>
-            </Button>
-            <Button variant="outline" disabled className={`flex items-center gap-2 rtl:flex-row-reverse`}>
-              <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
-              <span>{t('reports.export')}</span>
-            </Button>
-          </div>
-        )}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{t('reports.aiReportBuilder')}</h2>
+          <p className="text-gray-600">{t('reports.aiSubtitle')}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.naturalLanguageQuery')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <NaturalLanguageInput 
-                ref={naturalLanguageInputRef}
-                onQuerySubmit={handleQuerySubmit}
-                isLoading={isGenerating || isLoadingData}
-              />
-            </CardContent>
-          </Card>
+      {/* Main Content Card */}
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.naturalLanguageQuery')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <NaturalLanguageInput 
+                  ref={naturalLanguageInputRef}
+                  onQuerySubmit={handleQuerySubmit}
+                  isLoading={isGenerating || isLoadingData}
+                />
+              </CardContent>
+            </Card>
 
-          {reportConfig && (
+            {reportConfig && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className={`flex items-center justify-between gap-4 rtl:flex-row-reverse`}>
+                    <span className={getRTLAwareTextAlign('start')}>{t('reports.generatedConfiguration')}</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRefresh}
+                      disabled={isLoadingData}
+                      className={`flex items-center gap-2 rtl:flex-row-reverse flex-shrink-0`}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${getRTLAwareIconPosition('before')} ${isLoadingData ? 'animate-spin' : ''}`} />
+                      <span>{t('common.refresh')}</span>
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {aiExplanation && (
+                    <Alert>
+                      <AlertDescription className={getRTLAwareTextAlign('start')} dir="auto">{aiExplanation}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div className={`space-y-2 ${getRTLAwareTextAlign('start')}`}>
+                    <div dir="auto">
+                      <span className="font-medium">{t('reports.dataSource')}: </span>
+                      <span className="text-sm">{reportConfig.dataSource}</span>
+                    </div>
+                    <div dir="auto">
+                      <span className="font-medium">{t('reports.selectedColumns')}: </span>
+                      <span className="text-sm">{reportConfig.selectedColumns.join(', ')}</span>
+                    </div>
+                    {reportConfig.filters.length > 0 && (
+                      <div dir="auto">
+                        <span className="font-medium">{t('reports.filters')}: </span>
+                        <ul className="text-sm mt-1 space-y-1">
+                          {reportConfig.filters.map((filter, index) => (
+                            <li key={index} className={`ml-4 rtl:mr-4 rtl:ml-0 ${getRTLAwareTextAlign('start')}`} dir="auto">
+                              • {filter.column} {filter.operator} {filter.value}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div>
             <Card>
               <CardHeader>
                 <CardTitle className={`flex items-center justify-between gap-4 rtl:flex-row-reverse`}>
-                  <span className={getRTLAwareTextAlign('start')}>{t('reports.generatedConfiguration')}</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleRefresh}
-                    disabled={isLoadingData}
-                    className={`flex items-center gap-2 rtl:flex-row-reverse flex-shrink-0`}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${getRTLAwareIconPosition('before')} ${isLoadingData ? 'animate-spin' : ''}`} />
-                    <span>{t('common.refresh')}</span>
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {aiExplanation && (
-                  <Alert>
-                    <AlertDescription className={getRTLAwareTextAlign('start')} dir="auto">{aiExplanation}</AlertDescription>
-                  </Alert>
-                )}
-                
-                <div className={`space-y-2 ${getRTLAwareTextAlign('start')}`}>
-                  <div dir="auto">
-                    <span className="font-medium">{t('reports.dataSource')}: </span>
-                    <span className="text-sm">{reportConfig.dataSource}</span>
-                  </div>
-                  <div dir="auto">
-                    <span className="font-medium">{t('reports.selectedColumns')}: </span>
-                    <span className="text-sm">{reportConfig.selectedColumns.join(', ')}</span>
-                  </div>
-                  {reportConfig.filters.length > 0 && (
-                    <div dir="auto">
-                      <span className="font-medium">{t('reports.filters')}: </span>
-                      <ul className="text-sm mt-1 space-y-1">
-                        {reportConfig.filters.map((filter, index) => (
-                          <li key={index} className={`ml-4 rtl:mr-4 rtl:ml-0 ${getRTLAwareTextAlign('start')}`} dir="auto">
-                            • {filter.column} {filter.operator} {filter.value}
-                          </li>
-                        ))}
-                      </ul>
+                  <span className={getRTLAwareTextAlign('start')}>
+                    {reportConfig ? reportConfig.name : t('reports.reportPreview')}
+                  </span>
+                  {reportData.length > 0 && (
+                    <div className={`flex items-center gap-2 rtl:flex-row-reverse flex-shrink-0`}>
+                      <Button variant="outline" size="sm" disabled className={`flex items-center gap-2 rtl:flex-row-reverse`}>
+                        <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
+                        <span>{t('common.save')}</span>
+                      </Button>
+                      <Button variant="outline" size="sm" disabled className={`flex items-center gap-2 rtl:flex-row-reverse`}>
+                        <Download className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
+                        <span>{t('reports.export')}</span>
+                      </Button>
                     </div>
                   )}
-                </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {error ? (
+                  <Alert variant="destructive">
+                    <AlertDescription className={getRTLAwareTextAlign('start')} dir="auto">{error}</AlertDescription>
+                  </Alert>
+                ) : !reportConfig ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.enterQueryToGenerate')}</p>
+                  </div>
+                ) : isLoadingData ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.loadingReportData')}</p>
+                  </div>
+                ) : reportData.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className={getRTLAwareTextAlign('center')}>{t('reports.noDataFound')}</p>
+                  </div>
+                ) : (
+                  <DynamicReportTable
+                    data={reportData}
+                    columns={reportConfig.selectedColumns}
+                  />
+                )}
               </CardContent>
             </Card>
-          )}
-        </div>
-
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className={getRTLAwareTextAlign('start')}>
-                {reportConfig ? reportConfig.name : t('reports.reportPreview')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {error ? (
-                <Alert variant="destructive">
-                  <AlertDescription className={getRTLAwareTextAlign('start')} dir="auto">{error}</AlertDescription>
-                </Alert>
-              ) : !reportConfig ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.enterQueryToGenerate')}</p>
-                </div>
-              ) : isLoadingData ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.loadingReportData')}</p>
-                </div>
-              ) : reportData.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className={getRTLAwareTextAlign('center')}>{t('reports.noDataFound')}</p>
-                </div>
-              ) : (
-                <DynamicReportTable
-                  data={reportData}
-                  columns={reportConfig.selectedColumns}
-                />
-              )}
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
@@ -243,3 +251,5 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
 });
 
 AIReportBuilder.displayName = 'AIReportBuilder';
+
+}
