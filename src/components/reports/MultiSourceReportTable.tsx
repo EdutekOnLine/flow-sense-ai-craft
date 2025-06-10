@@ -25,6 +25,29 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Auto-detect actual columns from data if available
+  const actualColumns = React.useMemo(() => {
+    if (data.length === 0) {
+      console.log('No data available, using provided columns:', columns);
+      return columns;
+    }
+    
+    // Get all keys from the first row, excluding internal fields
+    const dataKeys = Object.keys(data[0]).filter(key => !key.startsWith('_'));
+    console.log('Data keys found:', dataKeys);
+    console.log('Provided columns:', columns);
+    
+    // If we have data keys that don't match the provided columns, use the data keys
+    if (dataKeys.length > 0) {
+      return dataKeys;
+    }
+    
+    return columns;
+  }, [data, columns]);
+
+  console.log('Using columns for display:', actualColumns);
+  console.log('Sample data row:', data.length > 0 ? data[0] : 'No data');
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -115,10 +138,10 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
     const processGroup = (groupData: any[]) => {
       let filtered = groupData;
 
-      // Apply search filter
+      // Apply search filter using actual columns
       if (searchTerm) {
         filtered = groupData.filter(row =>
-          columns.some(column =>
+          actualColumns.some(column =>
             String(row[column] || '')
               .toLowerCase()
               .includes(searchTerm.toLowerCase())
@@ -155,7 +178,7 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
     });
     
     return result;
-  }, [groupedData, columns, searchTerm, sortColumn, sortDirection]);
+  }, [groupedData, actualColumns, searchTerm, sortColumn, sortDirection]);
 
   const getSortIcon = (column: string) => {
     if (sortColumn !== column) {
@@ -213,7 +236,7 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
             <Table>
               <TableHeader>
                 <TableRow>
-                  {columns.filter(col => !col.startsWith('_')).map((column) => {
+                  {actualColumns.map((column) => {
                     const sourceFromColumn = getSourceFromColumn(column);
                     return (
                       <TableHead key={column} className="font-medium">
@@ -240,7 +263,7 @@ export function MultiSourceReportTable({ data, columns }: MultiSourceReportTable
               <TableBody>
                 {filteredAndSortedData[source].map((row, index) => (
                   <TableRow key={`${source}-${index}`}>
-                    {columns.filter(col => !col.startsWith('_')).map((column) => (
+                    {actualColumns.map((column) => (
                       <TableCell key={column}>
                         {formatCellValue(row[column], column)}
                       </TableCell>

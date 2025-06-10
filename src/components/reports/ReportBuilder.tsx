@@ -87,17 +87,9 @@ export function ReportBuilder() {
     }
   };
 
-  // Extract actual column names from the data for display
-  const getActualColumns = () => {
-    if (reportData.length === 0) {
-      return reportConfig.selectedColumns.map(col => col.alias || col.column);
-    }
-    
-    // Get actual keys from the first row of data, excluding internal fields
-    const dataKeys = Object.keys(reportData[0]).filter(key => !key.startsWith('_'));
-    console.log('Actual data columns:', dataKeys);
-    
-    return dataKeys;
+  // Extract original column names for display (no longer needed as table will auto-detect)
+  const getDisplayColumns = () => {
+    return reportConfig.selectedColumns.map(col => col.alias || col.column);
   };
 
   // Determine if this is a multi-source report
@@ -203,12 +195,12 @@ export function ReportBuilder() {
                   {isMultiSource || hasMultiSourceData ? (
                     <MultiSourceReportTable
                       data={reportData}
-                      columns={getActualColumns()}
+                      columns={getDisplayColumns()}
                     />
                   ) : (
                     <DynamicReportTable
                       data={reportData}
-                      columns={getActualColumns()}
+                      columns={getDisplayColumns()}
                     />
                   )}
                 </>
