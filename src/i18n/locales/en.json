@@ -35,6 +35,7 @@
     "signInToContinue": "Please sign in to continue"
   },
   "dashboard": {
+    "title": "Dashboard",
     "welcome": "Welcome to NeuraFlow",
     "subtitle": "Manage your workflows and track progress",
     "totalWorkflows": "Total Workflows",
@@ -71,7 +72,24 @@
     "priority": "Priority",
     "lastUpdated": "Last Updated",
     "createdBy": "Created By",
-    "description": "Description"
+    "description": "Description",
+    "allSavedWorkflows": "All Saved Workflows",
+    "allSavedWorkflowsDescription": "Manage all workflow templates in the system and start new workflow instances",
+    "noTasksAssigned": "No tasks assigned to you",
+    "pendingTasksInfo": "Workflow tasks assigned to you will appear here",
+    "noSavedWorkflows": "No saved workflows yet",
+    "createFirstWorkflow": "Create and save your first workflow in the workflow builder",
+    "noReusableWorkflows": "No reusable workflows available",
+    "reusableWorkflowsInfo": "Reusable workflows you can start will appear here",
+    "welcomeTitle": "Welcome to the Workflow System",
+    "welcomeMessage": "Workflow features are available to managers and supervisors. Contact your administrator for workflow creation permissions.",
+    "noPendingTasks": "No pending tasks",
+    "allCaughtUp": "You're all caught up!",
+    "workflowsMoved": "Workflows moved to \"Saved Workflows\"",
+    "workflowsMovedDescription": "All workflows are now managed in the \"Saved Workflows\" section.",
+    "noTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
+    "refreshTasks": "Check for new tasks",
+    "noRecentActivity": "No recent activity"
   },
   "workflows": {
     "title": "Workflows",
@@ -109,6 +127,39 @@
     "medium": "Medium",
     "high": "High",
     "urgent": "Urgent"
+  },
+  "workflow": {
+    "launch": "Launch",
+    "launchWorkflow": "Launch Workflow",
+    "launching": "Launching...",
+    "reusable": "Reusable",
+    "oneTime": "One Time",
+    "assignedTo": "Assigned To",
+    "startsWith": "Starts With",
+    "unassigned": "Unassigned",
+    "nodes": "Nodes",
+    "steps": "Steps",
+    "updated": "Updated",
+    "moreWorkflows": "And {{count}} more workflows...",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?",
+    "launchSuccess": "Workflow launched successfully!",
+    "launchError": "Failed to launch workflow. Please try again.",
+    "createAssignments": "Create Assignments",
+    "creatingAssignments": "Creating...",
+    "myActiveTasks": "My Active Tasks",
+    "myActiveTasksDescription": "Tasks ready to work on in active workflows",
+    "noActiveTasks": "No active tasks",
+    "noActiveTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
+    "checkForNewTasks": "Check for new tasks",
+    "refresh": "Refresh",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "filterByStatus": "Filter by status",
+    "allAssignments": "All Assignments",
+    "completed": "Completed",
+    "skipped": "Skipped",
+    "requiredInformation": "Required Information",
+    "firstStep": "First Step"
   },
   "workflowBuilder": {
     "title": "Workflow Builder",
@@ -205,7 +256,16 @@
     "searchData": "Search data...",
     "showingResults": "Showing {{count}} of {{total}} results",
     "noColumnsAvailable": "No columns available for this data source",
-    "clickGenerateToSeeResults": "Click 'Generate Report' to see results"
+    "clickGenerateToSeeResults": "Click 'Generate Report' to see results",
+    "predefinedDescription": "Ready-made reports for common business needs",
+    "generate": "Generate",
+    "savedDescription": "Your custom reports and report templates",
+    "noSavedReports": "No saved reports yet",
+    "createFirstReport": "Create your first custom report using the report builder",
+    "createReport": "Create Report",
+    "shared": "Shared",
+    "run": "Run",
+    "share": "Share"
   },
   "users": {
     "title": "Users",
@@ -247,7 +307,36 @@
   },
   "languages": {
     "english": "English",
-    "arabic": "Arabic"
+    "arabic": "Arabic",
+    "changeLanguage": "Change Language"
+  },
+  "tasks": {
+    "completeTask": "Complete Task",
+    "completionNotes": "Completion Notes",
+    "completionNotesPlaceholder": "Add notes about completing this task...",
+    "completeTaskAction": "Complete Task",
+    "viewAllTasks": "View All Tasks",
+    "taskCount": "{{count}} task",
+    "taskCount_plural": "{{count}} tasks",
+    "noTasks": "No tasks available",
+    "taskCompleted": "Task completed successfully!",
+    "taskCompletionError": "Failed to complete task. Please try again.",
+    "markComplete": "Mark Complete"
+  },
+  "status": {
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "active": "Active",
+    "completed": "Completed",
+    "skipped": "Skipped"
+  },
+  "activity": {
+    "taskCompleted": "Task completed",
+    "taskAssigned": "Task assigned",
+    "newTaskAssigned": "New task assigned",
+    "workflowStarted": "Workflow started",
+    "workflowCompleted": "Workflow completed",
+    "noRecentActivity": "No recent activity"
   },
   "common": {
     "save": "Save",
@@ -377,6 +466,12 @@
     "may": "May",
     "might": "Might",
     "must": "Must",
-    "shall": "Shall"
+    "shall": "Shall",
+    "welcome": "Welcome",
+    "viewAll": "View All",
+    "start": "Start",
+    "done": "Done",
+    "completing": "Completing...",
+    "assigned": "Assigned"
   }
 }
