@@ -105,6 +105,12 @@ export function PredefinedReports() {
                       <span className="text-xs text-gray-500">
                         Source: {report.dataSource}
                       </span>
+                      <Button 
+                        size="sm"
+                        onClick={() => generateReport(report.id)}
+                      >
+                        {t('reports.generate')}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
