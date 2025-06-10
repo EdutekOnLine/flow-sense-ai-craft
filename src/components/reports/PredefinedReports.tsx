@@ -23,7 +23,7 @@ export function PredefinedReports() {
     }
     acc[report.category].push(report);
     return acc;
-  }, {} as Record<string, typeof predefinedReports>);
+  }, {} as Record<string, any[]>);
 
   return (
     <div className="space-y-6">
@@ -49,7 +49,7 @@ export function PredefinedReports() {
           <div key={category} className="space-y-4">
             <h3 className={`text-lg font-semibold text-gray-800 ${getRTLAwareTextAlign('start')}`}>{category}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {reports.map((report) => {
+              {reports.map((report: any) => {
                 const Icon = report.icon;
                 return (
                   <Card key={report.id} className="hover:shadow-md transition-shadow">
