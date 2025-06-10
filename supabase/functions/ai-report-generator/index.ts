@@ -83,7 +83,24 @@ serve(async (req) => {
 
     console.log('Processing AI report query:', query);
 
+    // Get current date for context
+    const currentDate = new Date();
+    const currentDateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentYear = currentDate.getFullYear();
+    
+    // Calculate common date ranges
+    const firstDayOfMonth = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`;
+    const firstDayOfYear = `${currentYear}-01-01`;
+    const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const sevenDaysAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     const systemPrompt = `You are an AI assistant that converts natural language queries into structured report configurations.
+
+CURRENT DATE CONTEXT:
+- Today's date: ${currentDateString}
+- Current month: ${currentMonth}/${currentYear}
+- Current year: ${currentYear}
 
 Available data sources and their columns:
 ${dataSources.map(ds => `${ds.name} (${ds.id}): ${ds.description}\nColumns: ${columnMappings[ds.id]?.join(', ')}`).join('\n\n')}
@@ -94,6 +111,16 @@ Available filter operators:
 - greater_than, less_than, greater_equal, less_equal
 - between, in, not_in
 - is_null, is_not_null
+
+RELATIVE DATE HANDLING:
+When users mention relative dates, use these calculations:
+- "this month" = from ${firstDayOfMonth} to ${currentDateString}
+- "this year" = from ${firstDayOfYear} to ${currentDateString}
+- "last 30 days" = from ${thirtyDaysAgo} to ${currentDateString}
+- "last 7 days" or "this week" = from ${sevenDaysAgo} to ${currentDateString}
+- "today" = ${currentDateString}
+
+DATE FORMAT: Always use YYYY-MM-DD format for date values in filters.
 
 You must return a JSON object with this exact structure:
 {
@@ -118,11 +145,13 @@ Important rules:
 3. Add appropriate filters based on the query
 4. Use proper data types for filters
 5. Generate a descriptive report name
-6. If the query is unclear, make reasonable assumptions but explain them
+6. For date-related queries, always use the current date context provided above
+7. If the query is unclear, make reasonable assumptions but explain them
 
 Example queries and responses:
-- "Show me completed workflows by department" → Use workflow_performance data source, select name, status, completion_percentage, filter by status = completed
-- "List users with high completion rates" → Use user_performance data source, select full_name, department, completion_rate, filter by completion_rate > 80`;
+- "Show me completed workflows this month" → Use workflow_performance, filter created_at >= ${firstDayOfMonth} AND status = completed
+- "List users with high completion rates" → Use user_performance, filter completion_rate > 80
+- "Workflows created in the last 30 days" → Use workflows, filter created_at >= ${thirtyDaysAgo}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
