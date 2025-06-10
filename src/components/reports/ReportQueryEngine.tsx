@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ReportConfig, DataSourceWithJoins, SelectedColumn } from './types';
 
@@ -11,6 +10,8 @@ export class ReportQueryEngine {
     }
 
     try {
+      console.log('Starting report generation with config:', config);
+      
       // For now, we'll simplify multi-source reports by querying each source separately
       // and combining the results. This avoids complex join syntax issues.
       if (dataSources.length === 1) {
@@ -29,9 +30,13 @@ export class ReportQueryEngine {
     selectedColumns: SelectedColumn[], 
     filters: any[]
   ): Promise<any[]> {
+    console.log('Generating single source report for:', dataSource.sourceId);
+    
     const sourceColumns = selectedColumns
       .filter(col => col.sourceId === dataSource.sourceId)
       .map(col => col.column);
+    
+    console.log('Selected columns for source:', sourceColumns);
     
     if (sourceColumns.length === 0) {
       return [];
@@ -41,6 +46,7 @@ export class ReportQueryEngine {
     
     // Map data sources to actual Supabase tables/views using type assertions
     const tableName = this.getTableName(dataSource.sourceId);
+    console.log('Querying table:', tableName);
     
     switch (dataSource.sourceId) {
       case 'workflow_performance':
@@ -76,6 +82,7 @@ export class ReportQueryEngine {
 
     // Apply filters for single source
     const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
+    console.log('Applying filters:', sourceFilters);
     this.applyFilters(query, sourceFilters);
 
     // Limit to prevent too many results
@@ -88,6 +95,7 @@ export class ReportQueryEngine {
       throw error;
     }
 
+    console.log('Query result:', { rowCount: data?.length, sampleRow: data?.[0] });
     return data || [];
   }
 

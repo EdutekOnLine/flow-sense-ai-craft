@@ -64,7 +64,11 @@ export function ReportBuilder() {
 
     setIsGenerating(true);
     try {
+      console.log('Generating report with config:', reportConfig);
       const data = await ReportQueryEngine.generateReport(reportConfig);
+      console.log('Raw report data:', data);
+      console.log('Data keys sample:', data.length > 0 ? Object.keys(data[0]) : 'No data');
+      
       setReportData(data);
       toast({
         title: 'Report Generated',
@@ -80,6 +84,19 @@ export function ReportBuilder() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Extract actual column names from the data for display
+  const getActualColumns = () => {
+    if (reportData.length === 0) {
+      return reportConfig.selectedColumns.map(col => col.alias || col.column);
+    }
+    
+    // Get actual keys from the first row of data, excluding internal fields
+    const dataKeys = Object.keys(reportData[0]).filter(key => !key.startsWith('_'));
+    console.log('Actual data columns:', dataKeys);
+    
+    return dataKeys;
   };
 
   const canGenerate = reportConfig.dataSources.length > 0 && reportConfig.selectedColumns.length > 0;
@@ -179,7 +196,7 @@ export function ReportBuilder() {
               ) : (
                 <DynamicReportTable
                   data={reportData}
-                  columns={reportConfig.selectedColumns.map(col => col.alias || col.column)}
+                  columns={getActualColumns()}
                 />
               )}
             </CardContent>
