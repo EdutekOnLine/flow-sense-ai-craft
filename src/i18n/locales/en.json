@@ -243,7 +243,17 @@
     "aiQueryPlaceholder": "Example: Show me all completed workflows by department this month, or List users with completion rates above 80%",
     "generateAIReport": "Generate Report with AI",
     "generatingReport": "Generating Report...",
-    "exampleQueries": "Example Queries",
+    "exampleQueriesTitle": "Example Queries",
+    "exampleQueriesList": [
+      "Show me all completed workflows by department this month",
+      "List users with completion rates above 80%",
+      "Display overdue tasks grouped by assigned user",
+      "Create a report on workflow trends over the last 30 days",
+      "Show me the best performing departments by completion rate",
+      "Display all pending notifications for managers",
+      "Show workflow steps that took longer than estimated",
+      "Display user performance metrics for engineering department"
+    ],
     "generatedConfiguration": "Generated Configuration",
     "reportPreview": "Report Preview",
     "enterQueryToGenerate": "Enter a natural language query above to generate a report",
@@ -280,7 +290,30 @@
     "createReport": "Create Report",
     "shared": "Shared",
     "run": "Run",
-    "share": "Share"
+    "share": "Share",
+    "dataSources": {
+      "workflow_performance": "Workflow Performance",
+      "user_performance": "User Performance",
+      "workflow_steps": "Workflow Steps",
+      "workflow_step_assignments": "Workflow Step Assignments",
+      "department_analytics": "Department Analytics",
+      "workflow_trends": "Workflow Trends",
+      "notifications": "Notifications",
+      "workflows": "Workflows",
+      "profiles": "Profiles"
+    },
+    "operators": {
+      "equals": "Equals",
+      "not_equals": "Not Equals",
+      "contains": "Contains",
+      "not_contains": "Does not contain",
+      "greater_than": "Greater than",
+      "less_than": "Less than",
+      "greater_equal": "Greater than or equal",
+      "less_equal": "Less than or equal",
+      "is_null": "Is empty",
+      "is_not_null": "Is not empty"
+    }
   },
   "users": {
     "title": "Users",

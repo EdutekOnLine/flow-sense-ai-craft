@@ -45,7 +45,7 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
     };
 
     // Get example queries from translation
-    const exampleQueries = t('reports.exampleQueries', { returnObjects: true }) as string[];
+    const exampleQueries = t('reports.exampleQueriesList', { returnObjects: true }) as string[];
 
     return (
       <div className="space-y-6">
@@ -91,7 +91,7 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
         <Card>
           <CardContent className="p-6">
             <h3 className={`text-sm font-medium mb-3 ${getRTLAwareTextAlign('start')}`}>
-              {t('reports.exampleQueries')}
+              {t('reports.exampleQueriesTitle')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {exampleQueries.map((example, index) => (
