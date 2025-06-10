@@ -11,11 +11,12 @@ export class ReportQueryEngine {
     }
 
     try {
-      // For multiple data sources, we need to build a complex query with joins
+      // For now, we'll simplify multi-source reports by querying each source separately
+      // and combining the results. This avoids complex join syntax issues.
       if (dataSources.length === 1) {
         return await this.generateSingleSourceReport(dataSources[0], selectedColumns, filters);
       } else {
-        return await this.generateMultiSourceReport(dataSources, selectedColumns, filters);
+        return await this.generateSimplifiedMultiSourceReport(dataSources, selectedColumns, filters);
       }
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -90,83 +91,43 @@ export class ReportQueryEngine {
     return data || [];
   }
 
-  private static async generateMultiSourceReport(
+  private static async generateSimplifiedMultiSourceReport(
     dataSources: DataSourceWithJoins[], 
     selectedColumns: SelectedColumn[], 
     filters: any[]
   ): Promise<any[]> {
-    // For multi-source reports, we'll use Supabase's select with joins
-    const primarySource = dataSources[0];
-    const primaryTableName = this.getTableName(primarySource.sourceId);
+    // For now, we'll query each data source separately and combine results
+    // This is a simplified approach that avoids complex join syntax
+    const results: any[] = [];
     
-    // Build the select statement with joins
-    let selectClause = selectedColumns.map(col => {
-      const table = this.getTableName(col.sourceId);
-      const alias = col.alias || col.column;
-      return `${table}.${col.column}:${alias}`;
-    }).join(', ');
-
-    // Build join clauses
-    let joinedTables = new Set([primaryTableName]);
-    let query: any;
-
-    // Use type assertion for the primary table
-    switch (primarySource.sourceId) {
-      case 'workflow_performance':
-        query = supabase.from('workflow_performance_analytics' as any).select(selectClause);
-        break;
-      case 'user_performance':
-        query = supabase.from('user_performance_analytics' as any).select(selectClause);
-        break;
-      case 'department_analytics':
-        query = supabase.from('department_analytics' as any).select(selectClause);
-        break;
-      case 'workflow_trends':
-        query = supabase.from('workflow_trends' as any).select(selectClause);
-        break;
-      case 'workflow_steps':
-        query = supabase.from('workflow_steps' as any).select(selectClause);
-        break;
-      case 'workflow_step_assignments':
-        query = supabase.from('workflow_step_assignments' as any).select(selectClause);
-        break;
-      case 'notifications':
-        query = supabase.from('notifications' as any).select(selectClause);
-        break;
-      case 'workflows':
-        query = supabase.from('workflows' as any).select(selectClause);
-        break;
-      case 'profiles':
-        query = supabase.from('profiles' as any).select(selectClause);
-        break;
-      default:
-        throw new Error(`Unsupported primary data source: ${primarySource.sourceId}`);
+    for (const dataSource of dataSources) {
+      const sourceColumns = selectedColumns.filter(col => col.sourceId === dataSource.sourceId);
+      const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
+      
+      if (sourceColumns.length > 0) {
+        try {
+          const sourceData = await this.generateSingleSourceReport(dataSource, sourceColumns, sourceFilters);
+          
+          // Add source identifier to each row
+          const enrichedData = sourceData.map(row => ({
+            ...row,
+            _source: dataSource.sourceId
+          }));
+          
+          results.push(...enrichedData);
+        } catch (error) {
+          console.error(`Error querying source ${dataSource.sourceId}:`, error);
+          // Continue with other sources even if one fails
+        }
+      }
     }
 
-    // For complex joins, we might need to use raw SQL or multiple queries
-    // This is a simplified approach - in practice, you might need a more sophisticated query builder
-    
-    // Apply filters
-    this.applyFilters(query, filters);
-
-    // Limit results
-    query = query.limit(1000);
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Multi-source query error:', error);
-      throw error;
-    }
-
-    return data || [];
+    return results;
   }
 
   private static applyFilters(query: any, filters: any[]) {
     filters.forEach(filter => {
-      const column = filter.sourceId && filter.sourceId !== filters[0]?.sourceId 
-        ? `${this.getTableName(filter.sourceId)}.${filter.column}`
-        : filter.column;
+      const column = filter.column;
 
       switch (filter.operator) {
         case 'equals':
