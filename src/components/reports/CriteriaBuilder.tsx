@@ -48,7 +48,6 @@ export function CriteriaBuilder({ dataSource, filters, onChange }: CriteriaBuild
   const addFilter = () => {
     const newFilter: FilterCriteria = {
       id: crypto.randomUUID(),
-      sourceId: dataSource,
       column: '',
       operator: 'equals',
       value: '',

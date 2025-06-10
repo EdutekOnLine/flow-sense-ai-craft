@@ -1,236 +1,117 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ReportConfig, DataSourceWithJoins, SelectedColumn } from './types';
+import { ReportConfig } from './types';
 
 export class ReportQueryEngine {
   static async generateReport(config: ReportConfig): Promise<any[]> {
-    const { dataSources, selectedColumns, filters } = config;
-
-    if (dataSources.length === 0) {
-      throw new Error('No data sources specified');
-    }
+    const { dataSource, selectedColumns, filters } = config;
 
     try {
-      console.log('Starting report generation with config:', config);
+      // Type-safe data source handling
+      let query: any;
       
-      if (dataSources.length === 1) {
-        return await this.generateSingleSourceReport(dataSources[0], selectedColumns, filters);
-      } else {
-        // For multiple sources, generate multi-section report
-        return await this.generateMultiSectionReport(dataSources, selectedColumns, filters);
+      // Map data sources to actual Supabase tables/views
+      switch (dataSource) {
+        case 'workflow_performance':
+          query = supabase.from('workflow_performance_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'user_performance':
+          query = supabase.from('user_performance_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'department_analytics':
+          query = supabase.from('department_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_trends':
+          query = supabase.from('workflow_trends').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_steps':
+          query = supabase.from('workflow_steps').select(selectedColumns.join(', '));
+          break;
+        case 'workflow_step_assignments':
+          query = supabase.from('workflow_step_assignments').select(selectedColumns.join(', '));
+          break;
+        case 'notifications':
+          query = supabase.from('notifications').select(selectedColumns.join(', '));
+          break;
+        case 'workflows':
+          query = supabase.from('workflows').select(selectedColumns.join(', '));
+          break;
+        case 'profiles':
+          query = supabase.from('profiles').select(selectedColumns.join(', '));
+          break;
+        default:
+          throw new Error(`Unsupported data source: ${dataSource}`);
       }
+
+      // Apply filters
+      filters.forEach(filter => {
+        switch (filter.operator) {
+          case 'equals':
+            query = query.eq(filter.column, filter.value);
+            break;
+          case 'not_equals':
+            query = query.neq(filter.column, filter.value);
+            break;
+          case 'contains':
+            query = query.ilike(filter.column, `%${filter.value}%`);
+            break;
+          case 'not_contains':
+            query = query.not(filter.column, 'ilike', `%${filter.value}%`);
+            break;
+          case 'starts_with':
+            query = query.ilike(filter.column, `${filter.value}%`);
+            break;
+          case 'ends_with':
+            query = query.ilike(filter.column, `%${filter.value}`);
+            break;
+          case 'greater_than':
+            query = query.gt(filter.column, filter.value);
+            break;
+          case 'less_than':
+            query = query.lt(filter.column, filter.value);
+            break;
+          case 'greater_equal':
+            query = query.gte(filter.column, filter.value);
+            break;
+          case 'less_equal':
+            query = query.lte(filter.column, filter.value);
+            break;
+          case 'is_null':
+            query = query.is(filter.column, null);
+            break;
+          case 'is_not_null':
+            query = query.not(filter.column, 'is', null);
+            break;
+          case 'in':
+            if (typeof filter.value === 'string') {
+              const values = filter.value.split(',').map(v => v.trim());
+              query = query.in(filter.column, values);
+            }
+            break;
+          case 'not_in':
+            if (typeof filter.value === 'string') {
+              const values = filter.value.split(',').map(v => v.trim());
+              query = query.not(filter.column, 'in', values);
+            }
+            break;
+        }
+      });
+
+      // Limit to prevent too many results
+      query = query.limit(1000);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Failed to generate report:', error);
       throw error;
     }
-  }
-
-  private static async generateMultiSectionReport(
-    dataSources: DataSourceWithJoins[], 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    console.log('Generating multi-section report');
-    
-    const results: any[] = [];
-    
-    for (const dataSource of dataSources) {
-      const sourceColumns = selectedColumns.filter(col => col.sourceId === dataSource.sourceId);
-      const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
-      
-      if (sourceColumns.length > 0) {
-        try {
-          const sourceData = await this.generateSingleSourceReport(dataSource, sourceColumns, sourceFilters);
-          
-          // Add prefixed columns and source identification
-          const enrichedData = sourceData.map(row => {
-            const newRow: any = {
-              _source: dataSource.sourceId,
-              _sourceLabel: this.getSourceLabel(dataSource.sourceId)
-            };
-            
-            // Prefix column names with source to avoid conflicts
-            sourceColumns.forEach(col => {
-              const originalKey = col.column;
-              const prefixedKey = `${dataSource.sourceId}_${originalKey}`;
-              newRow[prefixedKey] = row[originalKey];
-            });
-            
-            return newRow;
-          });
-          
-          results.push(...enrichedData);
-        } catch (error) {
-          console.error(`Error querying source ${dataSource.sourceId}:`, error);
-        }
-      }
-    }
-    
-    console.log('Multi-section report result:', { rowCount: results.length, sampleRow: results[0] });
-    return results;
-  }
-
-  private static getSourceLabel(sourceId: string): string {
-    const labelMap: Record<string, string> = {
-      'workflow_performance': 'Workflow Performance',
-      'user_performance': 'User Performance',
-      'workflows': 'Workflows',
-      'profiles': 'Users',
-      'workflow_steps': 'Workflow Steps',
-      'workflow_step_assignments': 'Task Assignments',
-      'department_analytics': 'Department Analytics',
-      'workflow_trends': 'Workflow Trends',
-      'notifications': 'Notifications'
-    };
-    return labelMap[sourceId] || sourceId;
-  }
-
-  private static async generateSingleSourceReport(
-    dataSource: DataSourceWithJoins, 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    console.log('Generating single source report for:', dataSource.sourceId);
-    
-    const sourceColumns = selectedColumns
-      .filter(col => col.sourceId === dataSource.sourceId)
-      .map(col => col.column);
-    
-    console.log('Selected columns for source:', sourceColumns);
-    
-    if (sourceColumns.length === 0) {
-      return [];
-    }
-
-    let query: any;
-    
-    // Map data sources to actual Supabase tables/views using type assertions
-    const tableName = this.getTableName(dataSource.sourceId);
-    console.log('Querying table:', tableName);
-    
-    switch (dataSource.sourceId) {
-      case 'workflow_performance':
-        query = supabase.from('workflow_performance_analytics' as any).select(sourceColumns.join(', '));
-        break;
-      case 'user_performance':
-        query = supabase.from('user_performance_analytics' as any).select(sourceColumns.join(', '));
-        break;
-      case 'department_analytics':
-        query = supabase.from('department_analytics' as any).select(sourceColumns.join(', '));
-        break;
-      case 'workflow_trends':
-        query = supabase.from('workflow_trends' as any).select(sourceColumns.join(', '));
-        break;
-      case 'workflow_steps':
-        query = supabase.from('workflow_steps' as any).select(sourceColumns.join(', '));
-        break;
-      case 'workflow_step_assignments':
-        query = supabase.from('workflow_step_assignments' as any).select(sourceColumns.join(', '));
-        break;
-      case 'notifications':
-        query = supabase.from('notifications' as any).select(sourceColumns.join(', '));
-        break;
-      case 'workflows':
-        query = supabase.from('workflows' as any).select(sourceColumns.join(', '));
-        break;
-      case 'profiles':
-        query = supabase.from('profiles' as any).select(sourceColumns.join(', '));
-        break;
-      default:
-        throw new Error(`Unsupported data source: ${dataSource.sourceId}`);
-    }
-
-    // Apply filters for single source
-    const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
-    console.log('Applying filters:', sourceFilters);
-    this.applyFilters(query, sourceFilters);
-
-    // Limit to prevent too many results
-    query = query.limit(1000);
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Query error:', error);
-      throw error;
-    }
-
-    console.log('Query result:', { rowCount: data?.length, sampleRow: data?.[0] });
-    return data || [];
-  }
-
-  private static applyFilters(query: any, filters: any[]) {
-    filters.forEach(filter => {
-      this.applySingleFilter(query, filter.column, filter);
-    });
-  }
-
-  private static applySingleFilter(query: any, column: string, filter: any) {
-    switch (filter.operator) {
-      case 'equals':
-        query = query.eq(column, filter.value);
-        break;
-      case 'not_equals':
-        query = query.neq(column, filter.value);
-        break;
-      case 'contains':
-        query = query.ilike(column, `%${filter.value}%`);
-        break;
-      case 'not_contains':
-        query = query.not(column, 'ilike', `%${filter.value}%`);
-        break;
-      case 'starts_with':
-        query = query.ilike(column, `${filter.value}%`);
-        break;
-      case 'ends_with':
-        query = query.ilike(column, `%${filter.value}`);
-        break;
-      case 'greater_than':
-        query = query.gt(column, filter.value);
-        break;
-      case 'less_than':
-        query = query.lt(column, filter.value);
-        break;
-      case 'greater_equal':
-        query = query.gte(column, filter.value);
-        break;
-      case 'less_equal':
-        query = query.lte(column, filter.value);
-        break;
-      case 'is_null':
-        query = query.is(column, null);
-        break;
-      case 'is_not_null':
-        query = query.not(column, 'is', null);
-        break;
-      case 'in':
-        if (typeof filter.value === 'string') {
-          const values = filter.value.split(',').map(v => v.trim());
-          query = query.in(column, values);
-        }
-        break;
-      case 'not_in':
-        if (typeof filter.value === 'string') {
-          const values = filter.value.split(',').map(v => v.trim());
-          query = query.not(column, 'in', values);
-        }
-        break;
-    }
-  }
-
-  private static getTableName(sourceId: string): string {
-    const tableMap: Record<string, string> = {
-      'workflow_performance': 'workflow_performance_analytics',
-      'user_performance': 'user_performance_analytics',
-      'department_analytics': 'department_analytics',
-      'workflow_trends': 'workflow_trends',
-      'workflow_steps': 'workflow_steps',
-      'workflow_step_assignments': 'workflow_step_assignments',
-      'notifications': 'notifications',
-      'workflows': 'workflows',
-      'profiles': 'profiles'
-    };
-    return tableMap[sourceId] || sourceId;
   }
 
   static getAvailableColumns(dataSource: string): string[] {

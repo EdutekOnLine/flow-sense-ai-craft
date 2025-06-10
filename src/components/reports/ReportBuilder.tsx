@@ -3,12 +3,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MultiDataSourceSelector } from './MultiDataSourceSelector';
-import { MultiCriteriaBuilder } from './MultiCriteriaBuilder';
-import { MultiColumnSelector } from './MultiColumnSelector';
+import { DataSourceSelector } from './DataSourceSelector';
+import { CriteriaBuilder } from './CriteriaBuilder';
+import { ColumnSelector } from './ColumnSelector';
 import { DynamicReportTable } from './DynamicReportTable';
-import { MultiSourceReportTable } from './MultiSourceReportTable';
-import { ReportConfig, FilterCriteria, DataSourceWithJoins, SelectedColumn } from './types';
+import { ReportConfig, FilterCriteria } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,7 +16,7 @@ export function ReportBuilder() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
-    dataSources: [],
+    dataSource: '',
     selectedColumns: [],
     filters: [],
     name: ''
@@ -25,21 +24,17 @@ export function ReportBuilder() {
   const [reportData, setReportData] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleDataSourcesChange = (dataSources: DataSourceWithJoins[]) => {
+  const handleDataSourceChange = (dataSource: string) => {
     setReportConfig(prev => ({
       ...prev,
-      dataSources,
-      selectedColumns: prev.selectedColumns.filter(col => 
-        dataSources.some(ds => ds.sourceId === col.sourceId)
-      ),
-      filters: prev.filters.filter(filter => 
-        dataSources.some(ds => ds.sourceId === filter.sourceId)
-      )
+      dataSource,
+      selectedColumns: [],
+      filters: []
     }));
     setReportData([]);
   };
 
-  const handleColumnsChange = (columns: SelectedColumn[]) => {
+  const handleColumnsChange = (columns: string[]) => {
     setReportConfig(prev => ({
       ...prev,
       selectedColumns: columns
@@ -54,10 +49,10 @@ export function ReportBuilder() {
   };
 
   const generateReport = async () => {
-    if (reportConfig.dataSources.length === 0 || reportConfig.selectedColumns.length === 0) {
+    if (!reportConfig.dataSource || reportConfig.selectedColumns.length === 0) {
       toast({
         title: 'Missing Configuration',
-        description: 'Please select at least one data source and columns',
+        description: 'Please select a data source and at least one column',
         variant: 'destructive'
       });
       return;
@@ -65,15 +60,11 @@ export function ReportBuilder() {
 
     setIsGenerating(true);
     try {
-      console.log('Generating report with config:', reportConfig);
       const data = await ReportQueryEngine.generateReport(reportConfig);
-      console.log('Raw report data:', data);
-      console.log('Data keys sample:', data.length > 0 ? Object.keys(data[0]) : 'No data');
-      
       setReportData(data);
       toast({
         title: 'Report Generated',
-        description: `Successfully generated report with ${data.length} rows from ${reportConfig.dataSources.length} data source(s)`,
+        description: `Successfully generated report with ${data.length} rows`,
       });
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -87,16 +78,7 @@ export function ReportBuilder() {
     }
   };
 
-  // Extract original column names for display (no longer needed as table will auto-detect)
-  const getDisplayColumns = () => {
-    return reportConfig.selectedColumns.map(col => col.alias || col.column);
-  };
-
-  // Determine if this is a multi-source report
-  const isMultiSource = reportConfig.dataSources.length > 1;
-  const hasMultiSourceData = reportData.length > 0 && reportData[0]._source;
-
-  const canGenerate = reportConfig.dataSources.length > 0 && reportConfig.selectedColumns.length > 0;
+  const canGenerate = reportConfig.dataSource && reportConfig.selectedColumns.length > 0;
 
   return (
     <div className="space-y-6">
@@ -121,24 +103,24 @@ export function ReportBuilder() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('reports.dataSources')}</CardTitle>
+              <CardTitle>{t('reports.dataSource')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <MultiDataSourceSelector
-                dataSources={reportConfig.dataSources}
-                onChange={handleDataSourcesChange}
+              <DataSourceSelector
+                value={reportConfig.dataSource}
+                onChange={handleDataSourceChange}
               />
             </CardContent>
           </Card>
 
-          {reportConfig.dataSources.length > 0 && (
+          {reportConfig.dataSource && (
             <Card>
               <CardHeader>
                 <CardTitle>{t('reports.selectColumns')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <MultiColumnSelector
-                  dataSources={reportConfig.dataSources}
+                <ColumnSelector
+                  dataSource={reportConfig.dataSource}
                   selectedColumns={reportConfig.selectedColumns}
                   onChange={handleColumnsChange}
                 />
@@ -148,14 +130,14 @@ export function ReportBuilder() {
         </div>
 
         <div className="space-y-6">
-          {reportConfig.dataSources.length > 0 && (
+          {reportConfig.dataSource && (
             <Card>
               <CardHeader>
                 <CardTitle>{t('reports.filters')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <MultiCriteriaBuilder
-                  dataSources={reportConfig.dataSources}
+                <CriteriaBuilder
+                  dataSource={reportConfig.dataSource}
                   filters={reportConfig.filters}
                   onChange={handleFiltersChange}
                 />
@@ -178,7 +160,7 @@ export function ReportBuilder() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {reportConfig.dataSources.length === 0 ? (
+              {!reportConfig.dataSource ? (
                 <div className="text-center py-8 text-gray-500">
                   <p>{t('reports.selectDataSourceFirst')}</p>
                 </div>
@@ -191,19 +173,10 @@ export function ReportBuilder() {
                   <p>{t('reports.clickGenerateToSeeResults')}</p>
                 </div>
               ) : (
-                <>
-                  {isMultiSource || hasMultiSourceData ? (
-                    <MultiSourceReportTable
-                      data={reportData}
-                      columns={getDisplayColumns()}
-                    />
-                  ) : (
-                    <DynamicReportTable
-                      data={reportData}
-                      columns={getDisplayColumns()}
-                    />
-                  )}
-                </>
+                <DynamicReportTable
+                  data={reportData}
+                  columns={reportConfig.selectedColumns}
+                />
               )}
             </CardContent>
           </Card>

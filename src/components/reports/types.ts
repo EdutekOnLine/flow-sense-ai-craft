@@ -1,38 +1,13 @@
 
 export interface ReportConfig {
-  dataSources: DataSourceWithJoins[];
-  selectedColumns: SelectedColumn[];
+  dataSource: string;
+  selectedColumns: string[];
   filters: FilterCriteria[];
   name: string;
 }
 
-export interface DataSourceWithJoins {
-  id: string;
-  sourceId: string;
-  alias?: string;
-  joins?: JoinConfig[];
-}
-
-export interface JoinConfig {
-  targetSourceId: string;
-  joinType: 'inner' | 'left' | 'right';
-  onConditions: JoinCondition[];
-}
-
-export interface JoinCondition {
-  leftColumn: string;
-  rightColumn: string;
-}
-
-export interface SelectedColumn {
-  sourceId: string;
-  column: string;
-  alias?: string;
-}
-
 export interface FilterCriteria {
   id: string;
-  sourceId: string;
   column: string;
   operator: FilterOperator;
   value: string | number | boolean;
@@ -61,7 +36,7 @@ export interface DataSourceConfig {
   name: string;
   table: string;
   columns: ColumnConfig[];
-  relationships?: RelationshipConfig[];
+  joins?: JoinConfig[];
 }
 
 export interface ColumnConfig {
@@ -72,9 +47,8 @@ export interface ColumnConfig {
   sortable: boolean;
 }
 
-export interface RelationshipConfig {
-  targetTable: string;
-  localColumn: string;
-  foreignColumn: string;
-  type: 'one-to-one' | 'one-to-many' | 'many-to-one';
+export interface JoinConfig {
+  table: string;
+  on: string;
+  type: 'inner' | 'left' | 'right';
 }
