@@ -310,6 +310,20 @@
     "createReport": "إنشاء تقرير",
     "shared": "مشارك",
     "run": "تشغيل",
-    "share": "مشاركة"
+    "share": "مشاركة",
+    "generateAIReport": "إنشاء تقرير بالذكاء الاصطناعي",
+    "aiAssistant": "مساعد الذكاء الاصطناعي",
+    "aiReportBuilder": "منشئ التقارير بالذكاء الاصطناعي",
+    "aiSubtitle": "إنشاء التقارير باستخدام استعلامات اللغة الطبيعية",
+    "naturalLanguageQuery": "استعلام اللغة الطبيعية",
+    "generatedConfiguration": "التكوين المولد",
+    "selectedColumns": "الأعمدة المحددة",
+    "reportPreview": "معاينة التقرير",
+    "enterQueryToGenerate": "أدخل استعلام لغة طبيعية أعلاه لإنشاء تقرير",
+    "loadingReportData": "جاري تحميل بيانات التقرير...",
+    "noDataFound": "لم يتم العثور على بيانات للمعايير المحددة",
+    "selectDataSourceFirst": "اختر مصدر البيانات أولاً",
+    "selectColumnsFirst": "اختر الأعمدة لتضمينها في تقريرك",
+    "clickGenerateToSeeResults": "انقر 'إنشاء التقرير' لرؤية النتائج"
   }
 }
