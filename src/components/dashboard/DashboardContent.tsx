@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
 import { DashboardTasks } from './DashboardTasks';
@@ -172,7 +171,20 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
 
         {/* Activity feed sidebar - 1/3 width */}
         <div className="lg:col-span-1">
-          <RealtimeActivityFeed />
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.recentActivity')}</h2>
+                <p className="text-gray-600">{t('dashboard.recentActivityDescription')}</p>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200">
+              <RealtimeActivityFeed />
+            </div>
+          </div>
         </div>
       </div>
     </div>
