@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,11 @@ import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-export function ReportBuilder() {
+export interface ReportBuilderRef {
+  resetBuilder: () => void;
+}
+
+export const ReportBuilder = forwardRef<ReportBuilderRef>((props, ref) => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [reportConfig, setReportConfig] = useState<ReportConfig>({
@@ -23,6 +26,19 @@ export function ReportBuilder() {
   });
   const [reportData, setReportData] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    resetBuilder: () => {
+      setReportConfig({
+        dataSource: '',
+        selectedColumns: [],
+        filters: [],
+        name: ''
+      });
+      setReportData([]);
+      setIsGenerating(false);
+    }
+  }));
 
   const handleDataSourceChange = (dataSource: string) => {
     setReportConfig(prev => ({
@@ -184,4 +200,6 @@ export function ReportBuilder() {
       </div>
     </div>
   );
-}
+});
+
+ReportBuilder.displayName = 'ReportBuilder';
