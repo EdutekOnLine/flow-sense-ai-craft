@@ -12,17 +12,208 @@ export class ReportQueryEngine {
     try {
       console.log('Starting report generation with config:', config);
       
-      // For now, we'll simplify multi-source reports by querying each source separately
-      // and combining the results. This avoids complex join syntax issues.
       if (dataSources.length === 1) {
         return await this.generateSingleSourceReport(dataSources[0], selectedColumns, filters);
       } else {
-        return await this.generateSimplifiedMultiSourceReport(dataSources, selectedColumns, filters);
+        // Check if we can do meaningful joins
+        const joinableResults = await this.generateJoinedReport(dataSources, selectedColumns, filters);
+        if (joinableResults.length > 0) {
+          return joinableResults;
+        }
+        
+        // Fall back to multi-section report
+        return await this.generateMultiSectionReport(dataSources, selectedColumns, filters);
       }
     } catch (error) {
       console.error('Failed to generate report:', error);
       throw error;
     }
+  }
+
+  private static async generateJoinedReport(
+    dataSources: DataSourceWithJoins[], 
+    selectedColumns: SelectedColumn[], 
+    filters: any[]
+  ): Promise<any[]> {
+    console.log('Attempting to generate joined report');
+    
+    // Check for common join relationships
+    const hasWorkflowRelationship = this.hasWorkflowRelationship(dataSources);
+    const hasUserRelationship = this.hasUserRelationship(dataSources);
+    
+    if (hasWorkflowRelationship) {
+      return await this.generateWorkflowJoinedReport(dataSources, selectedColumns, filters);
+    } else if (hasUserRelationship) {
+      return await this.generateUserJoinedReport(dataSources, selectedColumns, filters);
+    }
+    
+    return [];
+  }
+
+  private static hasWorkflowRelationship(dataSources: DataSourceWithJoins[]): boolean {
+    const sourceIds = dataSources.map(ds => ds.sourceId);
+    const workflowRelatedSources = ['workflows', 'workflow_steps', 'workflow_step_assignments', 'workflow_performance'];
+    return sourceIds.some(id => workflowRelatedSources.includes(id)) && sourceIds.length > 1;
+  }
+
+  private static hasUserRelationship(dataSources: DataSourceWithJoins[]): boolean {
+    const sourceIds = dataSources.map(ds => ds.sourceId);
+    return sourceIds.includes('profiles') && sourceIds.length > 1;
+  }
+
+  private static async generateWorkflowJoinedReport(
+    dataSources: DataSourceWithJoins[], 
+    selectedColumns: SelectedColumn[], 
+    filters: any[]
+  ): Promise<any[]> {
+    console.log('Generating workflow-based joined report');
+    
+    // Build a query that joins workflow-related tables
+    const workflowColumns = selectedColumns
+      .filter(col => col.sourceId === 'workflows')
+      .map(col => `w.${col.column} as workflow_${col.column}`);
+    
+    const stepColumns = selectedColumns
+      .filter(col => col.sourceId === 'workflow_steps')
+      .map(col => `ws.${col.column} as step_${col.column}`);
+    
+    const performanceColumns = selectedColumns
+      .filter(col => col.sourceId === 'workflow_performance')
+      .map(col => `wp.${col.column} as performance_${col.column}`);
+    
+    const allColumns = [...workflowColumns, ...stepColumns, ...performanceColumns];
+    
+    if (allColumns.length === 0) return [];
+    
+    let query = supabase
+      .from('workflows as w' as any)
+      .select(allColumns.join(', '));
+    
+    // Add joins based on available data sources
+    if (dataSources.some(ds => ds.sourceId === 'workflow_steps')) {
+      query = query.leftJoin('workflow_steps as ws', 'w.id', 'ws.workflow_id');
+    }
+    
+    if (dataSources.some(ds => ds.sourceId === 'workflow_performance')) {
+      query = query.leftJoin('workflow_performance_analytics as wp', 'w.id', 'wp.id');
+    }
+    
+    // Apply filters
+    this.applyFiltersToJoinedQuery(query, filters);
+    
+    query = query.limit(1000);
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Joined query error:', error);
+      return [];
+    }
+    
+    console.log('Joined query result:', { rowCount: data?.length, sampleRow: data?.[0] });
+    return data || [];
+  }
+
+  private static async generateUserJoinedReport(
+    dataSources: DataSourceWithJoins[], 
+    selectedColumns: SelectedColumn[], 
+    filters: any[]
+  ): Promise<any[]> {
+    console.log('Generating user-based joined report');
+    
+    // Build a query that joins user-related tables
+    const profileColumns = selectedColumns
+      .filter(col => col.sourceId === 'profiles')
+      .map(col => `p.${col.column} as user_${col.column}`);
+    
+    const userPerfColumns = selectedColumns
+      .filter(col => col.sourceId === 'user_performance')
+      .map(col => `up.${col.column} as performance_${col.column}`);
+    
+    const allColumns = [...profileColumns, ...userPerfColumns];
+    
+    if (allColumns.length === 0) return [];
+    
+    let query = supabase
+      .from('profiles as p' as any)
+      .select(allColumns.join(', '));
+    
+    if (dataSources.some(ds => ds.sourceId === 'user_performance')) {
+      query = query.leftJoin('user_performance_analytics as up', 'p.id', 'up.id');
+    }
+    
+    this.applyFiltersToJoinedQuery(query, filters);
+    query = query.limit(1000);
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('User joined query error:', error);
+      return [];
+    }
+    
+    console.log('User joined query result:', { rowCount: data?.length, sampleRow: data?.[0] });
+    return data || [];
+  }
+
+  private static async generateMultiSectionReport(
+    dataSources: DataSourceWithJoins[], 
+    selectedColumns: SelectedColumn[], 
+    filters: any[]
+  ): Promise<any[]> {
+    console.log('Generating multi-section report');
+    
+    const results: any[] = [];
+    
+    for (const dataSource of dataSources) {
+      const sourceColumns = selectedColumns.filter(col => col.sourceId === dataSource.sourceId);
+      const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
+      
+      if (sourceColumns.length > 0) {
+        try {
+          const sourceData = await this.generateSingleSourceReport(dataSource, sourceColumns, sourceFilters);
+          
+          // Add prefixed columns and source identification
+          const enrichedData = sourceData.map(row => {
+            const newRow: any = {
+              _source: dataSource.sourceId,
+              _sourceLabel: this.getSourceLabel(dataSource.sourceId)
+            };
+            
+            // Prefix column names with source to avoid conflicts
+            sourceColumns.forEach(col => {
+              const originalKey = col.column;
+              const prefixedKey = `${dataSource.sourceId}_${originalKey}`;
+              newRow[prefixedKey] = row[originalKey];
+            });
+            
+            return newRow;
+          });
+          
+          results.push(...enrichedData);
+        } catch (error) {
+          console.error(`Error querying source ${dataSource.sourceId}:`, error);
+        }
+      }
+    }
+    
+    console.log('Multi-section report result:', { rowCount: results.length, sampleRow: results[0] });
+    return results;
+  }
+
+  private static getSourceLabel(sourceId: string): string {
+    const labelMap: Record<string, string> = {
+      'workflow_performance': 'Workflow Performance',
+      'user_performance': 'User Performance',
+      'workflows': 'Workflows',
+      'profiles': 'Users',
+      'workflow_steps': 'Workflow Steps',
+      'workflow_step_assignments': 'Task Assignments',
+      'department_analytics': 'Department Analytics',
+      'workflow_trends': 'Workflow Trends',
+      'notifications': 'Notifications'
+    };
+    return labelMap[sourceId] || sourceId;
   }
 
   private static async generateSingleSourceReport(
@@ -99,95 +290,81 @@ export class ReportQueryEngine {
     return data || [];
   }
 
-  private static async generateSimplifiedMultiSourceReport(
-    dataSources: DataSourceWithJoins[], 
-    selectedColumns: SelectedColumn[], 
-    filters: any[]
-  ): Promise<any[]> {
-    // For now, we'll query each data source separately and combine results
-    // This is a simplified approach that avoids complex join syntax
-    const results: any[] = [];
-    
-    for (const dataSource of dataSources) {
-      const sourceColumns = selectedColumns.filter(col => col.sourceId === dataSource.sourceId);
-      const sourceFilters = filters.filter(f => f.sourceId === dataSource.sourceId);
+  private static applyFiltersToJoinedQuery(query: any, filters: any[]) {
+    filters.forEach(filter => {
+      // For joined queries, we need to prefix the column with the appropriate table alias
+      let column = filter.column;
       
-      if (sourceColumns.length > 0) {
-        try {
-          const sourceData = await this.generateSingleSourceReport(dataSource, sourceColumns, sourceFilters);
-          
-          // Add source identifier to each row
-          const enrichedData = sourceData.map(row => ({
-            ...row,
-            _source: dataSource.sourceId
-          }));
-          
-          results.push(...enrichedData);
-        } catch (error) {
-          console.error(`Error querying source ${dataSource.sourceId}:`, error);
-          // Continue with other sources even if one fails
-        }
+      // Add table prefixes based on source
+      if (filter.sourceId === 'workflows') {
+        column = `w.${column}`;
+      } else if (filter.sourceId === 'workflow_steps') {
+        column = `ws.${column}`;
+      } else if (filter.sourceId === 'profiles') {
+        column = `p.${column}`;
       }
-    }
-
-    return results;
+      
+      this.applySingleFilter(query, column, filter);
+    });
   }
 
   private static applyFilters(query: any, filters: any[]) {
     filters.forEach(filter => {
-      const column = filter.column;
-
-      switch (filter.operator) {
-        case 'equals':
-          query = query.eq(column, filter.value);
-          break;
-        case 'not_equals':
-          query = query.neq(column, filter.value);
-          break;
-        case 'contains':
-          query = query.ilike(column, `%${filter.value}%`);
-          break;
-        case 'not_contains':
-          query = query.not(column, 'ilike', `%${filter.value}%`);
-          break;
-        case 'starts_with':
-          query = query.ilike(column, `${filter.value}%`);
-          break;
-        case 'ends_with':
-          query = query.ilike(column, `%${filter.value}`);
-          break;
-        case 'greater_than':
-          query = query.gt(column, filter.value);
-          break;
-        case 'less_than':
-          query = query.lt(column, filter.value);
-          break;
-        case 'greater_equal':
-          query = query.gte(column, filter.value);
-          break;
-        case 'less_equal':
-          query = query.lte(column, filter.value);
-          break;
-        case 'is_null':
-          query = query.is(column, null);
-          break;
-        case 'is_not_null':
-          query = query.not(column, 'is', null);
-          break;
-        case 'in':
-          if (typeof filter.value === 'string') {
-            const values = filter.value.split(',').map(v => v.trim());
-            query = query.in(column, values);
-          }
-          break;
-        case 'not_in':
-          if (typeof filter.value === 'string') {
-            const values = filter.value.split(',').map(v => v.trim());
-            query = query.not(column, 'in', values);
-          }
-          break;
-      }
+      this.applySingleFilter(query, filter.column, filter);
     });
+  }
+
+  private static applySingleFilter(query: any, column: string, filter: any) {
+    switch (filter.operator) {
+      case 'equals':
+        query = query.eq(column, filter.value);
+        break;
+      case 'not_equals':
+        query = query.neq(column, filter.value);
+        break;
+      case 'contains':
+        query = query.ilike(column, `%${filter.value}%`);
+        break;
+      case 'not_contains':
+        query = query.not(column, 'ilike', `%${filter.value}%`);
+        break;
+      case 'starts_with':
+        query = query.ilike(column, `${filter.value}%`);
+        break;
+      case 'ends_with':
+        query = query.ilike(column, `%${filter.value}`);
+        break;
+      case 'greater_than':
+        query = query.gt(column, filter.value);
+        break;
+      case 'less_than':
+        query = query.lt(column, filter.value);
+        break;
+      case 'greater_equal':
+        query = query.gte(column, filter.value);
+        break;
+      case 'less_equal':
+        query = query.lte(column, filter.value);
+        break;
+      case 'is_null':
+        query = query.is(column, null);
+        break;
+      case 'is_not_null':
+        query = query.not(column, 'is', null);
+        break;
+      case 'in':
+        if (typeof filter.value === 'string') {
+          const values = filter.value.split(',').map(v => v.trim());
+          query = query.in(column, values);
+        }
+        break;
+      case 'not_in':
+        if (typeof filter.value === 'string') {
+          const values = filter.value.split(',').map(v => v.trim());
+          query = query.not(column, 'in', values);
+        }
+        break;
+    }
   }
 
   private static getTableName(sourceId: string): string {

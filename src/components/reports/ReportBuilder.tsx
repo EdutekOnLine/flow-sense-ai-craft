@@ -7,6 +7,7 @@ import { MultiDataSourceSelector } from './MultiDataSourceSelector';
 import { MultiCriteriaBuilder } from './MultiCriteriaBuilder';
 import { MultiColumnSelector } from './MultiColumnSelector';
 import { DynamicReportTable } from './DynamicReportTable';
+import { MultiSourceReportTable } from './MultiSourceReportTable';
 import { ReportConfig, FilterCriteria, DataSourceWithJoins, SelectedColumn } from './types';
 import { ReportQueryEngine } from './ReportQueryEngine';
 import { Play, Save, Download } from 'lucide-react';
@@ -98,6 +99,10 @@ export function ReportBuilder() {
     
     return dataKeys;
   };
+
+  // Determine if this is a multi-source report
+  const isMultiSource = reportConfig.dataSources.length > 1;
+  const hasMultiSourceData = reportData.length > 0 && reportData[0]._source;
 
   const canGenerate = reportConfig.dataSources.length > 0 && reportConfig.selectedColumns.length > 0;
 
@@ -194,10 +199,19 @@ export function ReportBuilder() {
                   <p>{t('reports.clickGenerateToSeeResults')}</p>
                 </div>
               ) : (
-                <DynamicReportTable
-                  data={reportData}
-                  columns={getActualColumns()}
-                />
+                <>
+                  {isMultiSource || hasMultiSourceData ? (
+                    <MultiSourceReportTable
+                      data={reportData}
+                      columns={getActualColumns()}
+                    />
+                  ) : (
+                    <DynamicReportTable
+                      data={reportData}
+                      columns={getActualColumns()}
+                    />
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
