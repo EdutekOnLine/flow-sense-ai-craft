@@ -8,7 +8,7 @@ import { ReportBuilder } from './ReportBuilder';
 import { PredefinedReports } from './PredefinedReports';
 import { SavedReports } from './SavedReports';
 import { AIReportBuilder } from './AIReportBuilder';
-import { BarChart3, Settings, FileText, Plus, Sparkles } from 'lucide-react';
+import { BarChart3, FileBarChart, FileText, Plus, Sparkles } from 'lucide-react';
 
 export function ReportsPage() {
   const { t } = useTranslation();
@@ -73,7 +73,7 @@ export function ReportsPage() {
       case 'ai-assistant':
         return <Sparkles className="h-4 w-4 mr-2" />;
       case 'builder':
-        return <Settings className="h-4 w-4 mr-2" />;
+        return <FileBarChart className="h-4 w-4 mr-2" />;
       case 'predefined':
         return <Plus className="h-4 w-4 mr-2" />;
       case 'saved':
@@ -105,7 +105,7 @@ export function ReportsPage() {
             <span>{t('reports.aiAssistant')}</span>
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center space-x-2">
-            <Settings className="h-4 w-4" />
+            <FileBarChart className="h-4 w-4" />
             <span>{t('reports.reportBuilder')}</span>
           </TabsTrigger>
           <TabsTrigger value="predefined" className="flex items-center space-x-2">
