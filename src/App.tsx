@@ -61,7 +61,8 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={user ? <Dashboard /> : <AuthPage />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/auth" element={<AuthPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

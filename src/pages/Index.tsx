@@ -44,7 +44,7 @@ const Index = () => {
               <LayoutDashboard className="h-8 w-8 text-blue-600 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
-            <Button onClick={() => navigate('/dashboard')}>
+            <Button onClick={() => navigate('/auth')}>
               Sign In
             </Button>
           </div>
@@ -64,7 +64,7 @@ const Index = () => {
           <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
             <Button 
               size="lg" 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/auth')}
               className="w-full sm:w-auto"
             >
               Get Started
