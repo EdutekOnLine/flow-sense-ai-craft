@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -150,13 +151,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               href="https://neuraflowai.app" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
+              className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
             >
-              <img 
-                src="/neuraflow-logo.png" 
-                alt="NeuraFlow Logo" 
-                className="h-10 w-10"
-              />
+              <LayoutDashboard className={`h-8 w-8 text-blue-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </a>
             <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
               <LanguageSwitcher />
