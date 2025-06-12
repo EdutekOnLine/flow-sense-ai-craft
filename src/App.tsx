@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import Index from "./pages/Index";
 import AuthPage from "./components/auth/AuthPage";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./hooks/useAuth";
@@ -58,11 +57,17 @@ const AppContent = () => {
     return <AuthPage />;
   }
 
+  // If user is not authenticated and no invite token, show auth page
+  if (!user) {
+    console.log('No user and no invite token, showing AuthPage');
+    return <AuthPage />;
+  }
+
+  // If user is authenticated and no invite token, show dashboard
+  console.log('User authenticated and no invite token, showing Dashboard');
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/" element={<Dashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
