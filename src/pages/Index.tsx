@@ -4,32 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutDashboard, Workflow, Users, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // If user is authenticated, redirect to dashboard
-    if (user && !loading) {
-      navigate('/dashboard');
-    }
-  }, [user, loading, navigate]);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  if (user) {
-    // This will be handled by the useEffect redirect, but show loading for a moment
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Redirecting to dashboard...</div>
       </div>
     );
   }
@@ -44,9 +27,20 @@ const Index = () => {
               <LayoutDashboard className="h-8 w-8 text-blue-600 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </div>
-            <Button onClick={() => navigate('/auth')}>
-              Sign In
-            </Button>
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                    Dashboard
+                  </Button>
+                  <span className="text-sm text-gray-600">Welcome back!</span>
+                </>
+              ) : (
+                <Button onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -62,13 +56,23 @@ const Index = () => {
             Streamline your business processes with intelligent automation. Create, manage, and optimize workflows with the power of artificial intelligence.
           </p>
           <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/auth')}
-              className="w-full sm:w-auto"
-            >
-              Get Started
-            </Button>
+            {user ? (
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/dashboard')}
+                className="w-full sm:w-auto"
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/auth')}
+                className="w-full sm:w-auto"
+              >
+                Get Started
+              </Button>
+            )}
           </div>
         </div>
 
