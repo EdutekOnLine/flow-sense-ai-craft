@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
 
+  // Always show loading spinner while authentication state is being determined
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -16,11 +17,13 @@ export default function Dashboard() {
     );
   }
 
-  // If not authenticated, show auth page directly instead of redirecting
+  // Only after loading is complete, decide what to show
+  // If not authenticated, show auth page directly
   if (!user || !profile) {
     return <AuthPage />;
   }
 
+  // User is authenticated, show the dashboard
   return (
     <DashboardLayout>
       <DashboardContent />
