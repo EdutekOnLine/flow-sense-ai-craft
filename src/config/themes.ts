@@ -1,0 +1,167 @@
+
+import { ColorPalette } from '@/types/theme';
+
+export const colorPalettes: ColorPalette[] = [
+  {
+    id: 'default',
+    name: 'Default',
+    colors: {
+      primary: '222.2 47.4% 11.2%',
+      'primary-foreground': '210 40% 98%',
+      secondary: '210 40% 96.1%',
+      'secondary-foreground': '222.2 47.4% 11.2%',
+      accent: '210 40% 96.1%',
+      'accent-foreground': '222.2 47.4% 11.2%',
+      muted: '210 40% 96.1%',
+      'muted-foreground': '215.4 16.3% 46.9%',
+      background: '0 0% 100%',
+      foreground: '222.2 84% 4.9%',
+      border: '214.3 31.8% 91.4%',
+      input: '214.3 31.8% 91.4%',
+      ring: '222.2 84% 4.9%',
+      card: '0 0% 100%',
+      'card-foreground': '222.2 84% 4.9%',
+      popover: '0 0% 100%',
+      'popover-foreground': '222.2 84% 4.9%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    colors: {
+      primary: '200 100% 15%',
+      'primary-foreground': '180 100% 98%',
+      secondary: '180 45% 94%',
+      'secondary-foreground': '200 50% 15%',
+      accent: '185 80% 85%',
+      'accent-foreground': '200 50% 15%',
+      muted: '180 30% 92%',
+      'muted-foreground': '200 15% 45%',
+      background: '180 20% 99%',
+      foreground: '200 50% 10%',
+      border: '180 25% 88%',
+      input: '180 25% 88%',
+      ring: '200 80% 40%',
+      card: '180 20% 99%',
+      'card-foreground': '200 50% 10%',
+      popover: '180 20% 99%',
+      'popover-foreground': '200 50% 10%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  },
+  {
+    id: 'sunset',
+    name: 'Sunset',
+    colors: {
+      primary: '15 80% 25%',
+      'primary-foreground': '20 100% 98%',
+      secondary: '25 60% 95%',
+      'secondary-foreground': '15 60% 25%',
+      accent: '30 85% 88%',
+      'accent-foreground': '15 60% 25%',
+      muted: '25 40% 93%',
+      'muted-foreground': '15 20% 45%',
+      background: '25 30% 99%',
+      foreground: '15 60% 10%',
+      border: '25 30% 90%',
+      input: '25 30% 90%',
+      ring: '20 80% 45%',
+      card: '25 30% 99%',
+      'card-foreground': '15 60% 10%',
+      popover: '25 30% 99%',
+      'popover-foreground': '15 60% 10%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  },
+  {
+    id: 'forest',
+    name: 'Forest',
+    colors: {
+      primary: '140 60% 20%',
+      'primary-foreground': '120 100% 98%',
+      secondary: '120 30% 94%',
+      'secondary-foreground': '140 50% 20%',
+      accent: '125 50% 88%',
+      'accent-foreground': '140 50% 20%',
+      muted: '120 25% 92%',
+      'muted-foreground': '140 15% 45%',
+      background: '120 20% 99%',
+      foreground: '140 50% 10%',
+      border: '120 20% 88%',
+      input: '120 20% 88%',
+      ring: '130 60% 40%',
+      card: '120 20% 99%',
+      'card-foreground': '140 50% 10%',
+      popover: '120 20% 99%',
+      'popover-foreground': '140 50% 10%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  },
+  {
+    id: 'purple',
+    name: 'Purple',
+    colors: {
+      primary: '270 70% 25%',
+      'primary-foreground': '280 100% 98%',
+      secondary: '280 40% 94%',
+      'secondary-foreground': '270 60% 25%',
+      accent: '275 60% 88%',
+      'accent-foreground': '270 60% 25%',
+      muted: '280 30% 92%',
+      'muted-foreground': '270 15% 45%',
+      background: '280 20% 99%',
+      foreground: '270 60% 10%',
+      border: '280 20% 88%',
+      input: '280 20% 88%',
+      ring: '275 70% 45%',
+      card: '280 20% 99%',
+      'card-foreground': '270 60% 10%',
+      popover: '280 20% 99%',
+      'popover-foreground': '270 60% 10%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  },
+  {
+    id: 'monochrome',
+    name: 'Monochrome',
+    colors: {
+      primary: '0 0% 15%',
+      'primary-foreground': '0 0% 98%',
+      secondary: '0 0% 94%',
+      'secondary-foreground': '0 0% 15%',
+      accent: '0 0% 88%',
+      'accent-foreground': '0 0% 15%',
+      muted: '0 0% 92%',
+      'muted-foreground': '0 0% 45%',
+      background: '0 0% 100%',
+      foreground: '0 0% 5%',
+      border: '0 0% 88%',
+      input: '0 0% 88%',
+      ring: '0 0% 20%',
+      card: '0 0% 100%',
+      'card-foreground': '0 0% 5%',
+      popover: '0 0% 100%',
+      'popover-foreground': '0 0% 5%',
+      destructive: '0 84.2% 60.2%',
+      'destructive-foreground': '210 40% 98%'
+    }
+  }
+];
+
+export const borderRadiusValues = {
+  sharp: '0px',
+  rounded: '8px',
+  'very-rounded': '16px'
+};
+
+export const cardShadowValues = {
+  none: 'none',
+  subtle: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+  pronounced: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
+};

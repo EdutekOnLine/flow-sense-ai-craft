@@ -21,6 +21,7 @@ import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ReportsPage } from '@/components/reports/ReportsPage';
+import { ThemeSettings } from '@/components/theme/ThemeSettings';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -129,12 +130,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         );
       case 'settings':
-        return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.settings')}</h2>
-            <p className="text-gray-600">System settings functionality coming soon...</p>
-          </div>
-        );
+        return <ThemeSettings />;
       default:
         return children ? React.cloneElement(children as React.ReactElement, { onOpenWorkflow: handleOpenWorkflow }) : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
     }

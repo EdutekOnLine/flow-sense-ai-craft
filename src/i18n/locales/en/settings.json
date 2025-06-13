@@ -1,0 +1,16 @@
+
+{
+  "settings": {
+    "appearance": "Appearance Settings",
+    "appearanceDescription": "Customize your personal theme and visual preferences",
+    "colorPalette": "Color Palette",
+    "colorThemes": "Color Themes",
+    "visualPreferences": "Visual Preferences",
+    "borderRadius": "Border Radius",
+    "cardShadows": "Card Shadows",
+    "sidebarStyle": "Sidebar Style",
+    "animations": "Animations",
+    "resetToDefault": "Reset to Default",
+    "themeNote": "Your theme settings are saved locally and won't affect other users."
+  }
+}
