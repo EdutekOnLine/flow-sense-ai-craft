@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -128,18 +127,32 @@ export default function UserManagement() {
 
   const createInvitation = useMutation({
     mutationFn: async (invitation: typeof inviteForm) => {
+      // Validate that user is authenticated and has required role
+      if (!user?.id) {
+        throw new Error('You must be logged in to send invitations');
+      }
+
+      if (!profile || !['admin', 'root'].includes(profile.role)) {
+        throw new Error('You do not have permission to send invitations');
+      }
+
+      console.log('Creating invitation with user ID:', user.id);
+
       const { data, error } = await supabase
         .from('user_invitations')
         .insert([{
           email: invitation.email,
           role: invitation.role,
           department: invitation.department || null,
-          invited_by: user?.id,
+          invited_by: user.id,
         }])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Database error creating invitation:', error);
+        throw new Error(`Failed to create invitation: ${error.message}`);
+      }
 
       console.log('Created invitation record:', data);
 
@@ -152,7 +165,7 @@ export default function UserManagement() {
           invitedByName: profile?.first_name && profile?.last_name 
             ? `${profile.first_name} ${profile.last_name}` 
             : profile?.email,
-          invitedBy: user?.id,
+          invitedBy: user.id,
         },
       });
 
@@ -178,9 +191,10 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
     },
     onError: (error: any) => {
+      console.error('Error creating invitation:', error);
       toast({
         title: t('users.errorCreatingInvitation'),
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive',
       });
     },
@@ -248,6 +262,25 @@ export default function UserManagement() {
       });
       return;
     }
+
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Required',
+        description: 'You must be logged in to send invitations',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!profile || !['admin', 'root'].includes(profile.role)) {
+      toast({
+        title: 'Permission Denied',
+        description: 'You do not have permission to send invitations',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     createInvitation.mutate(inviteForm);
   };
 
