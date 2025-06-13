@@ -336,6 +336,32 @@
     background-color: hsl(var(--accent) / 0.1) !important;
   }
 
+  /* Enhanced theme-aware background utilities */
+  .bg-theme-primary-subtle {
+    background-color: hsl(var(--primary) / 0.05) !important;
+  }
+
+  .bg-theme-secondary-subtle {
+    background-color: hsl(var(--secondary) / 0.05) !important;
+  }
+
+  .bg-theme-accent-subtle {
+    background-color: hsl(var(--accent) / 0.05) !important;
+  }
+
+  /* Theme-aware border utilities */
+  .border-theme-primary {
+    border-color: hsl(var(--primary) / 0.2) !important;
+  }
+
+  .border-theme-secondary {
+    border-color: hsl(var(--secondary) / 0.2) !important;
+  }
+
+  .border-theme-accent {
+    border-color: hsl(var(--accent) / 0.2) !important;
+  }
+
   /* Force theme updates for specific elements */
   .theme-aware-bg {
     background-color: hsl(var(--background)) !important;
@@ -347,5 +373,18 @@
 
   .theme-aware-border {
     border-color: hsl(var(--border)) !important;
+  }
+
+  /* Enhanced theme-aware gradients for different components */
+  .bg-gradient-theme-hero {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1)) !important;
+  }
+
+  .bg-gradient-theme-card {
+    background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(var(--card) / 0.95)) !important;
+  }
+
+  .bg-gradient-theme-sidebar {
+    background: linear-gradient(180deg, hsl(var(--secondary) / 0.03), hsl(var(--muted) / 0.08)) !important;
   }
 }

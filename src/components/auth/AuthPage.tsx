@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -195,13 +196,13 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-theme-primary p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Workflow className="h-12 w-12 text-blue-600" />
+            <Workflow className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">NeuraFlow</CardTitle>
+          <CardTitle className="text-2xl font-bold text-foreground">NeuraFlow</CardTitle>
           <CardDescription>
             Intelligent Workflow Management System
           </CardDescription>
@@ -329,7 +330,7 @@ export default function AuthPage() {
                 </form>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     You need a valid invitation link to create an account.
                   </p>
                 </div>
