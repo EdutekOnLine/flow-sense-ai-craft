@@ -40,7 +40,7 @@ export function VisualPreferences() {
     // Geometric Shapes
     { value: 'hexagonal', label: 'Hexagonal', category: 'Geometric' },
     { value: 'diamond', label: 'Diamond', category: 'Geometric' },
-  ] as const;
+  ];
 
   const groupedShapes = shapeOptions.reduce((acc, shape) => {
     if (!acc[shape.category]) {
@@ -48,7 +48,7 @@ export function VisualPreferences() {
     }
     acc[shape.category].push(shape);
     return acc;
-  }, {} as Record<string, typeof shapeOptions>);
+  }, {} as Record<string, Array<{ value: string; label: string; category: string }>>);
 
   return (
     <div className="space-y-6">
