@@ -35,27 +35,33 @@ export function VisualPreferences() {
           <RadioGroup
             value={themeSettings.visualPreferences.borderRadius}
             onValueChange={(value) => updateVisualPreference('borderRadius', value as any)}
-            className="space-y-3"
+            className="space-y-4"
           >
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="sharp" id="sharp" />
-              <Label htmlFor="sharp" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusSharp')}</span>
-                <div className="w-4 h-4 bg-primary" />
+              <Label htmlFor="sharp" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.borderRadiusSharp')}</span>
+                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium" style={{ borderRadius: '0px' }}>
+                  Button
+                </div>
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="rounded" id="rounded" />
-              <Label htmlFor="rounded" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusRounded')}</span>
-                <div className="w-4 h-4 bg-primary rounded" />
+              <Label htmlFor="rounded" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.borderRadiusRounded')}</span>
+                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-md">
+                  Button
+                </div>
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="very-rounded" id="very-rounded" />
-              <Label htmlFor="very-rounded" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusVeryRounded')}</span>
-                <div className="w-4 h-4 bg-primary rounded-xl" />
+              <Label htmlFor="very-rounded" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.borderRadiusVeryRounded')}</span>
+                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-full">
+                  Button
+                </div>
               </Label>
             </div>
           </RadioGroup>
@@ -71,27 +77,33 @@ export function VisualPreferences() {
           <RadioGroup
             value={themeSettings.visualPreferences.cardShadows}
             onValueChange={(value) => updateVisualPreference('cardShadows', value as any)}
-            className="space-y-3"
+            className="space-y-4"
           >
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="none" id="none" />
-              <Label htmlFor="none" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsNone')}</span>
-                <div className="w-8 h-6 bg-primary rounded border" />
+              <Label htmlFor="none" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.shadowsNone')}</span>
+                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground">
+                  Card
+                </div>
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="subtle" id="subtle" />
-              <Label htmlFor="subtle" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsSubtle')}</span>
-                <div className="w-8 h-6 bg-primary rounded shadow-sm" />
+              <Label htmlFor="subtle" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.shadowsSubtle')}</span>
+                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground shadow-sm">
+                  Card
+                </div>
               </Label>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <RadioGroupItem value="pronounced" id="pronounced" />
-              <Label htmlFor="pronounced" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsPronounced')}</span>
-                <div className="w-8 h-6 bg-primary rounded shadow-lg" />
+              <Label htmlFor="pronounced" className="flex items-center space-x-3 cursor-pointer">
+                <span className="flex-1">{t('settings.shadowsPronounced')}</span>
+                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground shadow-lg">
+                  Card
+                </div>
               </Label>
             </div>
           </RadioGroup>
