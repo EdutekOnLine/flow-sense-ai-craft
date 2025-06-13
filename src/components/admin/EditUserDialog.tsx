@@ -112,10 +112,10 @@ export function EditUserDialog({ user, isOpen, onClose }: EditUserDialogProps) {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'root': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'root': return 'bg-role-root text-role-root-foreground';
+      case 'admin': return 'bg-role-admin text-role-admin-foreground';
+      case 'manager': return 'bg-role-manager text-role-manager-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

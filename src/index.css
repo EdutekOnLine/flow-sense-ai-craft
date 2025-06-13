@@ -36,6 +36,25 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Status colors */
+    --status-pending: 30 70% 50%;
+    --status-pending-bg: 30 70% 95%;
+    --status-active: 210 70% 50%;
+    --status-active-bg: 210 70% 95%;
+    --status-success: 130 70% 40%;
+    --status-success-bg: 130 70% 95%;
+
+    /* Role colors */
+    --role-root: 270 70% 50%;
+    --role-root-foreground: 270 70% 10%;
+    --role-root-bg: 270 70% 95%;
+    --role-admin: 0 70% 50%;
+    --role-admin-foreground: 0 70% 10%;
+    --role-admin-bg: 0 70% 95%;
+    --role-manager: 210 70% 50%;
+    --role-manager-foreground: 210 70% 10%;
+    --role-manager-bg: 210 70% 95%;
   }
 
   .dark {
@@ -66,6 +85,25 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Status colors for dark mode */
+    --status-pending: 30 70% 60%;
+    --status-pending-bg: 30 70% 15%;
+    --status-active: 210 70% 60%;
+    --status-active-bg: 210 70% 15%;
+    --status-success: 130 70% 60%;
+    --status-success-bg: 130 70% 15%;
+
+    /* Role colors for dark mode */
+    --role-root: 270 70% 60%;
+    --role-root-foreground: 270 70% 90%;
+    --role-root-bg: 270 70% 15%;
+    --role-admin: 0 70% 60%;
+    --role-admin-foreground: 0 70% 90%;
+    --role-admin-bg: 0 70% 15%;
+    --role-manager: 210 70% 60%;
+    --role-manager-foreground: 210 70% 90%;
+    --role-manager-bg: 210 70% 15%;
   }
 
   * {
@@ -386,5 +424,79 @@
 
   .bg-gradient-theme-sidebar {
     background: linear-gradient(180deg, hsl(var(--secondary) / 0.03), hsl(var(--muted) / 0.08)) !important;
+  }
+
+  /* Status color utilities */
+  .text-status-pending {
+    color: hsl(var(--status-pending)) !important;
+  }
+
+  .bg-status-pending {
+    background-color: hsl(var(--status-pending)) !important;
+  }
+
+  .bg-status-pending-bg {
+    background-color: hsl(var(--status-pending-bg)) !important;
+  }
+
+  .text-status-active {
+    color: hsl(var(--status-active)) !important;
+  }
+
+  .bg-status-active {
+    background-color: hsl(var(--status-active)) !important;
+  }
+
+  .bg-status-active-bg {
+    background-color: hsl(var(--status-active-bg)) !important;
+  }
+
+  .text-status-success {
+    color: hsl(var(--status-success)) !important;
+  }
+
+  .bg-status-success {
+    background-color: hsl(var(--status-success)) !important;
+  }
+
+  .bg-status-success-bg {
+    background-color: hsl(var(--status-success-bg)) !important;
+  }
+
+  /* Role color utilities */
+  .text-role-root {
+    color: hsl(var(--role-root)) !important;
+  }
+
+  .bg-role-root {
+    background-color: hsl(var(--role-root-bg)) !important;
+  }
+
+  .text-role-root-foreground {
+    color: hsl(var(--role-root-foreground)) !important;
+  }
+
+  .text-role-admin {
+    color: hsl(var(--role-admin)) !important;
+  }
+
+  .bg-role-admin {
+    background-color: hsl(var(--role-admin-bg)) !important;
+  }
+
+  .text-role-admin-foreground {
+    color: hsl(var(--role-admin-foreground)) !important;
+  }
+
+  .text-role-manager {
+    color: hsl(var(--role-manager)) !important;
+  }
+
+  .bg-role-manager {
+    background-color: hsl(var(--role-manager-bg)) !important;
+  }
+
+  .text-role-manager-foreground {
+    color: hsl(var(--role-manager-foreground)) !important;
   }
 }

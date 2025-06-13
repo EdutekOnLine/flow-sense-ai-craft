@@ -22,11 +22,11 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-primary" />;
+        return <Clock className="h-4 w-4 text-status-pending" />;
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-secondary" />;
+        return <PlayCircle className="h-4 w-4 text-status-active" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-accent" />;
+        return <CheckCircle className="h-4 w-4 text-status-success" />;
       default:
         return <Clock className="h-4 w-4" />;
     }
@@ -35,11 +35,11 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-primary/10 text-primary';
+        return 'bg-status-pending-bg text-status-pending';
       case 'in_progress':
-        return 'bg-secondary/10 text-secondary';
+        return 'bg-status-active-bg text-status-active';
       case 'completed':
-        return 'bg-accent/10 text-accent';
+        return 'bg-status-success-bg text-status-success';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -91,10 +91,10 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
       {/* Stats header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+          <Badge variant="secondary" className="bg-status-pending-bg text-status-pending text-xs">
             {pendingCount} {t('status.pending')}
           </Badge>
-          <Badge variant="secondary" className="bg-secondary/10 text-secondary text-xs">
+          <Badge variant="secondary" className="bg-status-active-bg text-status-active text-xs">
             {inProgressCount} {t('status.active')}
           </Badge>
         </div>
@@ -147,7 +147,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     <DialogTrigger asChild>
                       <Button
                         size="sm"
-                        className="h-7 text-xs bg-accent hover:bg-accent/90 text-accent-foreground"
+                        className="h-7 text-xs bg-status-success hover:bg-status-success/90 text-primary-foreground"
                         disabled={isCompleting}
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -184,7 +184,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                             {t('common.cancel')}
                           </Button>
                           <Button
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            className="bg-status-success hover:bg-status-success/90 text-primary-foreground"
                             onClick={() => handleCompleteStep(assignment)}
                             disabled={isCompleting}
                           >

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -295,18 +296,18 @@ export default function UserManagement() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'root': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'root': return 'bg-role-root text-role-root-foreground';
+      case 'admin': return 'bg-role-admin text-role-admin-foreground';
+      case 'manager': return 'bg-role-manager text-role-manager-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   if (profile?.role === 'employee') {
     return (
       <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('users.accessDenied')}</h2>
-        <p className="text-gray-600">{t('users.noPermission')}</p>
+        <h2 className="text-2xl font-bold text-foreground mb-4">{t('users.accessDenied')}</h2>
+        <p className="text-muted-foreground">{t('users.noPermission')}</p>
       </div>
     );
   }
@@ -316,26 +317,26 @@ export default function UserManagement() {
   return (
     <div className="space-y-8">
       {/* Gradient Header */}
-      <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border border-green-200 rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50/80 via-emerald-50/80 to-green-50/80 rounded-xl"></div>
+      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-theme-card rounded-xl"></div>
         <div className="relative">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Users className="h-8 w-8 text-white" />
+            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+              <Users className="h-8 w-8 text-primary-foreground" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-bold text-foreground">
                 {isManagerRole ? t('users.teamMembers') : t('navigation.users')}
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 {isManagerRole ? t('users.viewTeamMembers') : t('users.manageUsersDescription')}
               </p>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
                   {users.length} Active Users
                 </span>
                 {isManagerRole && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge variant="secondary" className="bg-secondary/10 text-secondary">
                     <Shield className="h-3 w-3 mr-1" />
                     {t('users.viewOnly')}
                   </Badge>
@@ -349,11 +350,11 @@ export default function UserManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Invite New User - Only show for root and admin */}
         {canInviteUsers() && (
-          <Card className="bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50">
+          <Card className="bg-gradient-theme-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
-                  <UserPlus className="h-4 w-4 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mr-3">
+                  <UserPlus className="h-4 w-4 text-primary-foreground" />
                 </div>
                 {t('users.inviteNewUser')}
               </CardTitle>
@@ -367,13 +368,13 @@ export default function UserManagement() {
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                   placeholder={t('users.emailPlaceholder')}
-                  className="bg-white/80 backdrop-blur-sm"
+                  className="bg-card/80 backdrop-blur-sm"
                 />
               </div>
               <div>
                 <Label htmlFor="role">{t('users.roleLabel')}</Label>
                 <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>
-                  <SelectTrigger className="bg-white/80 backdrop-blur-sm">
+                  <SelectTrigger className="bg-card/80 backdrop-blur-sm">
                     <SelectValue placeholder={t('users.selectRolePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -390,13 +391,13 @@ export default function UserManagement() {
                   value={inviteForm.department}
                   onChange={(e) => setInviteForm({ ...inviteForm, department: e.target.value })}
                   placeholder={t('users.departmentPlaceholder')}
-                  className="bg-white/80 backdrop-blur-sm"
+                  className="bg-card/80 backdrop-blur-sm"
                 />
               </div>
               <Button 
                 onClick={handleInviteUser} 
                 disabled={createInvitation.isPending}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               >
                 {createInvitation.isPending ? t('users.creating') : t('users.sendInvitation')}
               </Button>
@@ -405,12 +406,12 @@ export default function UserManagement() {
         )}
 
         {/* Active Users */}
-        <Card className={`bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50 ${canInviteUsers() ? '' : 'lg:col-span-2'}`}>
+        <Card className={`bg-gradient-theme-card border-border ${canInviteUsers() ? '' : 'lg:col-span-2'}`}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
-                  <Users className="h-4 w-4 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mr-3">
+                  <Users className="h-4 w-4 text-primary-foreground" />
                 </div>
                 {isManagerRole ? t('users.teamMembers') : t('users.activeUsers')} ({users.length})
               </div>
@@ -419,12 +420,12 @@ export default function UserManagement() {
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-4 bg-white/60 backdrop-blur-sm border border-green-200/50 rounded-lg">
+                <div key={user.id} className="flex items-center justify-between p-4 bg-card/60 backdrop-blur-sm border border-border rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">{user.first_name} {user.last_name}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
+                    <p className="font-medium text-foreground">{user.first_name} {user.last_name}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
                     {user.department && (
-                      <p className="text-xs text-gray-500">{user.department}</p>
+                      <p className="text-xs text-muted-foreground">{user.department}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -436,7 +437,7 @@ export default function UserManagement() {
                         size="sm"
                         variant="outline"
                         onClick={() => setEditingUser(user)}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-primary hover:text-primary/90 hover:bg-primary/10"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -447,7 +448,7 @@ export default function UserManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -467,7 +468,7 @@ export default function UserManagement() {
                             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => deleteUser.mutate(user.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-destructive hover:bg-destructive/90"
                               disabled={deleteUser.isPending}
                             >
                               {deleteUser.isPending ? t('users.deleting') : t('users.deleteUser')}
@@ -486,17 +487,17 @@ export default function UserManagement() {
 
       {/* Pending Invitations - Only show for root and admin */}
       {canInviteUsers() && (
-        <Card className="bg-gradient-to-br from-green-50/30 to-emerald-50/30 border-green-200/50">
+        <Card className="bg-gradient-theme-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
-                <Copy className="h-4 w-4 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mr-3">
+                <Copy className="h-4 w-4 text-primary-foreground" />
               </div>
               {t('users.pendingInvitations')} ({invitations.filter(inv => !inv.used_at).length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-white/60 backdrop-blur-sm rounded-lg overflow-hidden">
+            <div className="bg-card/60 backdrop-blur-sm rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -521,11 +522,11 @@ export default function UserManagement() {
                       <TableCell>{new Date(invitation.expires_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         {invitation.used_at ? (
-                          <Badge className="bg-green-100 text-green-800">{t('users.used')}</Badge>
+                          <Badge className="bg-status-success-bg text-status-success">{t('users.used')}</Badge>
                         ) : new Date(invitation.expires_at) < new Date() ? (
-                          <Badge className="bg-gray-100 text-gray-800">{t('users.expired')}</Badge>
+                          <Badge className="bg-muted text-muted-foreground">{t('users.expired')}</Badge>
                         ) : (
-                          <Badge className="bg-yellow-100 text-yellow-800">{t('users.pending')}</Badge>
+                          <Badge className="bg-status-pending-bg text-status-pending">{t('users.pending')}</Badge>
                         )}
                       </TableCell>
                       <TableCell>

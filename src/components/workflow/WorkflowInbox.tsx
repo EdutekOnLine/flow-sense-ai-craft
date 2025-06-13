@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, PlayCircle, XCircle, Calendar, User, ArrowRight, Workflow, RefreshCw, Inbox } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,13 +73,13 @@ export function WorkflowInbox() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-orange-500" />;
+        return <Clock className="h-4 w-4 text-status-pending" />;
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-500" />;
+        return <PlayCircle className="h-4 w-4 text-status-active" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-status-success" />;
       case 'skipped':
-        return <XCircle className="h-4 w-4 text-gray-500" />;
+        return <XCircle className="h-4 w-4 text-muted-foreground" />;
       default:
         return <Clock className="h-4 w-4" />;
     }
@@ -87,15 +88,15 @@ export function WorkflowInbox() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-status-pending-bg text-status-pending';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-status-active-bg text-status-active';
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-status-success-bg text-status-success';
       case 'skipped':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -128,7 +129,7 @@ export function WorkflowInbox() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -136,25 +137,25 @@ export function WorkflowInbox() {
   return (
     <div className="space-y-8">
       {/* Gradient Header */}
-      <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-indigo-50/80 to-blue-50/80 rounded-xl"></div>
+      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-theme-card rounded-xl"></div>
         <div className="relative">
           <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
             <div className={`flex items-start gap-4 ${getRTLAwareTextAlign('start')}`}>
-              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Inbox className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+                <Inbox className="h-8 w-8 text-primary-foreground" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-4xl font-bold text-gray-900">{t('workflow.myActiveTasks')}</h1>
-                <p className="text-lg text-gray-600">{t('workflow.myActiveTasksDescription')}</p>
+                <h1 className="text-4xl font-bold text-foreground">{t('workflow.myActiveTasks')}</h1>
+                <p className="text-lg text-muted-foreground">{t('workflow.myActiveTasksDescription')}</p>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 px-3 py-1">
+                  <Badge variant="secondary" className="bg-status-pending-bg text-status-pending px-3 py-1">
                     {pendingCount} {t('workflow.pending')}
                   </Badge>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 px-3 py-1">
+                  <Badge variant="secondary" className="bg-status-active-bg text-status-active px-3 py-1">
                     {inProgressCount} {t('workflow.inProgress')}
                   </Badge>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                  <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
                     LIVE
                   </span>
                 </div>
@@ -166,7 +167,7 @@ export function WorkflowInbox() {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className={`bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50 flex items-center gap-2 ${getRTLAwareFlexDirection()}`}
+                className={`bg-card/80 backdrop-blur-sm border-border hover:bg-muted flex items-center gap-2 ${getRTLAwareFlexDirection()}`}
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {t('workflow.refresh')}
@@ -179,11 +180,11 @@ export function WorkflowInbox() {
       {/* Content */}
       <div className="space-y-6">
         {/* Filter Controls */}
-        <Card className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50">
+        <Card className="bg-gradient-theme-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 bg-white/80 backdrop-blur-sm">
+                <SelectTrigger className="w-48 bg-card/80 backdrop-blur-sm">
                   <SelectValue placeholder={t('workflow.filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,13 +202,13 @@ export function WorkflowInbox() {
         {/* Tasks Grid */}
         <div className="grid gap-4">
           {filteredAssignments.length === 0 ? (
-            <Card className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50">
+            <Card className="bg-gradient-theme-card border-border">
               <CardContent className={`p-8 text-center ${getRTLAwareTextAlign('center')}`}>
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Inbox className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Inbox className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('workflow.noActiveTasks')}</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-foreground mb-2">{t('workflow.noActiveTasks')}</h3>
+                <p className="text-muted-foreground mb-4">
                   {statusFilter === 'all' 
                     ? t('workflow.noActiveTasksMessage')
                     : `${t('workflow.filterByStatus')} "${t(`workflow.${statusFilter}`)}"`
@@ -218,7 +219,7 @@ export function WorkflowInbox() {
                   size="sm"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className={`bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50 flex items-center gap-2 mx-auto ${getRTLAwareFlexDirection()}`}
+                  className={`bg-card/80 backdrop-blur-sm border-border hover:bg-muted flex items-center gap-2 mx-auto ${getRTLAwareFlexDirection()}`}
                 >
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                   {t('workflow.checkForNewTasks')}
@@ -227,18 +228,18 @@ export function WorkflowInbox() {
             </Card>
           ) : (
             filteredAssignments.map((assignment) => (
-              <Card key={assignment.id} className="bg-gradient-to-br from-blue-50/30 to-indigo-50/30 border-blue-200/50 hover:shadow-md transition-shadow">
+              <Card key={assignment.id} className="bg-gradient-theme-card border-border hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className={`flex items-start justify-between ${getRTLAwareFlexDirection()}`}>
                     <div className="space-y-1 flex-1">
                       <CardTitle className={`text-lg ${getRTLAwareTextAlign()}`}>
                         {assignment.workflow_steps.name}
                       </CardTitle>
-                      <p className={`text-sm text-gray-600 ${getRTLAwareTextAlign()}`}>
+                      <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign()}`}>
                         Workflow: {assignment.workflow_steps.workflows.name}
                       </p>
                       {assignment.workflow_instance && (
-                        <div className={`flex items-center gap-2 text-xs text-blue-600 ${getRTLAwareFlexDirection()}`}>
+                        <div className={`flex items-center gap-2 text-xs text-primary ${getRTLAwareFlexDirection()}`}>
                           <Workflow className="h-3 w-3" />
                           Instance started {formatLocalizedDistanceToNow(new Date(assignment.workflow_instance.created_at), i18n.language, { addSuffix: true })}
                         </div>
@@ -254,12 +255,12 @@ export function WorkflowInbox() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {assignment.workflow_steps.description && (
-                    <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>
+                    <p className={`text-sm text-foreground ${getRTLAwareTextAlign()}`}>
                       {assignment.workflow_steps.description}
                     </p>
                   )}
                   
-                  <div className={`flex items-center gap-4 text-xs text-gray-500 ${getRTLAwareFlexDirection()}`}>
+                  <div className={`flex items-center gap-4 text-xs text-muted-foreground ${getRTLAwareFlexDirection()}`}>
                     <div className={`flex items-center gap-1 ${getRTLAwareFlexDirection()}`}>
                       <Calendar className="h-3 w-3" />
                       Assigned {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language, { addSuffix: true })}
@@ -273,19 +274,19 @@ export function WorkflowInbox() {
                   </div>
 
                   {assignment.notes && (
-                    <div className="bg-gray-50 p-3 rounded-md">
-                      <p className={`text-sm text-gray-700 ${getRTLAwareTextAlign()}`}>{assignment.notes}</p>
+                    <div className="bg-muted p-3 rounded-md">
+                      <p className={`text-sm text-foreground ${getRTLAwareTextAlign()}`}>{assignment.notes}</p>
                     </div>
                   )}
 
-                  <div className={`flex items-center gap-2 pt-2 border-t ${getRTLAwareFlexDirection()}`}>
+                  <div className={`flex items-center gap-2 pt-2 border-t border-border ${getRTLAwareFlexDirection()}`}>
                     {assignment.status !== 'completed' && (
                       <>
                         {assignment.status === 'pending' && (
                           <Button
                             size="sm"
                             variant="outline"
-                            className={`bg-blue-50 hover:bg-blue-100 ${getRTLAwareFlexDirection()}`}
+                            className={`bg-secondary/10 hover:bg-secondary/20 text-secondary ${getRTLAwareFlexDirection()}`}
                             onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                           >
                             <PlayCircle className="h-4 w-4 me-1" />
@@ -297,7 +298,7 @@ export function WorkflowInbox() {
                           <DialogTrigger asChild>
                             <Button
                               size="sm"
-                              className={`bg-green-600 hover:bg-green-700 ${getRTLAwareFlexDirection()}`}
+                              className={`bg-status-success hover:bg-status-success/90 text-primary-foreground ${getRTLAwareFlexDirection()}`}
                               disabled={isCompleting}
                             >
                               <CheckCircle className="h-4 w-4 me-1" />
@@ -311,7 +312,7 @@ export function WorkflowInbox() {
                             <div className="space-y-4 pt-4">
                               <div>
                                 <h4 className="font-medium mb-2">Step: {assignment.workflow_steps.name}</h4>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-muted-foreground">
                                   Workflow: {assignment.workflow_steps.workflows.name}
                                 </p>
                               </div>
@@ -334,7 +335,7 @@ export function WorkflowInbox() {
                                   {t('common.cancel')}
                                 </Button>
                                 <Button
-                                  className="bg-green-600 hover:bg-green-700"
+                                  className="bg-status-success hover:bg-status-success/90 text-primary-foreground"
                                   onClick={() => handleCompleteStep(assignment)}
                                   disabled={isCompleting}
                                 >
@@ -366,7 +367,7 @@ export function WorkflowInbox() {
                             <div className="space-y-4 pt-4">
                               <div>
                                 <h4 className="font-medium mb-2">Step: {selectedAssignment?.workflow_steps.name}</h4>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-muted-foreground">
                                   Workflow: {selectedAssignment?.workflow_steps.workflows.name}
                                 </p>
                               </div>
@@ -385,7 +386,7 @@ export function WorkflowInbox() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="bg-blue-50 hover:bg-blue-100"
+                                  className="bg-secondary/10 hover:bg-secondary/20"
                                   onClick={() => handleStatusUpdate('in_progress')}
                                 >
                                   Start Working
@@ -405,7 +406,7 @@ export function WorkflowInbox() {
                     )}
                     
                     {assignment.status === 'completed' && assignment.completed_at && (
-                      <div className={`flex items-center gap-2 text-sm text-green-600 ${getRTLAwareFlexDirection()}`}>
+                      <div className={`flex items-center gap-2 text-sm text-status-success ${getRTLAwareFlexDirection()}`}>
                         <CheckCircle className="h-4 w-4" />
                         Completed {formatLocalizedDistanceToNow(new Date(assignment.completed_at), i18n.language, { addSuffix: true })}
                       </div>
