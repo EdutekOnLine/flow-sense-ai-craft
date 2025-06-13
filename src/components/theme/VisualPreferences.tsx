@@ -39,27 +39,27 @@ export function VisualPreferences() {
           >
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="sharp" id="sharp" />
-              <Label htmlFor="sharp" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="sharp" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.borderRadiusSharp')}</span>
-                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium" style={{ borderRadius: '0px' }}>
+                <div className="bg-blue-500 text-white px-4 py-2 text-sm font-medium shadow-sm" style={{ borderRadius: '0px' }}>
                   Button
                 </div>
               </Label>
             </div>
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="rounded" id="rounded" />
-              <Label htmlFor="rounded" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="rounded" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.borderRadiusRounded')}</span>
-                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-md">
+                <div className="bg-blue-500 text-white px-4 py-2 text-sm font-medium shadow-sm rounded-md">
                   Button
                 </div>
               </Label>
             </div>
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="very-rounded" id="very-rounded" />
-              <Label htmlFor="very-rounded" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="very-rounded" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.borderRadiusVeryRounded')}</span>
-                <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium rounded-full">
+                <div className="bg-blue-500 text-white px-4 py-2 text-sm font-medium shadow-sm rounded-full">
                   Button
                 </div>
               </Label>
@@ -81,27 +81,27 @@ export function VisualPreferences() {
           >
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="none" id="none" />
-              <Label htmlFor="none" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="none" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.shadowsNone')}</span>
-                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-800">
                   Card
                 </div>
               </Label>
             </div>
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="subtle" id="subtle" />
-              <Label htmlFor="subtle" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="subtle" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.shadowsSubtle')}</span>
-                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground shadow-sm">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-800 shadow-sm">
                   Card
                 </div>
               </Label>
             </div>
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="pronounced" id="pronounced" />
-              <Label htmlFor="pronounced" className="flex items-center space-x-3 cursor-pointer">
+              <Label htmlFor="pronounced" className="flex items-center space-x-3 cursor-pointer flex-1">
                 <span className="flex-1">{t('settings.shadowsPronounced')}</span>
-                <div className="bg-card border border-border rounded p-2 text-xs text-card-foreground shadow-lg">
+                <div className="bg-white border border-gray-200 rounded-lg p-3 text-sm text-gray-800 shadow-lg">
                   Card
                 </div>
               </Label>
