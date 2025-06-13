@@ -24,49 +24,49 @@ export function LiveMetricsCards() {
       title: t('dashboard.pendingTasks'),
       value: metrics.pendingTasks,
       icon: Clock,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200'
+      color: 'text-primary',
+      bgColor: 'bg-primary/5',
+      borderColor: 'border-primary/20'
     },
     {
       title: t('dashboard.activeTasks'),
       value: metrics.inProgressTasks,
       icon: PlayCircle,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200'
+      color: 'text-secondary',
+      bgColor: 'bg-secondary/5',
+      borderColor: 'border-secondary/20'
     },
     {
       title: t('dashboard.completedToday'),
       value: metrics.completedTasksToday,
       icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200'
+      color: 'text-accent',
+      bgColor: 'bg-accent/5',
+      borderColor: 'border-accent/20'
     },
     {
       title: t('dashboard.activeWorkflows'),
       value: metrics.activeWorkflows,
       icon: Activity,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200'
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      borderColor: 'border-primary/30'
     },
     {
       title: t('dashboard.reusableWorkflows'),
       value: metrics.myReusableWorkflows,
       icon: Repeat,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200'
+      color: 'text-secondary',
+      bgColor: 'bg-secondary/10',
+      borderColor: 'border-secondary/30'
     },
     {
       title: t('dashboard.totalWorkflows'),
       value: metrics.totalSavedWorkflows,
       icon: Workflow,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-      borderColor: 'border-gray-200'
+      color: 'text-muted-foreground',
+      bgColor: 'bg-muted/10',
+      borderColor: 'border-muted/30'
     }
   ];
 
@@ -78,10 +78,10 @@ export function LiveMetricsCards() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  <div className="h-6 bg-gray-200 rounded w-8"></div>
+                  <div className="h-3 bg-muted rounded w-16"></div>
+                  <div className="h-6 bg-muted rounded w-8"></div>
                 </div>
-                <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                <div className="h-8 w-8 bg-muted rounded"></div>
               </div>
             </CardContent>
           </Card>
@@ -97,12 +97,12 @@ export function LiveMetricsCards() {
         return (
           <Card 
             key={index} 
-            className={`${card.borderColor} ${card.bgColor} hover:shadow-md transition-shadow duration-200`}
+            className={`${card.borderColor} ${card.bgColor} hover:shadow-card transition-shadow duration-200`}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-600">{card.title}</p>
+                  <p className="text-xs font-medium text-muted-foreground">{card.title}</p>
                   <div className="flex items-center gap-2">
                     <AnimatedCounter 
                       value={card.value} 
@@ -110,7 +110,7 @@ export function LiveMetricsCards() {
                     />
                     <Badge 
                       variant="secondary" 
-                      className="text-xs bg-white/50 text-gray-600 animate-pulse"
+                      className="text-xs bg-background/50 text-muted-foreground animate-pulse"
                     >
                       LIVE
                     </Badge>

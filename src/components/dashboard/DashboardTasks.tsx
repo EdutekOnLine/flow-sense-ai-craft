@@ -22,11 +22,11 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-orange-500" />;
+        return <Clock className="h-4 w-4 text-primary" />;
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-500" />;
+        return <PlayCircle className="h-4 w-4 text-secondary" />;
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-accent" />;
       default:
         return <Clock className="h-4 w-4" />;
     }
@@ -35,13 +35,13 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-primary/10 text-primary';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-secondary/10 text-secondary';
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-accent/10 text-accent';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -91,10 +91,10 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
       {/* Stats header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
             {pendingCount} {t('status.pending')}
           </Badge>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+          <Badge variant="secondary" className="bg-secondary/10 text-secondary text-xs">
             {inProgressCount} {t('status.active')}
           </Badge>
         </div>
@@ -102,22 +102,22 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
 
       {dashboardTasks.length === 0 ? (
         <div className="text-center py-6">
-          <p className="text-gray-600 text-sm">{t('dashboard.noPendingTasks')}</p>
-          <p className="text-gray-500 text-xs mt-1">{t('dashboard.allCaughtUp')}</p>
+          <p className="text-muted-foreground text-sm">{t('dashboard.noPendingTasks')}</p>
+          <p className="text-muted-foreground text-xs mt-1">{t('dashboard.allCaughtUp')}</p>
         </div>
       ) : (
         <>
           {dashboardTasks.map((assignment) => (
-            <div key={assignment.id} className="border border-blue-200 bg-white rounded-lg p-3 hover:bg-blue-25 transition-colors">
+            <div key={assignment.id} className="border border-border bg-card rounded-lg p-3 hover:bg-muted/5 transition-colors">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate text-blue-800">
+                  <h4 className="font-medium text-sm truncate text-card-foreground">
                     {assignment.workflow_steps.name}
                   </h4>
-                  <p className="text-xs text-blue-600 truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {assignment.workflow_steps.workflows.name}
                   </p>
-                  <p className="text-xs text-blue-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {t('common.assigned')} {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
                   </p>
                 </div>
@@ -134,7 +134,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 text-xs bg-blue-50 hover:bg-blue-100"
+                    className="h-7 text-xs bg-secondary/5 hover:bg-secondary/10 border-secondary/20"
                     onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                   >
                     <PlayCircle className="h-3 w-3 mr-1" />
@@ -147,7 +147,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     <DialogTrigger asChild>
                       <Button
                         size="sm"
-                        className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                        className="h-7 text-xs bg-accent hover:bg-accent/90 text-accent-foreground"
                         disabled={isCompleting}
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -161,7 +161,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                       <div className="space-y-4 pt-4">
                         <div>
                           <h4 className="font-medium mb-1">{assignment.workflow_steps.name}</h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             {assignment.workflow_steps.workflows.name}
                           </p>
                         </div>
@@ -184,7 +184,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                             {t('common.cancel')}
                           </Button>
                           <Button
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
                             onClick={() => handleCompleteStep(assignment)}
                             disabled={isCompleting}
                           >
@@ -200,7 +200,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
             </div>
           ))}
           
-          <div className="pt-2 border-t border-blue-200">
+          <div className="pt-2 border-t border-border">
             <Button
               variant="outline"
               size="sm"
