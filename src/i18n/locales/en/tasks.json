@@ -1,0 +1,16 @@
+
+{
+  "tasks": {
+    "completeTask": "Complete Task",
+    "completionNotes": "Completion Notes",
+    "completionNotesPlaceholder": "Add notes about completing this task...",
+    "completeTaskAction": "Complete Task",
+    "viewAllTasks": "View All Tasks",
+    "taskCount": "{{count}} task",
+    "taskCount_plural": "{{count}} tasks",
+    "noTasks": "No tasks available",
+    "taskCompleted": "Task completed successfully!",
+    "taskCompletionError": "Failed to complete task. Please try again.",
+    "markComplete": "Mark Complete"
+  }
+}

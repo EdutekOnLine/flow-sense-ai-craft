@@ -1,0 +1,11 @@
+
+{
+  "activity": {
+    "taskCompleted": "Task completed",
+    "taskAssigned": "Task assigned",
+    "newTaskAssigned": "New task assigned",
+    "workflowStarted": "Workflow started",
+    "workflowCompleted": "Workflow completed",
+    "noRecentActivity": "No recent activity"
+  }
+}

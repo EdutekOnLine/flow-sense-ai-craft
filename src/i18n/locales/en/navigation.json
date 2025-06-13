@@ -1,0 +1,12 @@
+
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "workflowBuilder": "Workflow Builder",
+    "myTasks": "My Tasks",
+    "reports": "Reports",
+    "templates": "Templates",
+    "settings": "Settings"
+  }
+}

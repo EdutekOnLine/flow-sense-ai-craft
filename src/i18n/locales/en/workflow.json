@@ -1,0 +1,36 @@
+
+{
+  "workflow": {
+    "launch": "Launch",
+    "launchWorkflow": "Launch Workflow",
+    "launching": "Launching...",
+    "reusable": "Reusable",
+    "oneTime": "One Time",
+    "assignedTo": "Assigned To",
+    "startsWith": "Starts With",
+    "unassigned": "Unassigned",
+    "nodes": "Nodes",
+    "steps": "Steps",
+    "updated": "Updated",
+    "moreWorkflows": "And {{count}} more workflows...",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"?",
+    "launchSuccess": "Workflow launched successfully!",
+    "launchError": "Failed to launch workflow. Please try again.",
+    "createAssignments": "Create Assignments",
+    "creatingAssignments": "Creating...",
+    "myActiveTasks": "My Active Tasks",
+    "myActiveTasksDescription": "Tasks ready to work on in active workflows",
+    "noActiveTasks": "No active tasks",
+    "noActiveTasksMessage": "You don't have any tasks ready to work on right now. Tasks will appear here when workflows are started and assigned to you.",
+    "checkForNewTasks": "Check for new tasks",
+    "refresh": "Refresh",
+    "pending": "Pending",
+    "inProgress": "In Progress",
+    "filterByStatus": "Filter by status",
+    "allAssignments": "All Assignments",
+    "completed": "Completed",
+    "skipped": "Skipped",
+    "requiredInformation": "Required Information",
+    "firstStep": "First Step"
+  }
+}
