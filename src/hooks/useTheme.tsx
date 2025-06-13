@@ -36,18 +36,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const root = document.documentElement;
       const palette = colorPalettes.find(p => p.id === themeSettings.colorPalette) || colorPalettes[0];
       
-      // Apply color palette
+      console.log('Applying theme:', themeSettings.colorPalette, palette.name);
+      
+      // Apply color palette with proper HSL format
       Object.entries(palette.colors).forEach(([key, value]) => {
-        root.style.setProperty(`--${key}`, value);
+        const cssProperty = `--${key}`;
+        root.style.setProperty(cssProperty, value);
+        console.log(`Setting ${cssProperty}: ${value}`);
       });
 
       // Apply border radius
       const radiusValue = borderRadiusValues[themeSettings.visualPreferences.borderRadius];
       root.style.setProperty('--radius', radiusValue);
+      console.log('Setting border radius:', radiusValue);
 
       // Apply card shadows
       const shadowValue = cardShadowValues[themeSettings.visualPreferences.cardShadows];
       root.style.setProperty('--card-shadow', shadowValue);
+      console.log('Setting card shadow:', shadowValue);
 
       // Apply animation preferences
       if (themeSettings.visualPreferences.animationStyle === 'reduced') {
@@ -64,6 +70,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       } else {
         document.body.classList.remove('dark');
       }
+
+      // Add theme-applied class to body for dynamic theming
+      document.body.classList.add('theme-applied');
+      
+      // Force a repaint to ensure changes are visible
+      document.body.style.display = 'none';
+      document.body.offsetHeight; // Trigger reflow
+      document.body.style.display = '';
     };
 
     applyTheme();
@@ -71,11 +85,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const updateThemeSettings = (newSettings: Partial<ThemeSettings>) => {
     const updatedSettings = { ...themeSettings, ...newSettings };
+    console.log('Updating theme settings:', updatedSettings);
     setThemeSettings(updatedSettings);
     localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(updatedSettings));
   };
 
   const resetTheme = () => {
+    console.log('Resetting theme to default');
     setThemeSettings(defaultThemeSettings);
     localStorage.removeItem(THEME_STORAGE_KEY);
   };

@@ -10,6 +10,11 @@ export function ColorPaletteSelector() {
   const { themeSettings, updateThemeSettings, availablePalettes } = useTheme();
   const { t } = useTranslation();
 
+  const handlePaletteSelect = (paletteId: string) => {
+    console.log('Selecting palette:', paletteId);
+    updateThemeSettings({ colorPalette: paletteId });
+  };
+
   return (
     <div className="space-y-4">
       <Label className="text-base font-semibold">{t('settings.colorPalette')}</Label>
@@ -22,7 +27,7 @@ export function ColorPaletteSelector() {
                 ? 'ring-2 ring-primary ring-offset-2'
                 : ''
             }`}
-            onClick={() => updateThemeSettings({ colorPalette: palette.id })}
+            onClick={() => handlePaletteSelect(palette.id)}
           >
             <CardContent className="p-4">
               <div className="space-y-3">
@@ -32,23 +37,39 @@ export function ColorPaletteSelector() {
                     <Check className="h-4 w-4 text-primary" />
                   )}
                 </div>
+                {/* Color preview with actual HSL values */}
                 <div className="flex space-x-1">
                   <div
-                    className="w-6 h-6 rounded-full border"
+                    className="w-6 h-6 rounded-full border-2 border-gray-200"
                     style={{ backgroundColor: `hsl(${palette.colors.primary})` }}
+                    title="Primary"
                   />
                   <div
-                    className="w-6 h-6 rounded-full border"
+                    className="w-6 h-6 rounded-full border-2 border-gray-200"
                     style={{ backgroundColor: `hsl(${palette.colors.secondary})` }}
+                    title="Secondary"
                   />
                   <div
-                    className="w-6 h-6 rounded-full border"
+                    className="w-6 h-6 rounded-full border-2 border-gray-200"
                     style={{ backgroundColor: `hsl(${palette.colors.accent})` }}
+                    title="Accent"
                   />
                   <div
-                    className="w-6 h-6 rounded-full border"
-                    style={{ backgroundColor: `hsl(${palette.colors.muted})` }}
+                    className="w-6 h-6 rounded-full border-2 border-gray-200"
+                    style={{ backgroundColor: `hsl(${palette.colors.background})` }}
+                    title="Background"
                   />
+                </div>
+                {/* Live preview section */}
+                <div 
+                  className="p-2 rounded border"
+                  style={{ 
+                    backgroundColor: `hsl(${palette.colors.background})`,
+                    color: `hsl(${palette.colors.foreground})`,
+                    borderColor: `hsl(${palette.colors.border})`
+                  }}
+                >
+                  <div className="text-xs">Preview</div>
                 </div>
               </div>
             </CardContent>
