@@ -17,7 +17,7 @@ export function WorkflowStepItem({ step, onStepClick, onDragStart }: WorkflowSte
       onClick={() => onStepClick(step)}
       draggable
       onDragStart={(e) => onDragStart(e, step)}
-      className="w-full cursor-grab active:cursor-grabbing hover:bg-gray-50 p-3 group rounded-lg text-left transition-colors"
+      className="w-full cursor-grab active:cursor-grabbing hover:bg-accent/20 p-3 group rounded-lg text-left transition-colors"
       title={step.description}
     >
       <div className="flex items-center gap-3 w-full">
@@ -25,10 +25,10 @@ export function WorkflowStepItem({ step, onStepClick, onDragStart }: WorkflowSte
           <Icon className={`h-4 w-4 ${getIconColor(step.stepType)}`} />
         </div>
         <div className="flex flex-col items-start text-left min-w-0 flex-1">
-          <span className="font-medium text-sm text-gray-900 truncate">
+          <span className="font-medium text-sm text-card-foreground truncate">
             {step.label}
           </span>
-          <span className="text-xs text-gray-500 truncate w-full">
+          <span className="text-xs text-muted-foreground truncate w-full">
             {step.description}
           </span>
         </div>

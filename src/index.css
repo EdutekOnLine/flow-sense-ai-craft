@@ -288,4 +288,34 @@
   [dir="rtl"] .rtl-aware-text {
     @apply text-right;
   }
+
+  /* Theme-aware gradient utilities */
+  .bg-gradient-theme-primary {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2));
+  }
+
+  .bg-gradient-theme-secondary {
+    background: linear-gradient(135deg, hsl(var(--secondary) / 0.1), hsl(var(--secondary) / 0.2));
+  }
+
+  .bg-gradient-theme-accent {
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.1), hsl(var(--accent) / 0.2));
+  }
+
+  .bg-gradient-theme-muted {
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.1), hsl(var(--muted) / 0.2));
+  }
+
+  /* Theme-aware card gradient backgrounds */
+  .bg-gradient-card-primary {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.15));
+  }
+
+  .bg-gradient-card-secondary {
+    background: linear-gradient(135deg, hsl(var(--secondary) / 0.05), hsl(var(--secondary) / 0.15));
+  }
+
+  .bg-gradient-card-accent {
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.05), hsl(var(--accent) / 0.15));
+  }
 }

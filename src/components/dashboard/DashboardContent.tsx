@@ -67,7 +67,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   return (
     <div className="space-y-8">
       {/* Header with theme-aware gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 rounded-2xl p-8 text-foreground border border-border">
+      <div className="relative overflow-hidden bg-gradient-card-primary rounded-2xl p-8 text-foreground border border-border">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <p className="text-muted-foreground">{t('dashboard.myAssignedTasksDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-xl border border-border">
+            <div className="bg-gradient-card-primary p-6 rounded-xl border border-border">
               <DashboardTasks onViewAllTasks={handleViewAllTasks} />
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <p className="text-muted-foreground">{t('dashboard.myReusableWorkflowsDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 p-6 rounded-xl border border-border">
+            <div className="bg-gradient-card-secondary p-6 rounded-xl border border-border">
               <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                   <p className="text-muted-foreground">{getSavedWorkflowsContent().description}</p>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-accent/5 to-accent/10 p-6 rounded-xl border border-border">
+              <div className="bg-gradient-card-accent p-6 rounded-xl border border-border">
                 <SavedWorkflows 
                   onOpenWorkflow={onOpenWorkflow}
                   onStartWorkflow={handleStartWorkflow}
@@ -153,7 +153,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* Message for employees */}
           {!canEditWorkflows && (
             <div className="space-y-6">
-              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+              <Card className="border-2 border-primary/20 bg-gradient-card-primary">
                 <CardHeader className="text-center">
                   <div className="mx-auto p-3 bg-primary rounded-xl w-fit mb-4">
                     <Sparkles className="h-8 w-8 text-primary-foreground" />
@@ -182,7 +182,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 <p className="text-muted-foreground">{t('dashboard.recentActivityDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-muted/20 to-muted/30 p-6 rounded-xl border border-border">
+            <div className="bg-gradient-card-muted p-6 rounded-xl border border-border">
               <RealtimeActivityFeed />
             </div>
           </div>

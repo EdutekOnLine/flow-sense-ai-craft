@@ -26,10 +26,10 @@ export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
   };
 
   return (
-    <div className="w-80 border-r border-gray-200 bg-white">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">{t('workflowBuilder.workflowSteps')}</h2>
-        <p className="text-sm text-gray-500 mt-1">
+    <div className="w-80 border-r border-border bg-card">
+      <div className="p-4 border-b border-border">
+        <h2 className="text-lg font-semibold text-card-foreground">{t('workflowBuilder.workflowSteps')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           {t('workflowBuilder.dragAndDrop')}
         </p>
       </div>
@@ -37,28 +37,28 @@ export function WorkflowSidebar({ onAddNode }: WorkflowSidebarProps) {
         <WorkflowStepGroup
           title={t('workflowBuilder.triggers')}
           steps={workflowSteps.triggers}
-          colorClass="text-green-700"
+          colorClass="text-primary"
           onStepClick={handleStepClick}
           onDragStart={handleDragStart}
         />
         <WorkflowStepGroup
           title={t('workflowBuilder.actions')}
           steps={workflowSteps.actions}
-          colorClass="text-blue-700"
+          colorClass="text-secondary"
           onStepClick={handleStepClick}
           onDragStart={handleDragStart}
         />
         <WorkflowStepGroup
           title={t('workflowBuilder.conditions')}
           steps={workflowSteps.conditions}
-          colorClass="text-yellow-700"
+          colorClass="text-accent"
           onStepClick={handleStepClick}
           onDragStart={handleDragStart}
         />
         <WorkflowStepGroup
           title={t('workflowBuilder.utilities')}
           steps={workflowSteps.utilities}
-          colorClass="text-purple-700"
+          colorClass="text-muted-foreground"
           onStepClick={handleStepClick}
           onDragStart={handleDragStart}
         />

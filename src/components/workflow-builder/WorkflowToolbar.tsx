@@ -52,7 +52,7 @@ export function WorkflowToolbar({
   const explanation = explainWorkflow(nodes, edges);
 
   return (
-    <div className="bg-white border-b border-gray-200 p-4">
+    <div className="bg-card border-b border-border p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
@@ -81,7 +81,7 @@ export function WorkflowToolbar({
             {isSaving ? t('workflowBuilder.saving') : t('workflowBuilder.save')}
           </Button>
 
-          <div className="h-6 w-px bg-gray-200 mx-2" />
+          <div className="h-6 w-px bg-border mx-2" />
 
           <Button
             variant="outline"
@@ -109,7 +109,7 @@ export function WorkflowToolbar({
         <div className="flex items-center space-x-6">
           {/* AI Assistant Toggle */}
           <div className="flex items-center space-x-2">
-            <Label htmlFor="ai-assistant-toggle" className="text-sm font-medium">
+            <Label htmlFor="ai-assistant-toggle" className="text-sm font-medium text-card-foreground">
               {t('workflowBuilder.aiAssistant')}
             </Label>
             <Switch
