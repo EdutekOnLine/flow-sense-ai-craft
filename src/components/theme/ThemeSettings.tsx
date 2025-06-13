@@ -30,7 +30,7 @@ export function ThemeSettings() {
                 <p className="text-lg text-muted-foreground">{t('settings.appearanceDescription')}</p>
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                    Personal Customization
+                    {t('settings.personalCustomization')}
                   </span>
                 </div>
               </div>

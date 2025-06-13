@@ -1,3 +1,4 @@
+
 {
   "common": {
     "loading": "جاري التحميل...",
@@ -279,6 +280,35 @@
     "english": "English",
     "arabic": "العربية",
     "changeLanguage": "تغيير اللغة"
+  },
+  "settings": {
+    "appearance": "إعدادات المظهر",
+    "appearanceDescription": "خصص السمة الشخصية وتفضيلات العرض",
+    "colorPalette": "لوحة الألوان",
+    "colorThemes": "سمات الألوان",
+    "visualPreferences": "تفضيلات العرض",
+    "borderRadius": "انحناء الحواف",
+    "cardShadows": "ظلال البطاقات",
+    "sidebarStyle": "نمط الشريط الجانبي",
+    "animations": "الحركات",
+    "resetToDefault": "إعادة تعيين إلى الافتراضي",
+    "themeNote": "يتم حفظ إعدادات السمة محلياً ولن تؤثر على المستخدمين الآخرين.",
+    "personalCustomization": "التخصيص الشخصي",
+    "borderRadiusSharp": "حاد",
+    "borderRadiusRounded": "منحني",
+    "borderRadiusVeryRounded": "منحني جداً",
+    "shadowsNone": "بدون",
+    "shadowsSubtle": "خفيف",
+    "shadowsPronounced": "واضح",
+    "sidebarCompact": "مضغوط",
+    "sidebarStandard": "قياسي",
+    "sidebarSpacious": "واسع",
+    "animationsReduced": "تقليل الحركات",
+    "animationsReducedDescription": "قم بتفعيل هذا لتقليل الحركة لسهولة الوصول أو الأداء",
+    "professionalThemes": "السمات المهنية",
+    "colorfulThemes": "السمات الملونة",
+    "themesAvailable": "سمة متاحة",
+    "changesApplyInstantly": "التغييرات تطبق فوراً"
   },
   "reports": {
     "title": "التقارير",

@@ -40,21 +40,21 @@ export function VisualPreferences() {
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="sharp" id="sharp" />
               <Label htmlFor="sharp" className="flex items-center space-x-2">
-                <span>Sharp</span>
+                <span>{t('settings.borderRadiusSharp')}</span>
                 <div className="w-4 h-4 bg-primary" />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="rounded" id="rounded" />
               <Label htmlFor="rounded" className="flex items-center space-x-2">
-                <span>Rounded</span>
+                <span>{t('settings.borderRadiusRounded')}</span>
                 <div className="w-4 h-4 bg-primary rounded" />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="very-rounded" id="very-rounded" />
               <Label htmlFor="very-rounded" className="flex items-center space-x-2">
-                <span>Very Rounded</span>
+                <span>{t('settings.borderRadiusVeryRounded')}</span>
                 <div className="w-4 h-4 bg-primary rounded-xl" />
               </Label>
             </div>
@@ -76,21 +76,21 @@ export function VisualPreferences() {
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="none" id="none" />
               <Label htmlFor="none" className="flex items-center space-x-2">
-                <span>None</span>
+                <span>{t('settings.shadowsNone')}</span>
                 <div className="w-8 h-6 bg-primary rounded border" />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="subtle" id="subtle" />
               <Label htmlFor="subtle" className="flex items-center space-x-2">
-                <span>Subtle</span>
+                <span>{t('settings.shadowsSubtle')}</span>
                 <div className="w-8 h-6 bg-primary rounded shadow-sm" />
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="pronounced" id="pronounced" />
               <Label htmlFor="pronounced" className="flex items-center space-x-2">
-                <span>Pronounced</span>
+                <span>{t('settings.shadowsPronounced')}</span>
                 <div className="w-8 h-6 bg-primary rounded shadow-lg" />
               </Label>
             </div>
@@ -111,15 +111,15 @@ export function VisualPreferences() {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="compact" id="compact" />
-              <Label htmlFor="compact">Compact</Label>
+              <Label htmlFor="compact">{t('settings.sidebarCompact')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="standard" id="standard" />
-              <Label htmlFor="standard">Standard</Label>
+              <Label htmlFor="standard">{t('settings.sidebarStandard')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="spacious" id="spacious" />
-              <Label htmlFor="spacious">Spacious</Label>
+              <Label htmlFor="spacious">{t('settings.sidebarSpacious')}</Label>
             </div>
           </RadioGroup>
         </CardContent>
@@ -132,7 +132,7 @@ export function VisualPreferences() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <Label htmlFor="reduced-motion">Reduce animations</Label>
+            <Label htmlFor="reduced-motion">{t('settings.animationsReduced')}</Label>
             <Switch
               id="reduced-motion"
               checked={themeSettings.visualPreferences.animationStyle === 'reduced'}
@@ -142,7 +142,7 @@ export function VisualPreferences() {
             />
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            Enable this to reduce motion for accessibility or performance
+            {t('settings.animationsReducedDescription')}
           </p>
         </CardContent>
       </Card>

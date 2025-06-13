@@ -11,6 +11,22 @@
     "sidebarStyle": "Sidebar Style",
     "animations": "Animations",
     "resetToDefault": "Reset to Default",
-    "themeNote": "Your theme settings are saved locally and won't affect other users."
+    "themeNote": "Your theme settings are saved locally and won't affect other users.",
+    "personalCustomization": "Personal Customization",
+    "borderRadiusSharp": "Sharp",
+    "borderRadiusRounded": "Rounded",
+    "borderRadiusVeryRounded": "Very Rounded",
+    "shadowsNone": "None",
+    "shadowsSubtle": "Subtle",
+    "shadowsPronounced": "Pronounced",
+    "sidebarCompact": "Compact",
+    "sidebarStandard": "Standard",
+    "sidebarSpacious": "Spacious",
+    "animationsReduced": "Reduce animations",
+    "animationsReducedDescription": "Enable this to reduce motion for accessibility or performance",
+    "professionalThemes": "Professional Themes",
+    "colorfulThemes": "Colorful Themes",
+    "themesAvailable": "themes available",
+    "changesApplyInstantly": "Changes apply instantly"
   }
 }

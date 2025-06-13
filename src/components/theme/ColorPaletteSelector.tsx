@@ -87,15 +87,15 @@ export function ColorPaletteSelector() {
         <p className="text-sm text-muted-foreground mt-1">Choose from professional or vibrant colorful themes</p>
       </div>
       
-      <ThemeGrid themes={professionalThemes} title="Professional Themes" />
+      <ThemeGrid themes={professionalThemes} title={t('settings.professionalThemes')} />
       
       <div className="border-t border-border pt-4">
-        <ThemeGrid themes={colorfulThemes} title="Colorful Themes" />
+        <ThemeGrid themes={colorfulThemes} title={t('settings.colorfulThemes')} />
       </div>
       
       <div className="text-center pt-4">
         <p className="text-xs text-muted-foreground">
-          {availablePalettes.length} themes available • Changes apply instantly
+          {availablePalettes.length} {t('settings.themesAvailable')} • {t('settings.changesApplyInstantly')}
         </p>
       </div>
     </div>
