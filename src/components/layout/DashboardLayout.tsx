@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -125,8 +126,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case 'templates':
         return (
           <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('navigation.templates')}</h2>
-            <p className="text-gray-600">Workflow templates functionality coming soon...</p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">{t('navigation.templates')}</h2>
+            <p className="text-muted-foreground">Workflow templates functionality coming soon...</p>
           </div>
         );
       case 'settings':
@@ -137,9 +138,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center h-16 ${isRTL ? 'rtl-space-reverse' : ''}`}>
             <a 
@@ -157,10 +158,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
               <LanguageSwitcher />
               <NotificationCenter />
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 {t('header.welcome', { name: profile?.first_name || profile?.email })}
               </span>
-              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+              <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">
                 {profile?.role?.toUpperCase()}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -175,7 +176,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Show Navigation Tabs only on the main dashboard */}
         {isMainDashboard && (
-          <div className={`flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg ${isRTL ? 'space-x-reverse' : ''}`}>
+          <div className={`flex space-x-1 mb-8 bg-muted p-1 rounded-lg ${isRTL ? 'space-x-reverse' : ''}`}>
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -184,8 +185,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   onClick={() => handleTabChange(item.id)}
                   className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${isRTL ? 'flex-row-reverse' : ''} ${
                     activeTab === item.id
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-background text-primary shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <Icon className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />

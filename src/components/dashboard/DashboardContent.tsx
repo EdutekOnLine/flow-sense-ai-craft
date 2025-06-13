@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
 import { DashboardTasks } from './DashboardTasks';
@@ -65,28 +66,28 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
 
   return (
     <div className="space-y-8">
-      {/* Header with colorful gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-blue-600 to-teal-500 rounded-2xl p-8 text-white">
+      {/* Header with theme-aware gradient */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 rounded-2xl p-8 text-foreground border border-border">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Activity className="h-8 w-8" />
+              <div className="p-3 bg-primary/20 backdrop-blur-sm rounded-xl border border-border">
+                <Activity className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
-                  <Badge className="bg-green-500 text-white animate-pulse">
+                  <h1 className="text-4xl font-bold text-foreground">{t('dashboard.title')}</h1>
+                  <Badge className="bg-accent text-accent-foreground animate-pulse">
                     LIVE
                   </Badge>
                 </div>
-                <p className="text-purple-100 text-lg">{t('dashboard.subtitle')}</p>
+                <p className="text-muted-foreground text-lg">{t('dashboard.subtitle')}</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-white/10 rounded-full blur-lg"></div>
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-primary/10 rounded-full blur-xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-24 h-24 bg-secondary/10 rounded-full blur-lg"></div>
       </div>
 
       {/* Live Metrics Cards */}
@@ -99,15 +100,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* My Assigned Tasks Section - Show for ALL users */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                <Inbox className="h-6 w-6 text-white" />
+              <div className="p-3 bg-gradient-to-br from-primary/80 to-primary rounded-xl">
+                <Inbox className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myAssignedTasks')}</h2>
-                <p className="text-gray-600">{t('dashboard.myAssignedTasksDescription')}</p>
+                <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myAssignedTasks')}</h2>
+                <p className="text-muted-foreground">{t('dashboard.myAssignedTasksDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-xl border border-border">
               <DashboardTasks onViewAllTasks={handleViewAllTasks} />
             </div>
           </div>
@@ -115,15 +116,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* My Reusable Workflows Section - Show for ALL users */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-                <Repeat className="h-6 w-6 text-white" />
+              <div className="p-3 bg-gradient-to-br from-secondary/80 to-secondary rounded-xl">
+                <Repeat className="h-6 w-6 text-secondary-foreground" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.myReusableWorkflows')}</h2>
-                <p className="text-gray-600">{t('dashboard.myReusableWorkflowsDescription')}</p>
+                <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myReusableWorkflows')}</h2>
+                <p className="text-muted-foreground">{t('dashboard.myReusableWorkflowsDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+            <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 p-6 rounded-xl border border-border">
               <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
             </div>
           </div>
@@ -132,15 +133,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {canEditWorkflows && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-                  <Workflow className="h-6 w-6 text-white" />
+                <div className="p-3 bg-gradient-to-br from-accent/80 to-accent rounded-xl">
+                  <Workflow className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{getSavedWorkflowsContent().title}</h2>
-                  <p className="text-gray-600">{getSavedWorkflowsContent().description}</p>
+                  <h2 className="text-2xl font-bold text-foreground">{getSavedWorkflowsContent().title}</h2>
+                  <p className="text-muted-foreground">{getSavedWorkflowsContent().description}</p>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+              <div className="bg-gradient-to-br from-accent/5 to-accent/10 p-6 rounded-xl border border-border">
                 <SavedWorkflows 
                   onOpenWorkflow={onOpenWorkflow}
                   onStartWorkflow={handleStartWorkflow}
@@ -152,15 +153,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* Message for employees */}
           {!canEditWorkflows && (
             <div className="space-y-6">
-              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
                 <CardHeader className="text-center">
-                  <div className="mx-auto p-3 bg-blue-500 rounded-xl w-fit mb-4">
-                    <Sparkles className="h-8 w-8 text-white" />
+                  <div className="mx-auto p-3 bg-primary rounded-xl w-fit mb-4">
+                    <Sparkles className="h-8 w-8 text-primary-foreground" />
                   </div>
-                  <CardTitle className="text-2xl text-blue-900">{t('dashboard.welcomeTitle')}</CardTitle>
+                  <CardTitle className="text-2xl text-foreground">{t('dashboard.welcomeTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                  <p className="text-blue-700 text-lg">
+                  <p className="text-muted-foreground text-lg">
                     {t('dashboard.welcomeMessage')}
                   </p>
                 </CardContent>
@@ -173,15 +174,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
         <div className="lg:col-span-1">
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl">
-                <Activity className="h-6 w-6 text-white" />
+              <div className="p-3 bg-gradient-to-br from-muted-foreground/80 to-muted-foreground rounded-xl">
+                <Activity className="h-6 w-6 text-muted" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.recentActivity')}</h2>
-                <p className="text-gray-600">{t('dashboard.recentActivityDescription')}</p>
+                <h2 className="text-2xl font-bold text-foreground">{t('dashboard.recentActivity')}</h2>
+                <p className="text-muted-foreground">{t('dashboard.recentActivityDescription')}</p>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200">
+            <div className="bg-gradient-to-br from-muted/20 to-muted/30 p-6 rounded-xl border border-border">
               <RealtimeActivityFeed />
             </div>
           </div>
