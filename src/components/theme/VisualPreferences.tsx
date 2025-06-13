@@ -39,24 +39,15 @@ export function VisualPreferences() {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="sharp" id="sharp" />
-              <Label htmlFor="sharp" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusSharp')}</span>
-                <div className="w-4 h-4 bg-primary" />
-              </Label>
+              <Label htmlFor="sharp">{t('settings.borderRadiusSharp')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="rounded" id="rounded" />
-              <Label htmlFor="rounded" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusRounded')}</span>
-                <div className="w-4 h-4 bg-primary rounded" />
-              </Label>
+              <Label htmlFor="rounded">{t('settings.borderRadiusRounded')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="very-rounded" id="very-rounded" />
-              <Label htmlFor="very-rounded" className="flex items-center space-x-2">
-                <span>{t('settings.borderRadiusVeryRounded')}</span>
-                <div className="w-4 h-4 bg-primary rounded-xl" />
-              </Label>
+              <Label htmlFor="very-rounded">{t('settings.borderRadiusVeryRounded')}</Label>
             </div>
           </RadioGroup>
         </CardContent>
@@ -75,24 +66,15 @@ export function VisualPreferences() {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="none" id="none" />
-              <Label htmlFor="none" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsNone')}</span>
-                <div className="w-8 h-6 bg-primary rounded border" />
-              </Label>
+              <Label htmlFor="none">{t('settings.shadowsNone')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="subtle" id="subtle" />
-              <Label htmlFor="subtle" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsSubtle')}</span>
-                <div className="w-8 h-6 bg-primary rounded shadow-sm" />
-              </Label>
+              <Label htmlFor="subtle">{t('settings.shadowsSubtle')}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="pronounced" id="pronounced" />
-              <Label htmlFor="pronounced" className="flex items-center space-x-2">
-                <span>{t('settings.shadowsPronounced')}</span>
-                <div className="w-8 h-6 bg-primary rounded shadow-lg" />
-              </Label>
+              <Label htmlFor="pronounced">{t('settings.shadowsPronounced')}</Label>
             </div>
           </RadioGroup>
         </CardContent>
