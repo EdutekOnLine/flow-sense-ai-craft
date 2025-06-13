@@ -24,9 +24,35 @@ export function VisualPreferences() {
     });
   };
 
+  const shapeOptions = [
+    // Basic Shapes
+    { value: 'sharp', label: 'Sharp', category: 'Basic' },
+    { value: 'rounded', label: 'Rounded', category: 'Basic' },
+    { value: 'very-rounded', label: 'Very Rounded', category: 'Basic' },
+    { value: 'pill', label: 'Pill', category: 'Basic' },
+    
+    // Creative Shapes
+    { value: 'asymmetric', label: 'Asymmetric', category: 'Creative' },
+    { value: 'beveled', label: 'Beveled', category: 'Creative' },
+    { value: 'skewed', label: 'Skewed', category: 'Creative' },
+    { value: 'notched', label: 'Notched', category: 'Creative' },
+    
+    // Geometric Shapes
+    { value: 'hexagonal', label: 'Hexagonal', category: 'Geometric' },
+    { value: 'diamond', label: 'Diamond', category: 'Geometric' },
+  ] as const;
+
+  const groupedShapes = shapeOptions.reduce((acc, shape) => {
+    if (!acc[shape.category]) {
+      acc[shape.category] = [];
+    }
+    acc[shape.category].push(shape);
+    return acc;
+  }, {} as Record<string, typeof shapeOptions>);
+
   return (
     <div className="space-y-6">
-      {/* Border Radius */}
+      {/* Card Shapes */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t('settings.borderRadius')}</CardTitle>
@@ -35,29 +61,24 @@ export function VisualPreferences() {
           <RadioGroup
             value={themeSettings.visualPreferences.borderRadius}
             onValueChange={(value) => updateVisualPreference('borderRadius', value as any)}
-            className="space-y-3"
+            className="space-y-4"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="sharp" id="sharp" />
-              <Label htmlFor="sharp" className="flex items-center space-x-2">
-                <span>Sharp</span>
-                <div className="w-4 h-4 bg-primary" />
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="rounded" id="rounded" />
-              <Label htmlFor="rounded" className="flex items-center space-x-2">
-                <span>Rounded</span>
-                <div className="w-4 h-4 bg-primary rounded" />
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="very-rounded" id="very-rounded" />
-              <Label htmlFor="very-rounded" className="flex items-center space-x-2">
-                <span>Very Rounded</span>
-                <div className="w-4 h-4 bg-primary rounded-xl" />
-              </Label>
-            </div>
+            {Object.entries(groupedShapes).map(([category, shapes]) => (
+              <div key={category} className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {shapes.map((shape) => (
+                    <div key={shape.value} className="flex items-center space-x-2">
+                      <RadioGroupItem value={shape.value} id={shape.value} />
+                      <Label htmlFor={shape.value} className="flex items-center space-x-2 cursor-pointer">
+                        <span className="text-sm">{shape.label}</span>
+                        <div className={`shape-preview shape-preview-${shape.value}`} />
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </RadioGroup>
         </CardContent>
       </Card>

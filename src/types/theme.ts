@@ -26,7 +26,7 @@ export interface ColorPalette {
 }
 
 export interface VisualPreferences {
-  borderRadius: 'sharp' | 'rounded' | 'very-rounded';
+  borderRadius: 'sharp' | 'rounded' | 'very-rounded' | 'pill' | 'asymmetric' | 'beveled' | 'hexagonal' | 'diamond' | 'skewed' | 'notched';
   cardShadows: 'none' | 'subtle' | 'pronounced';
   sidebarStyle: 'compact' | 'standard' | 'spacious';
   animationStyle: 'full' | 'reduced';
