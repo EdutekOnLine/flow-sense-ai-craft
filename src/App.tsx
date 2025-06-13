@@ -66,24 +66,24 @@ const AppContent = () => {
   // If user is authenticated and no invite token, show dashboard
   console.log('User authenticated and no invite token, showing Dashboard');
   return (
-    <ThemeProvider>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </ThemeProvider>
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
