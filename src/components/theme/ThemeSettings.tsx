@@ -17,20 +17,20 @@ export function ThemeSettings() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="relative bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border border-blue-200 rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-purple-50/80 to-pink-50/80 rounded-xl"></div>
+      {/* Header - using semantic colors only */}
+      <div className="relative bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border border-border rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-secondary/3 to-accent/3 rounded-xl"></div>
         <div className="relative">
           <div className={`flex items-start justify-between gap-4`}>
             <div className={`flex items-start gap-4 ${getRTLAwareTextAlign('start')}`}>
-              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Palette className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-card">
+                <Palette className="h-8 w-8 text-primary-foreground" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-4xl font-bold text-gray-900">{t('settings.appearance')}</h1>
-                <p className="text-lg text-gray-600">{t('settings.appearanceDescription')}</p>
+                <h1 className="text-4xl font-bold text-foreground">{t('settings.appearance')}</h1>
+                <p className="text-lg text-muted-foreground">{t('settings.appearanceDescription')}</p>
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                  <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
                     Personal Customization
                   </span>
                 </div>
@@ -48,10 +48,10 @@ export function ThemeSettings() {
         </div>
       </div>
 
-      {/* Color Palette Section */}
-      <Card className="bg-gradient-to-br from-blue-50/30 to-purple-50/30 border-blue-200/50">
+      {/* Color Palette Section - using semantic colors */}
+      <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-border/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
+          <CardTitle className="flex items-center gap-2 text-xl text-foreground">
             <Palette className="h-5 w-5" />
             {t('settings.colorThemes')}
           </CardTitle>
@@ -63,10 +63,10 @@ export function ThemeSettings() {
 
       <Separator />
 
-      {/* Visual Preferences Section */}
-      <Card className="bg-gradient-to-br from-purple-50/30 to-pink-50/30 border-purple-200/50">
+      {/* Visual Preferences Section - using semantic colors */}
+      <Card className="bg-gradient-to-br from-secondary/5 to-accent/5 border-border/50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
+          <CardTitle className="flex items-center gap-2 text-xl text-foreground">
             <Settings className="h-5 w-5" />
             {t('settings.visualPreferences')}
           </CardTitle>
@@ -79,12 +79,12 @@ export function ThemeSettings() {
       {/* Theme Debugger */}
       <ThemeDebugger />
 
-      {/* Info Card */}
-      <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+      {/* Info Card - using semantic colors */}
+      <Card className="bg-gradient-to-br from-muted/20 to-muted/30 border-border">
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <p className="text-sm text-gray-600">
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+            <p className="text-sm text-muted-foreground">
               {t('settings.themeNote')}
             </p>
           </div>
