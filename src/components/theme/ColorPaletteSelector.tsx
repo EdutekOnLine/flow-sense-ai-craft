@@ -72,31 +72,6 @@ export function ColorPaletteSelector() {
                     title="Background"
                   />
                 </div>
-                {/* Enhanced live preview section */}
-                <div 
-                  className="p-2 rounded border space-y-1 transition-all"
-                  style={{ 
-                    backgroundColor: `hsl(${palette.colors.background})`,
-                    color: `hsl(${palette.colors.foreground})`,
-                    borderColor: `hsl(${palette.colors.border})`
-                  }}
-                >
-                  <div className="text-xs font-medium">Preview</div>
-                  <div className="flex gap-1">
-                    <div 
-                      className="w-3 h-1.5 rounded-sm"
-                      style={{ backgroundColor: `hsl(${palette.colors.primary})` }}
-                    />
-                    <div 
-                      className="w-3 h-1.5 rounded-sm"
-                      style={{ backgroundColor: `hsl(${palette.colors.secondary})` }}
-                    />
-                    <div 
-                      className="w-3 h-1.5 rounded-sm"
-                      style={{ backgroundColor: `hsl(${palette.colors.accent})` }}
-                    />
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
