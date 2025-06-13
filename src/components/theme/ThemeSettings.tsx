@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ColorPaletteSelector } from './ColorPaletteSelector';
 import { VisualPreferences } from './VisualPreferences';
-import { ThemeDebugger } from './ThemeDebugger';
 import { useTranslation } from 'react-i18next';
 import { Palette, Settings, RotateCcw } from 'lucide-react';
 import { getRTLAwareTextAlign } from '@/utils/rtl';
@@ -75,9 +74,6 @@ export function ThemeSettings() {
           <VisualPreferences />
         </CardContent>
       </Card>
-
-      {/* Theme Debugger */}
-      <ThemeDebugger />
 
       {/* Info Card - using semantic colors */}
       <Card className="bg-gradient-to-br from-muted/20 to-muted/30 border-border">
