@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Copy, Trash2, Edit, Users, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EditUserDialog } from './EditUserDialog';
+import { UserPresenceDashboard } from './UserPresenceDashboard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -346,6 +346,11 @@ export default function UserManagement() {
           </div>
         </div>
       </div>
+
+      {/* User Presence Dashboard - Only show for root users */}
+      {profile?.role === 'root' && (
+        <UserPresenceDashboard />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Invite New User - Only show for root and admin */}
