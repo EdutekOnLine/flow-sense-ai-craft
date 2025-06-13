@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -158,7 +157,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 alt="NeuraFlow Logo" 
                 className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
               />
-              <h1 className="text-xl font-semibold text-gray-900">NeuraFlow</h1>
             </a>
             <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
               <LanguageSwitcher />
