@@ -121,17 +121,17 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-          <Sparkles className="h-6 w-6 text-white" />
+        <div className="p-3 bg-primary rounded-xl">
+          <Sparkles className="h-6 w-6 text-primary-foreground" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('reports.aiReportBuilder')}</h2>
-          <p className="text-gray-600">{t('reports.aiSubtitle')}</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('reports.aiReportBuilder')}</h2>
+          <p className="text-muted-foreground">{t('reports.aiSubtitle')}</p>
         </div>
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
+      <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <Card>
@@ -173,19 +173,19 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
                   
                   <div className={`space-y-2 ${getRTLAwareTextAlign('start')}`}>
                     <div dir="auto">
-                      <span className="font-medium">{t('reports.dataSource')}: </span>
-                      <span className="text-sm">{reportConfig.dataSource}</span>
+                      <span className="font-medium text-foreground">{t('reports.dataSource')}: </span>
+                      <span className="text-sm text-muted-foreground">{reportConfig.dataSource}</span>
                     </div>
                     <div dir="auto">
-                      <span className="font-medium">{t('reports.selectedColumns')}: </span>
-                      <span className="text-sm">{reportConfig.selectedColumns.join(', ')}</span>
+                      <span className="font-medium text-foreground">{t('reports.selectedColumns')}: </span>
+                      <span className="text-sm text-muted-foreground">{reportConfig.selectedColumns.join(', ')}</span>
                     </div>
                     {reportConfig.filters.length > 0 && (
                       <div dir="auto">
-                        <span className="font-medium">{t('reports.filters')}: </span>
+                        <span className="font-medium text-foreground">{t('reports.filters')}: </span>
                         <ul className="text-sm mt-1 space-y-1">
                           {reportConfig.filters.map((filter, index) => (
-                            <li key={index} className={`ml-4 rtl:mr-4 rtl:ml-0 ${getRTLAwareTextAlign('start')}`} dir="auto">
+                            <li key={index} className={`ml-4 rtl:mr-4 rtl:ml-0 ${getRTLAwareTextAlign('start')} text-muted-foreground`} dir="auto">
                               • {filter.column} {filter.operator} {filter.value}
                             </li>
                           ))}

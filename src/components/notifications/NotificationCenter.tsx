@@ -48,10 +48,10 @@ export function NotificationCenter() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <Card className="border-0 shadow-lg">
+        <Card className="border-0 shadow-card">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Notifications</CardTitle>
+              <CardTitle className="text-lg text-foreground">Notifications</CardTitle>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <Button
@@ -77,7 +77,7 @@ export function NotificationCenter() {
           <CardContent className="p-0">
             <ScrollArea className="h-96">
               {notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-muted-foreground">
                   No notifications yet
                 </div>
               ) : (
@@ -85,8 +85,8 @@ export function NotificationCenter() {
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-3 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-                        !notification.read ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                      className={`p-3 border-b border-border cursor-pointer hover:bg-accent/20 transition-colors ${
+                        !notification.read ? 'bg-primary/5 border-l-4 border-l-primary' : ''
                       }`}
                       onClick={() => handleNotificationClick(notification.id, notification.read)}
                     >
@@ -96,17 +96,17 @@ export function NotificationCenter() {
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-medium text-gray-900 truncate">
+                            <h4 className="text-sm font-medium text-foreground truncate">
                               {notification.title}
                             </h4>
                             {!notification.read && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                              <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                           </p>
                         </div>

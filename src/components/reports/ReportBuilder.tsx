@@ -102,19 +102,19 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl">
-          <FileBarChart className="h-6 w-6 text-white" />
+        <div className="p-3 bg-secondary rounded-xl">
+          <FileBarChart className="h-6 w-6 text-secondary-foreground" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('reports.reportBuilder')}</h2>
-          <p className="text-gray-600">Build custom reports with advanced filtering and data selection</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('reports.reportBuilder')}</h2>
+          <p className="text-muted-foreground">Build custom reports with advanced filtering and data selection</p>
         </div>
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+      <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
         <div className={`flex items-center justify-between mb-6 rtl:flex-row-reverse`}>
-          <h3 className={`text-lg font-semibold ${getRTLAwareTextAlign('start')}`}>Report Configuration</h3>
+          <h3 className={`text-lg font-semibold text-foreground ${getRTLAwareTextAlign('start')}`}>Report Configuration</h3>
           <div className={`flex space-x-2 rtl:space-x-reverse rtl:flex-row-reverse`}>
             <Button variant="outline" disabled className="rtl:flex-row-reverse">
               <Save className={`h-4 w-4 ${getRTLAwareIconPosition('before')}`} />
@@ -193,15 +193,15 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
               </CardHeader>
               <CardContent>
                 {!reportConfig.dataSource ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p className={getRTLAwareTextAlign('center')}>{t('reports.selectDataSourceFirst')}</p>
                   </div>
                 ) : reportConfig.selectedColumns.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p className={getRTLAwareTextAlign('center')}>{t('reports.selectColumnsFirst')}</p>
                   </div>
                 ) : reportData.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p className={getRTLAwareTextAlign('center')}>{t('reports.clickGenerateToSeeResults')}</p>
                   </div>
                 ) : (

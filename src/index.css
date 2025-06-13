@@ -126,6 +126,10 @@
     color: hsl(var(--card-foreground)) !important;
   }
 
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
   .border-border {
     border-color: hsl(var(--border)) !important;
   }
@@ -289,33 +293,59 @@
     @apply text-right;
   }
 
-  /* Theme-aware gradient utilities */
+  /* Enhanced theme-aware gradient utilities */
   .bg-gradient-theme-primary {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2));
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.15)) !important;
   }
 
   .bg-gradient-theme-secondary {
-    background: linear-gradient(135deg, hsl(var(--secondary) / 0.1), hsl(var(--secondary) / 0.2));
+    background: linear-gradient(135deg, hsl(var(--secondary) / 0.05), hsl(var(--secondary) / 0.15)) !important;
   }
 
   .bg-gradient-theme-accent {
-    background: linear-gradient(135deg, hsl(var(--accent) / 0.1), hsl(var(--accent) / 0.2));
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.05), hsl(var(--accent) / 0.15)) !important;
   }
 
   .bg-gradient-theme-muted {
-    background: linear-gradient(135deg, hsl(var(--muted) / 0.1), hsl(var(--muted) / 0.2));
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.05), hsl(var(--muted) / 0.15)) !important;
   }
 
   /* Theme-aware card gradient backgrounds */
   .bg-gradient-card-primary {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--primary) / 0.15));
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.03), hsl(var(--primary) / 0.08)) !important;
   }
 
   .bg-gradient-card-secondary {
-    background: linear-gradient(135deg, hsl(var(--secondary) / 0.05), hsl(var(--secondary) / 0.15));
+    background: linear-gradient(135deg, hsl(var(--secondary) / 0.03), hsl(var(--secondary) / 0.08)) !important;
   }
 
   .bg-gradient-card-accent {
-    background: linear-gradient(135deg, hsl(var(--accent) / 0.05), hsl(var(--accent) / 0.15));
+    background: linear-gradient(135deg, hsl(var(--accent) / 0.03), hsl(var(--accent) / 0.08)) !important;
+  }
+
+  /* Theme-aware hover states */
+  .hover-theme-primary:hover {
+    background-color: hsl(var(--primary) / 0.1) !important;
+  }
+
+  .hover-theme-secondary:hover {
+    background-color: hsl(var(--secondary) / 0.1) !important;
+  }
+
+  .hover-theme-accent:hover {
+    background-color: hsl(var(--accent) / 0.1) !important;
+  }
+
+  /* Force theme updates for specific elements */
+  .theme-aware-bg {
+    background-color: hsl(var(--background)) !important;
+  }
+
+  .theme-aware-text {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .theme-aware-border {
+    border-color: hsl(var(--border)) !important;
   }
 }
