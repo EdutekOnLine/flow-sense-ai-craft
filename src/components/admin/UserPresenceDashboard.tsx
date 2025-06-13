@@ -35,22 +35,22 @@ export function UserPresenceDashboard() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'root': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'root': return 'bg-role-root text-role-root-foreground';
+      case 'admin': return 'bg-role-admin text-role-admin-foreground';
+      case 'manager': return 'bg-role-manager text-role-manager-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-green-200">
+    <Card className="bg-gradient-theme-card border-border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
-            <Users className="h-4 w-4 text-white" />
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+            <Users className="h-4 w-4 text-primary-foreground" />
           </div>
           Real-time User Presence
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto bg-primary/10 text-primary">
             {onlineUsers.length} Online
           </Badge>
         </CardTitle>
@@ -59,23 +59,23 @@ export function UserPresenceDashboard() {
         {/* Online Users */}
         {onlineUsers.length > 0 && (
           <div>
-            <h4 className="flex items-center gap-2 text-sm font-medium text-green-700 mb-3">
-              <Wifi className="h-4 w-4" />
+            <h4 className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
+              <Wifi className="h-4 w-4 text-primary" />
               Currently Online ({onlineUsers.length})
             </h4>
             <div className="space-y-2">
               {onlineUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm border border-green-200 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-card/60 backdrop-blur-sm border border-border rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {getUserDisplayName(user)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {user.profile?.email}
                       </p>
                     </div>
@@ -97,7 +97,7 @@ export function UserPresenceDashboard() {
         {/* Offline Users */}
         {offlineUsers.length > 0 && (
           <div>
-            <h4 className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-3">
+            <h4 className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3">
               <WifiOff className="h-4 w-4" />
               Recently Offline ({offlineUsers.length})
             </h4>
@@ -105,15 +105,15 @@ export function UserPresenceDashboard() {
               {offlineUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 bg-white/40 backdrop-blur-sm border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-card/40 backdrop-blur-sm border border-border rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
                     <div>
-                      <p className="font-medium text-gray-700">
+                      <p className="font-medium text-muted-foreground">
                         {getUserDisplayName(user)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {user.profile?.email}
                       </p>
                     </div>
@@ -123,7 +123,7 @@ export function UserPresenceDashboard() {
                       {(user.profile?.role || 'employee').toUpperCase()}
                     </Badge>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatLastSeen(user.last_seen)}
                       </p>
@@ -136,8 +136,8 @@ export function UserPresenceDashboard() {
         )}
 
         {allUserPresence.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
-            <Users className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+          <div className="text-center py-4 text-muted-foreground">
+            <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p>No user presence data available</p>
           </div>
         )}

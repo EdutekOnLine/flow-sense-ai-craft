@@ -40,11 +40,14 @@ export function useUserPresence() {
           is_online: online,
           last_seen: new Date().toISOString(),
           session_id: sessionIdRef.current,
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {
         console.error('Error updating presence:', error);
       } else {
+        console.log('Presence updated successfully:', { online, userId: user.id });
         setIsOnline(online);
       }
     } catch (error) {
@@ -54,34 +57,66 @@ export function useUserPresence() {
 
   // Fetch all user presence data (only for root users)
   const fetchAllUserPresence = async () => {
-    if (!isRootUser) return;
+    if (!isRootUser) {
+      console.log('Not a root user, skipping presence fetch');
+      return;
+    }
 
     try {
-      const { data, error } = await supabase
+      console.log('Fetching user presence data...');
+      
+      // First, get all user presence records
+      const { data: presenceData, error: presenceError } = await supabase
         .from('user_presence')
-        .select(`
-          *,
-          profiles!user_presence_user_id_fkey (
-            first_name,
-            last_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .order('is_online', { ascending: false })
         .order('last_seen', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching user presence:', error);
+      if (presenceError) {
+        console.error('Error fetching user presence:', presenceError);
         return;
       }
 
-      const presenceWithProfiles = data?.map(item => ({
-        ...item,
-        profile: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
-      })) || [];
+      console.log('Raw presence data:', presenceData);
 
-      setAllUserPresence(presenceWithProfiles);
+      if (!presenceData || presenceData.length === 0) {
+        console.log('No presence data found');
+        setAllUserPresence([]);
+        return;
+      }
+
+      // Then get profiles for these users
+      const userIds = presenceData.map(p => p.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, role')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // Still show presence data without profile info
+        setAllUserPresence(presenceData.map(p => ({ ...p, profile: undefined })));
+        return;
+      }
+
+      console.log('Profiles data:', profilesData);
+
+      // Combine presence data with profile data
+      const combined = presenceData.map(presence => {
+        const profile = profilesData?.find(p => p.id === presence.user_id);
+        return {
+          ...presence,
+          profile: profile ? {
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            email: profile.email,
+            role: profile.role
+          } : undefined
+        };
+      });
+
+      console.log('Combined presence data:', combined);
+      setAllUserPresence(combined);
     } catch (error) {
       console.error('Error fetching user presence:', error);
     }
@@ -90,6 +125,8 @@ export function useUserPresence() {
   // Set up real-time subscription for presence updates (root users only)
   useEffect(() => {
     if (!isRootUser) return;
+
+    console.log('Setting up real-time subscription for presence updates');
 
     const channel = supabase
       .channel('user-presence-changes')
@@ -101,7 +138,7 @@ export function useUserPresence() {
           table: 'user_presence'
         },
         (payload) => {
-          console.log('Presence change:', payload);
+          console.log('Presence change detected:', payload);
           fetchAllUserPresence();
         }
       )
@@ -111,6 +148,7 @@ export function useUserPresence() {
     fetchAllUserPresence();
 
     return () => {
+      console.log('Cleaning up presence subscription');
       supabase.removeChannel(channel);
     };
   }, [isRootUser]);
@@ -118,6 +156,8 @@ export function useUserPresence() {
   // Set up presence tracking for current user
   useEffect(() => {
     if (!user?.id) return;
+
+    console.log('Setting up presence tracking for user:', user.id);
 
     // Go online when component mounts
     updatePresence(true);
