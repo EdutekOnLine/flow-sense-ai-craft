@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +17,82 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Presence tracking for all users
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const sessionId = crypto.randomUUID();
+
+    // Update user's presence status
+    const updatePresence = async (online: boolean) => {
+      try {
+        const { error } = await supabase
+          .from('user_presence')
+          .upsert({
+            user_id: user.id,
+            is_online: online,
+            last_seen: new Date().toISOString(),
+            session_id: sessionId,
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) {
+          console.error('Error updating presence:', error);
+        } else {
+          console.log('Presence updated successfully:', { online, userId: user.id, role: profile?.role });
+        }
+      } catch (error) {
+        console.error('Error updating presence:', error);
+      }
+    };
+
+    console.log('Setting up presence tracking for user:', user.id, 'role:', profile?.role);
+
+    // Go online when component mounts
+    updatePresence(true);
+
+    // Set up heartbeat to keep presence alive
+    const heartbeatInterval = setInterval(() => {
+      updatePresence(true);
+    }, 30000); // Update every 30 seconds
+
+    // Handle visibility change
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        updatePresence(false);
+      } else {
+        updatePresence(true);
+      }
+    };
+
+    // Handle page unload
+    const handleBeforeUnload = () => {
+      updatePresence(false);
+    };
+
+    // Handle online/offline status
+    const handleOnline = () => updatePresence(true);
+    const handleOffline = () => updatePresence(false);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      
+      // Mark as offline when component unmounts
+      updatePresence(false);
+
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [user?.id, profile?.role]);
 
   useEffect(() => {
     // Set up auth state listener
