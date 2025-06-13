@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Apply theme to CSS custom properties with force update
+  // Apply theme to CSS custom properties
   useEffect(() => {
     const applyTheme = () => {
       const root = document.documentElement;
@@ -38,22 +38,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       
       console.log('🎨 Applying theme:', themeSettings.colorPalette, palette.name);
       
-      // Remove any existing theme classes
-      document.body.classList.remove('theme-applied');
-      
-      // Apply color palette with proper HSL format and force update
+      // Apply color palette
       Object.entries(palette.colors).forEach(([key, value]) => {
         const cssProperty = `--${key}`;
         root.style.setProperty(cssProperty, value);
         console.log(`🎨 Setting ${cssProperty}: ${value}`);
       });
 
-      // Apply border radius with force
+      // Apply border radius
       const radiusValue = borderRadiusValues[themeSettings.visualPreferences.borderRadius];
       root.style.setProperty('--radius', radiusValue);
       console.log('🎨 Setting border radius:', radiusValue);
 
-      // Apply card shadows with force
+      // Apply card shadows
       const shadowValue = cardShadowValues[themeSettings.visualPreferences.cardShadows];
       root.style.setProperty('--card-shadow', shadowValue);
       console.log('🎨 Setting card shadow:', shadowValue);
@@ -73,25 +70,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       } else {
         document.body.classList.remove('dark');
       }
-
-      // Add theme-applied class and force a repaint
-      document.body.classList.add('theme-applied');
-      
-      // Force immediate visual update by toggling body styles
-      const originalDisplay = document.body.style.display;
-      document.body.style.display = 'none';
-      document.body.offsetHeight; // Trigger reflow
-      document.body.style.display = originalDisplay;
-      
-      // Additional force update for stubborn elements
-      setTimeout(() => {
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(el => {
-          if (el instanceof HTMLElement) {
-            el.style.cssText = el.style.cssText;
-          }
-        });
-      }, 100);
       
       console.log('🎨 Theme application complete!');
     };
