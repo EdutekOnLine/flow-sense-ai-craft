@@ -58,12 +58,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.style.setProperty('--card-shadow', shadowValue);
       console.log('🎨 Setting card shadow:', shadowValue);
 
-      // Remove old card shape classes and apply new one
-      const shapeClasses = ['card-shape-sharp', 'card-shape-rounded', 'card-shape-very-rounded', 'card-shape-pill', 'card-shape-asymmetric', 'card-shape-beveled', 'card-shape-hexagonal', 'card-shape-diamond', 'card-shape-skewed', 'card-shape-notched'];
-      shapeClasses.forEach(cls => document.body.classList.remove(cls));
-      document.body.classList.add(`card-shape-${themeSettings.visualPreferences.borderRadius}`);
-      console.log('🎨 Setting card shape:', themeSettings.visualPreferences.borderRadius);
-
       // Apply animation preferences
       if (themeSettings.visualPreferences.animationStyle === 'reduced') {
         root.style.setProperty('--animation-duration', '0.1s');

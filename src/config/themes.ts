@@ -408,14 +408,7 @@ export const colorPalettes: ColorPalette[] = [
 export const borderRadiusValues = {
   sharp: '0px',
   rounded: '8px',
-  'very-rounded': '16px',
-  pill: '9999px',
-  asymmetric: '0px 16px 8px 0px',
-  beveled: '0px',
-  hexagonal: '0px',
-  diamond: '0px',
-  skewed: '8px',
-  notched: '8px'
+  'very-rounded': '16px'
 };
 
 export const cardShadowValues = {
