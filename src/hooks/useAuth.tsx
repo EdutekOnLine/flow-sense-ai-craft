@@ -10,6 +10,7 @@ export interface UserProfile {
   role: 'admin' | 'manager' | 'employee' | 'root';
   department?: string;
   avatar_url?: string;
+  workspace_id?: string;
 }
 
 export function useAuth() {
@@ -103,7 +104,7 @@ export function useAuth() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with workspace info
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from('profiles')

@@ -45,6 +45,42 @@ export type Database = {
         }
         Relationships: []
       }
+      modules: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          id: string
+          is_core: boolean
+          name: string
+          settings_schema: Json | null
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          id?: string
+          is_core?: boolean
+          name: string
+          settings_schema?: Json | null
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_core?: boolean
+          name?: string
+          settings_schema?: Json | null
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -100,6 +136,7 @@ export type Database = {
           last_name: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -111,6 +148,7 @@ export type Database = {
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -122,8 +160,17 @@ export type Database = {
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_workflows: {
         Row: {
@@ -553,6 +600,90 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           status?: Database["public"]["Enums"]["workflow_status"]
           tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workspace_modules: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          module_id: string
+          settings: Json | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id: string
+          settings?: Json | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id?: string
+          settings?: Json | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_modules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          settings: Json | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          settings?: Json | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          settings?: Json | null
+          slug?: string
           updated_at?: string
         }
         Relationships: []

@@ -1,5 +1,6 @@
 
 import { useAuth } from '@/hooks/useAuth';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface UserProfile {
   id: string;
@@ -8,14 +9,19 @@ interface UserProfile {
   last_name?: string;
   role: 'admin' | 'manager' | 'employee' | 'root';
   department?: string;
+  workspace_id?: string;
   created_at: string;
 }
 
 export function useUserPermissions() {
   const { profile } = useAuth();
+  const { canManageWorkspace } = useModulePermissions();
 
   const canEditUser = (targetUser: UserProfile) => {
     if (!profile) return false;
+    
+    // Users in different workspaces cannot edit each other
+    if (profile.workspace_id !== targetUser.workspace_id) return false;
     
     if (profile.role === 'root') return true;
     if (profile.role === 'admin' && targetUser.role !== 'root') return true;
@@ -27,6 +33,10 @@ export function useUserPermissions() {
   const canDeleteUser = (targetUser: UserProfile) => {
     if (!profile) return false;
     if (profile.id === targetUser.id) return false;
+    
+    // Users in different workspaces cannot delete each other
+    if (profile.workspace_id !== targetUser.workspace_id) return false;
+    
     if (profile.role === 'root' && targetUser.role !== 'root') return true;
     if (profile.role === 'admin' && ['employee', 'manager'].includes(targetUser.role)) return true;
     
@@ -36,6 +46,10 @@ export function useUserPermissions() {
   const canSeeUser = (targetUser: UserProfile) => {
     if (!profile) return false;
     if (profile.id === targetUser.id) return true;
+    
+    // Users can only see users in their workspace
+    if (profile.workspace_id !== targetUser.workspace_id) return false;
+    
     if (profile.role === 'root') return true;
     if (profile.role === 'admin') {
       return !['admin', 'root'].includes(targetUser.role) || targetUser.id === profile.id;
@@ -48,7 +62,7 @@ export function useUserPermissions() {
   };
 
   const canInviteUsers = () => {
-    return profile && ['root', 'admin'].includes(profile.role);
+    return profile && ['root', 'admin'].includes(profile.role) && canManageWorkspace();
   };
 
   const getRoleBadgeColor = (role: string) => {

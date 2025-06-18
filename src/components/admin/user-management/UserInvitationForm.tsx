@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 interface UserInvitationFormProps {
   onInviteUser: (invitation: { email: string; role: 'admin' | 'manager' | 'employee'; department: string }) => void;
@@ -18,6 +19,7 @@ interface UserInvitationFormProps {
 export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFormProps) {
   const { t } = useTranslation();
   const { profile, user } = useAuth();
+  const { workspace } = useWorkspace();
   const { toast } = useToast();
   const [inviteForm, setInviteForm] = useState({
     email: '',
@@ -53,6 +55,15 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
       return;
     }
 
+    if (!workspace) {
+      toast({
+        title: 'Workspace Required',
+        description: 'You must be in a workspace to send invitations',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     onInviteUser(inviteForm);
     setInviteForm({ email: '', role: 'employee', department: '' });
   };
@@ -65,6 +76,11 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
             <UserPlus className="h-4 w-4 text-primary-foreground" />
           </div>
           {t('users.inviteNewUser')}
+          {workspace && (
+            <span className="ml-2 text-sm text-muted-foreground">
+              to {workspace.name}
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
