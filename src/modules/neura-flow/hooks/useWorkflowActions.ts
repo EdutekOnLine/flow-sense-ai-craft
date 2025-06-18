@@ -48,7 +48,8 @@ export function useWorkflowActions({
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: Node[] }) => {
       if (selectedNodes.length > 0) {
-        setSelectedNodeLabel(selectedNodes[0].data?.label || '');
+        const nodeLabel = selectedNodes[0].data?.label;
+        setSelectedNodeLabel(typeof nodeLabel === 'string' ? nodeLabel : '');
       } else {
         setSelectedNodeLabel('');
       }
