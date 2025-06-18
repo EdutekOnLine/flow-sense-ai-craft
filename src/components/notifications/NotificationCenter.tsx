@@ -48,7 +48,7 @@ export function NotificationCenter() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <Card className="border-0 shadow-card">
+        <Card className="border-0 shadow-card bg-gradient-theme-primary">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-foreground">Notifications</CardTitle>

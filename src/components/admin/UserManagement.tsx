@@ -318,7 +318,7 @@ export default function UserManagement() {
     <div className="space-y-8">
       {/* Gradient Header */}
       <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-theme-card rounded-xl"></div>
+        <div className="absolute inset-0 bg-gradient-theme-primary rounded-xl"></div>
         <div className="relative">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
@@ -355,7 +355,7 @@ export default function UserManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Invite New User - Only show for root and admin */}
         {canInviteUsers() && (
-          <Card className="bg-gradient-theme-card border-border">
+          <Card className="bg-gradient-theme-primary border-border">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mr-3">
@@ -411,7 +411,7 @@ export default function UserManagement() {
         )}
 
         {/* Active Users */}
-        <Card className={`bg-gradient-theme-card border-border ${canInviteUsers() ? '' : 'lg:col-span-2'}`}>
+        <Card className={`bg-gradient-theme-secondary border-border ${canInviteUsers() ? '' : 'lg:col-span-2'}`}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center">
@@ -492,7 +492,7 @@ export default function UserManagement() {
 
       {/* Pending Invitations - Only show for root and admin */}
       {canInviteUsers() && (
-        <Card className="bg-gradient-theme-card border-border">
+        <Card className="bg-gradient-theme-accent border-border">
           <CardHeader>
             <CardTitle className="flex items-center">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center mr-3">

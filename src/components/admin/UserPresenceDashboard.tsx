@@ -43,7 +43,7 @@ export function UserPresenceDashboard() {
   };
 
   return (
-    <Card className="bg-gradient-theme-card border-border">
+    <Card className="bg-gradient-theme-primary border-border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">

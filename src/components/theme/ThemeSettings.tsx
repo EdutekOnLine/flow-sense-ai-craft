@@ -17,8 +17,8 @@ export function ThemeSettings() {
   return (
     <div className="space-y-8">
       {/* Header - using semantic colors only */}
-      <div className="relative bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border border-border rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-secondary/3 to-accent/3 rounded-xl"></div>
+      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
+        <div className="absolute inset-0 bg-gradient-theme-primary rounded-xl"></div>
         <div className="relative">
           <div className={`flex items-start justify-between gap-4`}>
             <div className={`flex items-start gap-4 ${getRTLAwareTextAlign('start')}`}>
@@ -48,7 +48,7 @@ export function ThemeSettings() {
       </div>
 
       {/* Color Palette Section - using semantic colors */}
-      <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-border/50">
+      <Card className="bg-gradient-theme-secondary border-border/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl text-foreground">
             <Palette className="h-5 w-5" />
@@ -63,7 +63,7 @@ export function ThemeSettings() {
       <Separator />
 
       {/* Visual Preferences Section - using semantic colors */}
-      <Card className="bg-gradient-to-br from-secondary/5 to-accent/5 border-border/50">
+      <Card className="bg-gradient-theme-accent border-border/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl text-foreground">
             <Settings className="h-5 w-5" />
@@ -76,7 +76,7 @@ export function ThemeSettings() {
       </Card>
 
       {/* Info Card - using semantic colors */}
-      <Card className="bg-gradient-to-br from-muted/20 to-muted/30 border-border">
+      <Card className="bg-gradient-theme-primary border-border">
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
