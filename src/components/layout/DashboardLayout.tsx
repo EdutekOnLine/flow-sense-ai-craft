@@ -1,29 +1,26 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings, 
-  LogOut, 
-  FileText,
-  BarChart3,
-  Workflow,
-  Inbox
-} from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { DynamicSidebar } from './DynamicSidebar';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
+import { ModuleGuard } from '@/components/modules/ModuleGuard';
+
+// Component imports
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/modules/neura-flow/components/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
-import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ReportsPage } from '@/components/reports/ReportsPage';
 import { ThemeSettings } from '@/components/theme/ThemeSettings';
-import { ModuleGuard } from '@/components/modules/ModuleGuard';
+import { CRMDashboard } from '@/modules/neura-crm';
+import { FormBuilder } from '@/modules/neura-forms';
+import { LearningManagementSystem } from '@/modules/neura-edu';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -32,7 +29,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const { canEditWorkflows } = useWorkflowPermissions();
-  const { canAccessNeuraFlow, canAccessModule } = useModulePermissions();
+  const { canAccessModule } = useModulePermissions();
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
@@ -79,39 +76,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     window.location.hash = tabId;
   };
 
-  const navigationItems = [
-    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-core' },
-    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-flow' },
-    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'], module: 'neura-flow' },
-    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'], module: 'neura-core' },
-    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'], module: 'neura-core' },
-    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-flow' },
-    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'], module: 'neura-core' },
-  ];
-
-  const visibleNavItems = navigationItems.filter(item => 
-    item.roles.includes(profile?.role || 'employee') && canAccessModule(item.module)
-  );
-
   const handleOpenWorkflow = (workflowId: string) => {
     console.log('DashboardLayout handleOpenWorkflow called with workflowId:', workflowId);
-    console.log('canEditWorkflows:', canEditWorkflows);
-    console.log('profile?.role:', profile?.role);
-    
-    console.log('Setting workflow ID in URL and switching to workflow builder');
     
     // First, update the URL with the workflow ID
     const url = new URL(window.location.href);
     url.searchParams.set('workflowId', workflowId);
     window.history.replaceState({}, '', url.toString());
     
-    console.log('Updated URL:', url.toString());
-    
     // Then switch to workflow builder tab
     setActiveTab('workflow-builder');
     window.location.hash = 'workflow-builder';
-    
-    console.log('Switched to workflow-builder tab');
   };
 
   const renderContent = () => {
@@ -141,6 +116,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </ModuleGuard>
         );
+      case 'crm':
+        return (
+          <ModuleGuard moduleName="neura-crm">
+            <CRMDashboard />
+          </ModuleGuard>
+        );
+      case 'forms':
+        return (
+          <ModuleGuard moduleName="neura-forms">
+            <FormBuilder />
+          </ModuleGuard>
+        );
+      case 'education':
+        return (
+          <ModuleGuard moduleName="neura-edu">
+            <LearningManagementSystem />
+          </ModuleGuard>
+        );
       case 'settings':
         return <ThemeSettings />;
       default:
@@ -150,67 +143,52 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <header className="bg-gradient-theme-primary shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`flex justify-between items-center h-16 ${isRTL ? 'rtl-space-reverse' : ''}`}>
-            <a 
-              href="https://neuracore.app" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
-            >
-              <img 
-                src="/lovable-uploads/ad638155-e549-4473-9b1c-09e58275fae6.png" 
-                alt="NeuraCore Logo" 
-                className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
-              />
-            </a>
-            <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
-              <LanguageSwitcher />
-              <NotificationCenter />
-              <span className="text-sm text-muted-foreground">
-                {t('header.welcome', { name: profile?.first_name || profile?.email })}
-              </span>
-              <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">
-                {profile?.role?.toUpperCase()}
-              </span>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                {t('header.signOut')}
-              </Button>
-            </div>
-          </div>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          {/* Show Sidebar only on the main dashboard */}
+          {isMainDashboard && (
+            <DynamicSidebar
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              onSignOut={handleSignOut}
+            />
+          )}
+          
+          <SidebarInset className="flex-1">
+            {/* Header */}
+            <header className="bg-gradient-theme-primary shadow-sm border-b border-border">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className={`flex justify-between items-center h-16 ${isRTL ? 'rtl-space-reverse' : ''}`}>
+                  <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    {isMainDashboard && <SidebarTrigger className="mr-4" />}
+                    <a 
+                      href="https://neuracore.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
+                    >
+                      <img 
+                        src="/lovable-uploads/ad638155-e549-4473-9b1c-09e58275fae6.png" 
+                        alt="NeuraCore Logo" 
+                        className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
+                      />
+                    </a>
+                  </div>
+                  <div className={`flex items-center space-x-4 ${isRTL ? 'space-x-reverse' : ''}`}>
+                    <LanguageSwitcher />
+                    <NotificationCenter />
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {/* Content */}
+            <main className="flex-1 p-6">
+              {renderContent()}
+            </main>
+          </SidebarInset>
         </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Show Navigation Tabs only on the main dashboard */}
-        {isMainDashboard && (
-          <div className={`flex space-x-1 mb-8 bg-muted p-1 rounded-lg ${isRTL ? 'space-x-reverse' : ''}`}>
-            {visibleNavItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleTabChange(item.id)}
-                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${isRTL ? 'flex-row-reverse' : ''} ${
-                    activeTab === item.id
-                      ? 'bg-background text-primary shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Icon className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Content */}
-        {renderContent()}
-      </div>
+      </SidebarProvider>
     </div>
   );
 }
