@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,6 +24,7 @@ import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ReportsPage } from '@/components/reports/ReportsPage';
 import { ThemeSettings } from '@/components/theme/ThemeSettings';
+import { ModuleGuard } from '@/components/modules/ModuleGuard';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -31,6 +33,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { profile, signOut } = useAuth();
   const { canEditWorkflows } = useWorkflowPermissions();
+  const { canAccessNeuraFlow, canAccessModule } = useModulePermissions();
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const location = useLocation();
@@ -78,17 +81,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const navigationItems = [
-    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'] },
-    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'] },
-    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'] },
-    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'] },
-    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'] },
+    { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-core' },
+    { id: 'workflow-inbox', label: t('navigation.myTasks'), icon: Inbox, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-flow' },
+    { id: 'workflow-builder', label: t('navigation.workflowBuilder'), icon: Workflow, roles: ['admin', 'manager', 'root'], module: 'neura-flow' },
+    { id: 'users', label: t('navigation.users'), icon: Users, roles: ['admin', 'manager', 'root'], module: 'neura-core' },
+    { id: 'reports', label: t('navigation.reports'), icon: BarChart3, roles: ['admin', 'manager', 'root'], module: 'neura-core' },
+    { id: 'templates', label: t('navigation.templates'), icon: FileText, roles: ['admin', 'manager', 'employee', 'root'], module: 'neura-flow' },
+    { id: 'settings', label: t('navigation.settings'), icon: Settings, roles: ['admin', 'root'], module: 'neura-core' },
   ];
 
   const visibleNavItems = navigationItems.filter(item => 
-    item.roles.includes(profile?.role || 'employee')
+    item.roles.includes(profile?.role || 'employee') && canAccessModule(item.module)
   );
 
   const handleOpenWorkflow = (workflowId: string) => {
@@ -115,20 +118,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const renderContent = () => {
     switch (activeTab) {
       case 'workflow-inbox':
-        return <WorkflowInbox />;
+        return (
+          <ModuleGuard moduleName="neura-flow">
+            <WorkflowInbox />
+          </ModuleGuard>
+        );
       case 'users':
         return ['admin', 'manager', 'root'].includes(profile?.role || '') ? <UserManagement /> : <DashboardContent onOpenWorkflow={handleOpenWorkflow} />;
       case 'workflow-builder':
-        // Allow all users to access workflow builder - it will handle permissions internally
-        return <WorkflowBuilder />;
+        return (
+          <ModuleGuard moduleName="neura-flow">
+            <WorkflowBuilder />
+          </ModuleGuard>
+        );
       case 'reports':
         return <ReportsPage />;
       case 'templates':
         return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold text-foreground mb-4">{t('navigation.templates')}</h2>
-            <p className="text-muted-foreground">Workflow templates functionality coming soon...</p>
-          </div>
+          <ModuleGuard moduleName="neura-flow">
+            <div className="text-center py-8">
+              <h2 className="text-2xl font-bold text-foreground mb-4">{t('navigation.templates')}</h2>
+              <p className="text-muted-foreground">Workflow templates functionality coming soon...</p>
+            </div>
+          </ModuleGuard>
         );
       case 'settings':
         return <ThemeSettings />;
@@ -144,14 +156,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center h-16 ${isRTL ? 'rtl-space-reverse' : ''}`}>
             <a 
-              href="https://neuraflowai.app" 
+              href="https://neuracore.app" 
               target="_blank" 
               rel="noopener noreferrer"
               className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
             >
               <img 
                 src="/lovable-uploads/ad638155-e549-4473-9b1c-09e58275fae6.png" 
-                alt="NeuraFlow Logo" 
+                alt="NeuraCore Logo" 
                 className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
               />
             </a>

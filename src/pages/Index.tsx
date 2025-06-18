@@ -12,10 +12,10 @@ const Index = () => {
             <Sparkles className="h-12 w-12 text-primary-foreground" />
           </div>
           <CardTitle className="text-5xl font-bold text-foreground mb-4">
-            Welcome to NeuraFlow
+            Welcome to NeuraCore
           </CardTitle>
           <p className="text-xl text-muted-foreground">
-            Start building your amazing workflow automation project here!
+            Your AI-powered modular platform for business automation and management
           </p>
         </CardHeader>
         <CardContent className="text-center">

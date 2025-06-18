@@ -6,6 +6,7 @@ import { WorkflowSidebar } from './WorkflowSidebar';
 import { WorkflowCanvas } from './WorkflowCanvas';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowPermissionGuard } from './WorkflowPermissionGuard';
+import { ModuleGuard } from '@/components/modules/ModuleGuard';
 import { useWorkflowState } from './hooks/useWorkflowState';
 import { useWorkflowDialogs } from './hooks/useWorkflowDialogs';
 import { useWorkflowActions } from './hooks/useWorkflowActions';
@@ -82,54 +83,56 @@ export default function WorkflowBuilder() {
   }, [setShowReview]);
 
   return (
-    <WorkflowPermissionGuard>
-      <div className="flex flex-col h-screen bg-background">
-        <WorkflowToolbar
-          onAddNode={onAddNode}
-          onNewWorkflow={handleNewWorkflow}
-          onOpenGenerator={() => setIsGeneratorOpen(true)}
-          onOpenReview={handleOpenReview}
-          onSaveWorkflow={() => setIsSaveDialogOpen(true)}
-          nodes={nodes}
-          edges={edges}
-          aiAssistantEnabled={aiAssistantEnabled}
-          onToggleAIAssistant={setAiAssistantEnabled}
-          isSaving={isSaving}
-        />
-        
-        <div className="flex flex-1 overflow-hidden">
-          <WorkflowSidebar onAddNode={onAddNode} />
-          
-          <WorkflowCanvas
+    <ModuleGuard moduleName="neura-flow">
+      <WorkflowPermissionGuard>
+        <div className="flex flex-col h-screen bg-background">
+          <WorkflowToolbar
+            onAddNode={onAddNode}
+            onNewWorkflow={handleNewWorkflow}
+            onOpenGenerator={() => setIsGeneratorOpen(true)}
+            onOpenReview={handleOpenReview}
+            onSaveWorkflow={() => setIsSaveDialogOpen(true)}
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectionChange={onSelectionChange}
-            onInit={onInit}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            selectedNode={selectedNode}
-            isNodeEditorOpen={isNodeEditorOpen}
-            onCloseNodeEditor={closeNodeEditor}
-            onUpdateNodeData={onUpdateNodeData}
-            availableFields={availableFields}
-            canDeleteWorkflows={canDeleteWorkflows}
-            canEditWorkflows={canEditWorkflows}
-            canCreateWorkflows={canCreateWorkflows}
-            isSaving={isSaving}
             aiAssistantEnabled={aiAssistantEnabled}
-            contextualSuggestionsPosition={contextualSuggestionsPosition}
-            suggestions={suggestions}
-            showAssistant={showAssistant}
-            isSuggestionsLoading={isSuggestionsLoading}
-            onAddSuggestedStep={onAddSuggestedStep}
-            onCloseAssistant={onCloseAssistant}
-            selectedNodeLabel={selectedNodeLabel || ''}
+            onToggleAIAssistant={setAiAssistantEnabled}
+            isSaving={isSaving}
           />
+          
+          <div className="flex flex-1 overflow-hidden">
+            <WorkflowSidebar onAddNode={onAddNode} />
+            
+            <WorkflowCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onSelectionChange={onSelectionChange}
+              onInit={onInit}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              selectedNode={selectedNode}
+              isNodeEditorOpen={isNodeEditorOpen}
+              onCloseNodeEditor={closeNodeEditor}
+              onUpdateNodeData={onUpdateNodeData}
+              availableFields={availableFields}
+              canDeleteWorkflows={canDeleteWorkflows}
+              canEditWorkflows={canEditWorkflows}
+              canCreateWorkflows={canCreateWorkflows}
+              isSaving={isSaving}
+              aiAssistantEnabled={aiAssistantEnabled}
+              contextualSuggestionsPosition={contextualSuggestionsPosition}
+              suggestions={suggestions}
+              showAssistant={showAssistant}
+              isSuggestionsLoading={isSuggestionsLoading}
+              onAddSuggestedStep={onAddSuggestedStep}
+              onCloseAssistant={onCloseAssistant}
+              selectedNodeLabel={selectedNodeLabel || ''}
+            />
+          </div>
         </div>
-      </div>
-    </WorkflowPermissionGuard>
+      </WorkflowPermissionGuard>
+    </ModuleGuard>
   );
 }
