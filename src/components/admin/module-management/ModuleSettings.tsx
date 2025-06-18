@@ -27,6 +27,12 @@ interface Module {
   statusMessage?: string;
 }
 
+interface SettingDefinition {
+  type: 'number' | 'boolean' | 'text' | 'textarea';
+  default: any;
+  label: string;
+}
+
 interface ModuleSettingsProps {
   modules: Module[];
 }
@@ -38,8 +44,8 @@ export function ModuleSettings({ modules }: ModuleSettingsProps) {
   const activeModules = modules.filter(m => m.isActive);
   const currentModule = modules.find(m => m.name === selectedModule);
 
-  const getModuleSettingsSchema = (moduleName: string) => {
-    const schemas: Record<string, any> = {
+  const getModuleSettingsSchema = (moduleName: string): Record<string, Record<string, SettingDefinition>> => {
+    const schemas: Record<string, Record<string, Record<string, SettingDefinition>>> = {
       'neura-core': {
         general: {
           maxUsers: { type: 'number', default: 100, label: 'Maximum Users' },
@@ -80,7 +86,7 @@ export function ModuleSettings({ modules }: ModuleSettingsProps) {
     return schemas[moduleName] || {};
   };
 
-  const renderSettingField = (key: string, setting: any, value: any, onChange: (value: any) => void) => {
+  const renderSettingField = (key: string, setting: SettingDefinition, value: any, onChange: (value: any) => void) => {
     switch (setting.type) {
       case 'boolean':
         return (

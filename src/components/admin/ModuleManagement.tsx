@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,7 +14,6 @@ import {
   Settings, 
   Search, 
   Package, 
-  Toggle, 
   Shield,
   CheckCircle,
   XCircle,
