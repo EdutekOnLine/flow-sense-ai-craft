@@ -7,6 +7,7 @@ import { ModuleGuard } from '@/components/modules/ModuleGuard';
 
 // Component imports
 import UserManagement from '@/components/admin/UserManagement';
+import ModuleManagement from '@/components/admin/ModuleManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import WorkflowBuilder from '@/modules/neura-flow/components/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -40,6 +41,8 @@ export function DashboardContentRenderer({
         );
       case 'users':
         return ['admin', 'manager', 'root'].includes(profile?.role || '') ? <UserManagement /> : <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
+      case 'module-management':
+        return <ModuleManagement />;
       case 'workflow-builder':
         return (
           <ModuleGuard moduleName="neura-flow">

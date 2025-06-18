@@ -24,6 +24,7 @@ import {
   Building2,
   FormInput,
   GraduationCap,
+  Package,
 } from 'lucide-react';
 
 interface SidebarNavigationProps {
@@ -106,6 +107,14 @@ export function SidebarNavigation({ activeTab, onTabChange }: SidebarNavigationP
       label: t('navigation.reports'),
       icon: BarChart3,
       roles: ['admin', 'manager', 'root'],
+      module: 'neura-core',
+      group: 'admin'
+    },
+    {
+      id: 'module-management',
+      label: 'Module Management',
+      icon: Package,
+      roles: ['root'],
       module: 'neura-core',
       group: 'admin'
     },
