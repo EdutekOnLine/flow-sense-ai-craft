@@ -87,7 +87,7 @@ export function ConditionalEdge({
       />
       <EdgeLabelRenderer>
         <div
-          className="absolute pointer-events-all transform -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-200 rounded-lg shadow-sm px-2 py-1 min-w-[80px]"
+          className="absolute pointer-events-all transform -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-sm px-2 py-1 min-w-[80px]"
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
           }}
@@ -117,21 +117,21 @@ export function ConditionalEdge({
                 variant="ghost"
                 size="sm"
                 onClick={onLabelCancel}
-                className="h-6 w-6 p-0 text-gray-500 hover:text-gray-600"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3 w-3" />
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              <span className="text-xs font-medium text-gray-700 min-w-[40px] text-center">
+              <span className="text-xs font-medium text-foreground min-w-[40px] text-center">
                 {edgeData?.label || 'Yes'}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onEdgeEdit}
-                className="h-5 w-5 p-0 text-gray-400 hover:text-blue-600"
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
               >
                 <Edit2 className="h-2.5 w-2.5" />
               </Button>
@@ -139,7 +139,7 @@ export function ConditionalEdge({
                 variant="ghost"
                 size="sm"
                 onClick={onEdgeDelete}
-                className="h-5 w-5 p-0 text-gray-400 hover:text-red-600"
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-2.5 w-2.5" />
               </Button>

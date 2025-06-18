@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -92,6 +93,14 @@ export default {
 			},
 			spacing: {
 				'rtl-safe': '0.5rem'
+			},
+			backgroundImage: {
+				'gradient-theme-primary': 'linear-gradient(135deg, hsl(var(--card)), hsl(var(--background)))',
+				'gradient-theme-secondary': 'linear-gradient(135deg, hsl(var(--muted)), hsl(var(--card)))',
+				'gradient-theme-accent': 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--secondary)))',
+			},
+			boxShadow: {
+				'card': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
 			}
 		}
 	},

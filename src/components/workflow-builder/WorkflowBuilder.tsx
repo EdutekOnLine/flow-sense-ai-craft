@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ReactFlow,
@@ -685,7 +686,7 @@ export default function WorkflowBuilder() {
 
   return (
     <WorkflowPermissionGuard>
-      <div className="h-[800px] w-full flex border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <div className="h-[800px] w-full flex border border-border rounded-lg overflow-hidden bg-gradient-theme-primary">
         <WorkflowSidebar onAddNode={addNode} />
         <div className="flex-1 flex flex-col">
           <WorkflowToolbar 
@@ -730,7 +731,7 @@ export default function WorkflowBuilder() {
                 variant={BackgroundVariant.Dots} 
                 gap={15} 
                 size={1}
-                className="bg-gray-50"
+                className="bg-background"
               />
               <Controls 
                 position="top-right"
@@ -743,16 +744,16 @@ export default function WorkflowBuilder() {
                 nodeStrokeWidth={3}
                 zoomable
                 pannable
-                className="bg-white border border-gray-200 rounded"
+                className="bg-card border border-border rounded"
               />
             </ReactFlow>
             
             {/* Show saving indicator overlay */}
             {isSaving && (
               <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 shadow-lg flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                  <span className="text-sm font-medium">Processing workflow steps...</span>
+                <div className="bg-card rounded-lg p-6 shadow-lg flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  <span className="text-sm font-medium text-card-foreground">Processing workflow steps...</span>
                 </div>
               </div>
             )}
