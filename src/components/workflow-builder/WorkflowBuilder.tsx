@@ -77,6 +77,10 @@ export default function WorkflowBuilder() {
     console.log('Creating new workflow');
   }, []);
 
+  const handleOpenReview = useCallback(() => {
+    setShowReview(true);
+  }, [setShowReview]);
+
   return (
     <WorkflowPermissionGuard>
       <div className="flex flex-col h-screen bg-background">
@@ -84,6 +88,7 @@ export default function WorkflowBuilder() {
           onAddNode={onAddNode}
           onNewWorkflow={handleNewWorkflow}
           onOpenGenerator={() => setIsGeneratorOpen(true)}
+          onOpenReview={handleOpenReview}
           onSaveWorkflow={() => setIsSaveDialogOpen(true)}
           nodes={nodes}
           edges={edges}
@@ -121,7 +126,7 @@ export default function WorkflowBuilder() {
             isSuggestionsLoading={isSuggestionsLoading}
             onAddSuggestedStep={onAddSuggestedStep}
             onCloseAssistant={onCloseAssistant}
-            selectedNodeLabel={selectedNodeLabel}
+            selectedNodeLabel={selectedNodeLabel || ''}
           />
         </div>
       </div>

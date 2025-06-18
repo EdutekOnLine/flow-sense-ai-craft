@@ -1,4 +1,3 @@
-
 import { useCallback, useState } from 'react';
 import { Node, Edge, addEdge, Connection, useNodesState, useEdgesState, OnNodesChange, OnEdgesChange, OnConnect, MarkerType, OnSelectionChangeFunc } from '@xyflow/react';
 import { useToast } from '@/hooks/use-toast';
@@ -56,10 +55,10 @@ export function useWorkflowActions({
   const [isSaving, setIsSaving] = useState(false);
 
   const { canCreateWorkflows, canEditWorkflows, canDeleteWorkflows } = useWorkflowPermissions();
-  const { suggestions, isLoading: isSuggestionsLoading, getSuggestions } = useStepSuggestions();
+  const { suggestions, isLoading: isSuggestionsLoading, generateSuggestions } = useStepSuggestions();
 
   const availableFields = ['name', 'email', 'status', 'date', 'amount']; // Mock data
-  const selectedNodeLabel = selectedNode?.data?.label || '';
+  const selectedNodeLabel: string = (selectedNode?.data as WorkflowNodeData)?.label || '';
 
   const generatePersistentEdgeId = useCallback((sourceId: string, targetId: string) => {
     return `edge-${sourceId}-${targetId}-${Date.now()}`;
@@ -137,14 +136,14 @@ export function useWorkflowActions({
             y: rect.top,
           });
           setShowAssistant(true);
-          getSuggestions(node.data?.stepType || '');
+          generateSuggestions(node, nodes, edges);
         }
       } else {
         setContextualSuggestionsPosition(null);
         setShowAssistant(false);
       }
     },
-    [aiAssistantEnabled, setContextualSuggestionsPosition, setShowAssistant, getSuggestions]
+    [aiAssistantEnabled, setContextualSuggestionsPosition, setShowAssistant, generateSuggestions, nodes, edges]
   );
 
   const onDrop = useCallback((event: React.DragEvent) => {
