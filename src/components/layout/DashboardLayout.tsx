@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
@@ -19,7 +18,7 @@ import { useLocation } from 'react-router-dom';
 import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import UserManagement from '@/components/admin/UserManagement';
 import DashboardContent from '@/components/dashboard/DashboardContent';
-import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
+import WorkflowBuilder from '@/modules/neura-flow/components/WorkflowBuilder';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { ReportsPage } from '@/components/reports/ReportsPage';
