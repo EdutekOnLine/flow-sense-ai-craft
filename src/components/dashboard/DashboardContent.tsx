@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { SavedWorkflows } from './SavedWorkflows';
-import { DashboardTasks } from './DashboardTasks';
+import { DashboardTasks } from './tasks/DashboardTasks';
 import { MyReusableWorkflows } from './MyReusableWorkflows';
 import { LiveMetricsCards } from './LiveMetricsCards';
 import { RealtimeActivityFeed } from './RealtimeActivityFeed';
