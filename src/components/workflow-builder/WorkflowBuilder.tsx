@@ -1,7 +1,7 @@
 
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Node, Edge, ReactFlowInstance, OnNodesChange, OnEdgesChange, OnConnect } from '@xyflow/react';
+import { ReactFlowInstance } from '@xyflow/react';
 import { WorkflowSidebar } from './WorkflowSidebar';
 import { WorkflowCanvas } from './WorkflowCanvas';
 import { WorkflowToolbar } from './WorkflowToolbar';
@@ -72,17 +72,24 @@ export default function WorkflowBuilder() {
     setShowAssistant(false);
   }, [setShowAssistant]);
 
+  const handleNewWorkflow = useCallback(() => {
+    // Clear the current workflow
+    console.log('Creating new workflow');
+  }, []);
+
   return (
     <WorkflowPermissionGuard>
       <div className="flex flex-col h-screen bg-background">
         <WorkflowToolbar
-          onGenerateWorkflow={() => setIsGeneratorOpen(true)}
+          onAddNode={onAddNode}
+          onNewWorkflow={handleNewWorkflow}
+          onOpenGenerator={() => setIsGeneratorOpen(true)}
           onSaveWorkflow={() => setIsSaveDialogOpen(true)}
-          onShowReview={() => setShowReview(true)}
+          nodes={nodes}
+          edges={edges}
           aiAssistantEnabled={aiAssistantEnabled}
-          onToggleAiAssistant={setAiAssistantEnabled}
-          canCreateWorkflows={canCreateWorkflows}
-          canEditWorkflows={canEditWorkflows}
+          onToggleAIAssistant={setAiAssistantEnabled}
+          isSaving={isSaving}
         />
         
         <div className="flex flex-1 overflow-hidden">
