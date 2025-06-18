@@ -24,7 +24,7 @@ export function ReportsPage() {
         <div className="relative">
           <div className={`flex items-start justify-between gap-4`}>
             <div className={`flex items-start gap-4 ${getRTLAwareTextAlign('start')}`}>
-              <div className="flex-shrink-0 w-16 h-16 bg-primary rounded-xl flex items-center justify-center shadow-card">
+              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-card">
                 <BarChart3 className="h-8 w-8 text-primary-foreground" />
               </div>
               <div className="space-y-2">

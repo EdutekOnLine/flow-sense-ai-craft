@@ -102,7 +102,7 @@ const ReportBuilderComponent = forwardRef<ReportBuilderRef>((props, ref) => {
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-secondary rounded-xl">
+        <div className="p-3 bg-gradient-to-br from-secondary to-accent rounded-xl">
           <FileBarChart className="h-6 w-6 text-secondary-foreground" />
         </div>
         <div>

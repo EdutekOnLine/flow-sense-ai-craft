@@ -121,7 +121,7 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-primary rounded-xl">
+        <div className="p-3 bg-gradient-to-br from-primary to-secondary rounded-xl">
           <Sparkles className="h-6 w-6 text-primary-foreground" />
         </div>
         <div>
