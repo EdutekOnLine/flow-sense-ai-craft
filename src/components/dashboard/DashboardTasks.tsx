@@ -22,13 +22,29 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-status-pending" />;
+        return (
+          <div className="w-8 h-8 bg-gradient-to-br from-status-pending to-status-pending/70 rounded-lg flex items-center justify-center">
+            <Clock className="h-4 w-4 text-white" />
+          </div>
+        );
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-status-active" />;
+        return (
+          <div className="w-8 h-8 bg-gradient-to-br from-status-active to-status-active/70 rounded-lg flex items-center justify-center">
+            <PlayCircle className="h-4 w-4 text-white" />
+          </div>
+        );
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-status-success" />;
+        return (
+          <div className="w-8 h-8 bg-gradient-to-br from-status-success to-status-success/70 rounded-lg flex items-center justify-center">
+            <CheckCircle className="h-4 w-4 text-white" />
+          </div>
+        );
       default:
-        return <Clock className="h-4 w-4" />;
+        return (
+          <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted/70 rounded-lg flex items-center justify-center">
+            <Clock className="h-4 w-4 text-white" />
+          </div>
+        );
     }
   };
 
@@ -108,25 +124,25 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
       ) : (
         <>
           {dashboardTasks.map((assignment) => (
-            <div key={assignment.id} className="border border-border bg-card rounded-lg p-3 hover:bg-muted/5 transition-colors">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate text-card-foreground">
-                    {assignment.workflow_steps.name}
-                  </h4>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {assignment.workflow_steps.workflows.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t('common.assigned')} {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 ml-2">
+            <div key={assignment.id} className="bg-gradient-theme-primary/60 backdrop-blur-sm border border-border rounded-lg p-4 hover:bg-gradient-theme-primary/80 transition-all duration-200">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                   {getStatusIcon(assignment.status)}
-                  <Badge className={`text-xs ${getStatusColor(assignment.status)}`}>
-                    {getStatusTranslation(assignment.status)}
-                  </Badge>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm truncate text-foreground">
+                      {assignment.workflow_steps.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {assignment.workflow_steps.workflows.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {t('common.assigned')} {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
+                    </p>
+                  </div>
                 </div>
+                <Badge className={`text-xs ${getStatusColor(assignment.status)}`}>
+                  {getStatusTranslation(assignment.status)}
+                </Badge>
               </div>
               
               <div className="flex items-center gap-2">
@@ -134,7 +150,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 text-xs bg-secondary/5 hover:bg-secondary/10 border-secondary/20"
+                    className="h-7 text-xs bg-gradient-to-r from-secondary/10 to-secondary/5 hover:from-secondary/20 hover:to-secondary/10 border-secondary/30 text-secondary-foreground"
                     onClick={() => updateAssignmentStatus(assignment.id, 'in_progress')}
                   >
                     <PlayCircle className="h-3 w-3 mr-1" />
@@ -147,14 +163,14 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                     <DialogTrigger asChild>
                       <Button
                         size="sm"
-                        className="h-7 text-xs bg-status-success hover:bg-status-success/90 text-primary-foreground"
+                        className="h-7 text-xs bg-gradient-to-r from-status-success to-status-success/80 hover:from-status-success/90 hover:to-status-success/70 text-white"
                         disabled={isCompleting}
                       >
                         <CheckCircle className="h-3 w-3 mr-1" />
                         {t('common.done')}
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-gradient-theme-primary border-border">
                       <DialogHeader>
                         <DialogTitle>{t('tasks.completeTask')}</DialogTitle>
                       </DialogHeader>
@@ -173,6 +189,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder={t('tasks.completionNotesPlaceholder')}
                             rows={3}
+                            className="bg-card/80 border-border"
                           />
                         </div>
 
@@ -180,11 +197,12 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
                           <Button
                             variant="outline"
                             onClick={() => setNotes('')}
+                            className="bg-card/60 hover:bg-card/80"
                           >
                             {t('common.cancel')}
                           </Button>
                           <Button
-                            className="bg-status-success hover:bg-status-success/90 text-primary-foreground"
+                            className="bg-gradient-to-r from-status-success to-status-success/80 hover:from-status-success/90 hover:to-status-success/70 text-white"
                             onClick={() => handleCompleteStep(assignment)}
                             disabled={isCompleting}
                           >
@@ -205,7 +223,7 @@ export function DashboardTasks({ onViewAllTasks }: DashboardTasksProps) {
               variant="outline"
               size="sm"
               onClick={onViewAllTasks}
-              className="w-full"
+              className="w-full bg-gradient-theme-secondary/60 hover:bg-gradient-theme-secondary/80 border-border"
             >
               <Inbox className="h-4 w-4 mr-2" />
               {t('tasks.viewAllTasks')} ({assignments.length})

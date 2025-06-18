@@ -71,13 +71,13 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/20 backdrop-blur-sm rounded-xl border border-border">
-                <Activity className="h-8 w-8 text-primary" />
+              <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+                <Activity className="h-8 w-8 text-primary-foreground" />
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-4xl font-bold text-foreground">{t('dashboard.title')}</h1>
-                  <Badge className="bg-accent text-accent-foreground animate-pulse">
+                  <Badge className="bg-gradient-to-r from-accent to-accent/80 text-accent-foreground animate-pulse">
                     LIVE
                   </Badge>
                 </div>
@@ -100,7 +100,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* My Assigned Tasks Section - Show for ALL users */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-primary/80 to-primary rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-card">
                 <Inbox className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
@@ -116,7 +116,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* My Reusable Workflows Section - Show for ALL users */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-secondary/80 to-secondary rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl shadow-card">
                 <Repeat className="h-6 w-6 text-secondary-foreground" />
               </div>
               <div>
@@ -133,7 +133,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {canEditWorkflows && (
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gradient-to-br from-accent/80 to-accent rounded-xl">
+                <div className="p-3 bg-gradient-to-br from-accent to-accent/70 rounded-xl shadow-card">
                   <Workflow className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <div>
@@ -155,7 +155,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
             <div className="space-y-6">
               <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
                 <CardHeader className="text-center">
-                  <div className="mx-auto p-3 bg-primary rounded-xl w-fit mb-4">
+                  <div className="mx-auto p-3 bg-gradient-to-br from-primary to-accent rounded-xl w-fit mb-4 shadow-card">
                     <Sparkles className="h-8 w-8 text-primary-foreground" />
                   </div>
                   <CardTitle className="text-2xl text-foreground">{t('dashboard.welcomeTitle')}</CardTitle>
@@ -174,7 +174,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
         <div className="lg:col-span-1">
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-muted-foreground/80 to-muted-foreground rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-muted-foreground to-muted-foreground/70 rounded-xl shadow-card">
                 <Activity className="h-6 w-6 text-muted" />
               </div>
               <div>
