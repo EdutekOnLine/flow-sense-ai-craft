@@ -12,7 +12,7 @@ import {
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
-  OnSelectionChangeParams,
+  OnSelectionChangeFunc,
   ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -36,7 +36,7 @@ interface WorkflowCanvasProps {
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
-  onSelectionChange: OnSelectionChangeParams;
+  onSelectionChange: OnSelectionChangeFunc<Node, Edge>;
   onInit: (instance: ReactFlowInstance) => void;
   onDrop: (event: React.DragEvent) => void;
   onDragOver: (event: React.DragEvent) => void;
