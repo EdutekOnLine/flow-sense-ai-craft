@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Save, RotateCcw, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Settings, Save, RotateCcw, AlertCircle, Package } from 'lucide-react';
 import { SettingField } from './SettingField';
-import { getModuleSettingsSchema, SettingDefinition } from './ModuleSettingsSchema';
+import { getModuleSettingsSchema } from './ModuleSettingsSchema';
 
 interface Module {
   name: string;
@@ -25,80 +26,144 @@ interface SettingsPanelProps {
   onSettingChange: (key: string, value: any) => void;
 }
 
-export function SettingsPanel({ 
-  currentModule, 
-  hasUnsavedChanges, 
-  onSaveSettings, 
+export function SettingsPanel({
+  currentModule,
+  hasUnsavedChanges,
+  onSaveSettings,
   onResetSettings,
   onSettingChange
 }: SettingsPanelProps) {
+  const [currentValues, setCurrentValues] = useState<Record<string, any>>({});
   const settingsSchema = getModuleSettingsSchema(currentModule.name);
-  const settingsSections = Object.keys(settingsSchema);
+
+  useEffect(() => {
+    // Initialize settings with default values
+    const defaultValues: Record<string, any> = {};
+    Object.entries(settingsSchema).forEach(([category, settings]) => {
+      Object.entries(settings).forEach(([key, setting]) => {
+        defaultValues[key] = setting.default;
+      });
+    });
+    setCurrentValues(defaultValues);
+  }, [currentModule.name, settingsSchema]);
+
+  const handleSettingChange = (key: string, value: any) => {
+    setCurrentValues(prev => ({ ...prev, [key]: value }));
+    onSettingChange(key, value);
+  };
+
+  const categoryCount = Object.keys(settingsSchema).length;
+  const totalSettings = Object.values(settingsSchema).reduce(
+    (sum, category) => sum + Object.keys(category).length, 
+    0
+  );
 
   return (
-    <Card className="lg:col-span-3">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-xl">{currentModule.displayName} Settings</CardTitle>
-            <Badge variant="outline">{currentModule.name}</Badge>
+    <div className="lg:col-span-3 space-y-6">
+      {/* Module Header */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">{currentModule.displayName}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configure settings for this module
+                </p>
+              </div>
+            </div>
+            <Badge variant={currentModule.isActive ? "default" : "secondary"}>
+              {currentModule.statusMessage}
+            </Badge>
           </div>
-          <div className="flex items-center gap-2">
-            {hasUnsavedChanges && (
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Unsaved Changes
-              </Badge>
-            )}
-            <Button variant="outline" size="sm" onClick={onResetSettings}>
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Reset
-            </Button>
-            <Button size="sm" onClick={onSaveSettings}>
-              <Save className="h-4 w-4 mr-1" />
-              Save
-            </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <span className="text-sm text-muted-foreground">Categories</span>
+              <span className="text-lg font-semibold">{categoryCount}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm text-muted-foreground">Settings</span>
+              <span className="text-lg font-semibold">{totalSettings}</span>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {settingsSections.length > 0 ? (
-          <Tabs defaultValue={settingsSections[0]} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              {settingsSections.map(section => (
-                <TabsTrigger key={section} value={section} className="capitalize">
-                  {section}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            
-            {settingsSections.map(section => (
-              <TabsContent key={section} value={section} className="space-y-4">
-                <div className="grid gap-4">
-                  {Object.entries(settingsSchema[section]).map(([key, setting]) => (
-                    <div key={key} className="p-4 border rounded-lg">
-                      <SettingField
-                        settingKey={key}
-                        setting={setting}
-                        value={setting.default}
-                        onChange={(value) => onSettingChange(key, value)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
+        </CardContent>
+      </Card>
+
+      {/* Settings Categories */}
+      {Object.entries(settingsSchema).map(([categoryName, categorySettings]) => (
+        <Card key={categoryName}>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-lg capitalize">{categoryName}</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {Object.entries(categorySettings).map(([settingKey, settingDef]) => (
+              <SettingField
+                key={settingKey}
+                settingKey={settingKey}
+                setting={settingDef}
+                value={currentValues[settingKey] ?? settingDef.default}
+                onChange={(value) => handleSettingChange(settingKey, value)}
+              />
             ))}
-          </Tabs>
-        ) : (
-          <div className="text-center py-8">
-            <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          </CardContent>
+        </Card>
+      ))}
+
+      {/* No Settings Available */}
+      {categoryCount === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No Settings Available</h3>
-            <p className="text-muted-foreground">
-              This module doesn't have configurable settings yet.
+            <p className="text-muted-foreground text-center">
+              This module doesn't have any configurable settings.
             </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      {categoryCount > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            {hasUnsavedChanges && (
+              <Alert className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You have unsaved changes. Save your settings to apply them.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={onResetSettings}
+                disabled={!hasUnsavedChanges}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset Changes
+              </Button>
+              
+              <Button
+                onClick={onSaveSettings}
+                disabled={!hasUnsavedChanges}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Settings
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

@@ -53,6 +53,7 @@ export type Database = {
           id: string
           is_core: boolean
           name: string
+          required_modules: string[] | null
           settings_schema: Json | null
           updated_at: string
           version: string
@@ -64,6 +65,7 @@ export type Database = {
           id?: string
           is_core?: boolean
           name: string
+          required_modules?: string[] | null
           settings_schema?: Json | null
           updated_at?: string
           version?: string
@@ -75,6 +77,7 @@ export type Database = {
           id?: string
           is_core?: boolean
           name?: string
+          required_modules?: string[] | null
           settings_schema?: Json | null
           updated_at?: string
           version?: string
@@ -614,6 +617,7 @@ export type Database = {
           module_id: string
           settings: Json | null
           updated_at: string
+          version: string | null
           workspace_id: string
         }
         Insert: {
@@ -625,6 +629,7 @@ export type Database = {
           module_id: string
           settings?: Json | null
           updated_at?: string
+          version?: string | null
           workspace_id: string
         }
         Update: {
@@ -636,6 +641,7 @@ export type Database = {
           module_id?: string
           settings?: Json | null
           updated_at?: string
+          version?: string | null
           workspace_id?: string
         }
         Relationships: [
@@ -758,9 +764,26 @@ export type Database = {
       }
     }
     Functions: {
+      check_module_dependencies: {
+        Args: { p_workspace_id: string; p_module_name: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_module_access_info: {
+        Args: { p_workspace_id: string; p_user_id: string }
+        Returns: {
+          module_name: string
+          display_name: string
+          is_active: boolean
+          is_available: boolean
+          has_dependencies: boolean
+          missing_dependencies: string[]
+          version: string
+          settings: Json
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }

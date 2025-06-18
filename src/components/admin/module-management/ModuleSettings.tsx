@@ -5,6 +5,7 @@ import { Info } from 'lucide-react';
 import { ModuleSelector } from './settings/ModuleSelector';
 import { SettingsPanel } from './settings/SettingsPanel';
 import { EmptyModulesState } from './settings/EmptyModulesState';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 interface Module {
   name: string;
@@ -13,6 +14,10 @@ interface Module {
   isAvailable: boolean;
   isRestricted: boolean;
   statusMessage?: string;
+  hasDependencies?: boolean;
+  missingDependencies?: string[];
+  version?: string;
+  settings?: any;
 }
 
 interface ModuleSettingsProps {
@@ -20,25 +25,54 @@ interface ModuleSettingsProps {
 }
 
 export function ModuleSettings({ modules }: ModuleSettingsProps) {
-  const [selectedModule, setSelectedModule] = useState<string>(modules[0]?.name || '');
+  const { updateModuleSettings } = useWorkspace();
+  const [selectedModule, setSelectedModule] = useState<string>(
+    modules.find(m => m.isActive)?.name || modules[0]?.name || ''
+  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [currentSettings, setCurrentSettings] = useState<Record<string, any>>({});
 
   const activeModules = modules.filter(m => m.isActive);
   const currentModule = modules.find(m => m.name === selectedModule);
 
-  const handleSaveSettings = () => {
-    setHasUnsavedChanges(false);
-    console.log('Saving settings for module:', selectedModule);
+  const handleSaveSettings = async () => {
+    if (!currentModule) return;
+    
+    try {
+      await updateModuleSettings.mutateAsync({
+        moduleId: currentModule.name,
+        settings: currentSettings
+      });
+      setHasUnsavedChanges(false);
+      console.log('Settings saved successfully for module:', selectedModule);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    }
   };
 
   const handleResetSettings = () => {
+    setCurrentSettings({});
     setHasUnsavedChanges(false);
-    console.log('Resetting settings for module:', selectedModule);
+    console.log('Settings reset for module:', selectedModule);
   };
 
   const handleSettingChange = (key: string, value: any) => {
+    setCurrentSettings(prev => ({ ...prev, [key]: value }));
     setHasUnsavedChanges(true);
-    console.log(`Setting ${key} to:`, value);
+    console.log(`Setting ${key} changed to:`, value);
+  };
+
+  const handleModuleSelect = (moduleName: string) => {
+    if (hasUnsavedChanges) {
+      const confirmChange = window.confirm(
+        'You have unsaved changes. Do you want to discard them and switch modules?'
+      );
+      if (!confirmChange) return;
+    }
+    
+    setSelectedModule(moduleName);
+    setCurrentSettings({});
+    setHasUnsavedChanges(false);
   };
 
   if (activeModules.length === 0) {
@@ -63,7 +97,7 @@ export function ModuleSettings({ modules }: ModuleSettingsProps) {
         <ModuleSelector
           modules={modules}
           selectedModule={selectedModule}
-          onModuleSelect={setSelectedModule}
+          onModuleSelect={handleModuleSelect}
         />
         
         <SettingsPanel
