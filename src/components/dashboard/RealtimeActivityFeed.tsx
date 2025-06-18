@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
@@ -140,15 +141,15 @@ export function RealtimeActivityFeed() {
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'task_assigned':
-        return <Clock className="h-4 w-4 text-orange-500" />;
+        return <Clock className="h-4 w-4 text-secondary" />;
       case 'task_completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return <CheckCircle className="h-4 w-4 text-accent" />;
       case 'workflow_started':
-        return <PlayCircle className="h-4 w-4 text-blue-500" />;
+        return <PlayCircle className="h-4 w-4 text-primary" />;
       case 'workflow_completed':
-        return <Activity className="h-4 w-4 text-purple-500" />;
+        return <Activity className="h-4 w-4 text-primary" />;
       default:
-        return <Activity className="h-4 w-4 text-gray-500" />;
+        return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -157,10 +158,10 @@ export function RealtimeActivityFeed() {
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 animate-pulse">
-            <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+            <div className="h-8 w-8 bg-muted rounded-full"></div>
             <div className="flex-1 space-y-1">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </div>
           </div>
         ))}
@@ -171,14 +172,14 @@ export function RealtimeActivityFeed() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.recentActivity')}</h3>
-        <Badge variant="secondary" className="animate-pulse bg-green-100 text-green-800">
+        <h3 className="text-lg font-semibold text-foreground">{t('dashboard.recentActivity')}</h3>
+        <Badge variant="secondary" className="animate-pulse bg-accent text-accent-foreground">
           LIVE
         </Badge>
       </div>
       
       {activities.length === 0 ? (
-        <p className="text-gray-500 text-sm text-center py-4">
+        <p className="text-muted-foreground text-sm text-center py-4">
           {t('dashboard.noRecentActivity')}
         </p>
       ) : (
@@ -187,25 +188,25 @@ export function RealtimeActivityFeed() {
             <div 
               key={activity.id} 
               className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-300 ${
-                activity.isNew ? 'bg-orange-50 border border-orange-200 animate-pulse' : 'hover:bg-gray-50'
+                activity.isNew ? 'bg-accent/20 border border-accent/40 animate-pulse' : 'hover:bg-muted/50'
               }`}
             >
               <div className="flex-shrink-0">
                 {getActivityIcon(activity.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-foreground">
                   {activity.title}
                   {activity.isNew && (
-                    <Badge className="ml-2 bg-orange-500 text-white text-xs">
+                    <Badge className="ml-2 bg-accent text-accent-foreground text-xs">
                       NEW
                     </Badge>
                   )}
                 </p>
-                <p className="text-xs text-gray-600 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {activity.description}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {formatLocalizedDistanceToNow(new Date(activity.timestamp), i18n.language)}
                 </p>
               </div>

@@ -32,25 +32,25 @@ export function SavedReports() {
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl">
-          <FileText className="h-6 w-6 text-white" />
+        <div className="p-3 bg-gradient-to-br from-secondary to-accent rounded-xl">
+          <FileText className="h-6 w-6 text-secondary-foreground" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('reports.savedReports')}</h2>
-          <p className="text-gray-600">{t('reports.savedDescription')}</p>
+          <h2 className="text-2xl font-bold text-foreground">{t('reports.savedReports')}</h2>
+          <p className="text-muted-foreground">{t('reports.savedDescription')}</p>
         </div>
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200">
+      <div className="bg-gradient-to-br from-secondary/5 to-accent/5 p-6 rounded-xl border border-border">
         {savedReports.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 {t('reports.noSavedReports')}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-muted-foreground mb-4">
                 {t('reports.createFirstReport')}
               </p>
               <Button>{t('reports.createReport')}</Button>
@@ -64,7 +64,7 @@ export function SavedReports() {
                   <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
                     <div className={`space-y-1 ${getRTLAwareTextAlign('start')}`}>
                       <CardTitle className="text-lg">{report.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{report.description}</p>
+                      <p className="text-sm text-muted-foreground">{report.description}</p>
                     </div>
                     <div className="flex space-x-1 rtl:space-x-reverse">
                       {report.isShared && (
@@ -78,16 +78,16 @@ export function SavedReports() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
-                      <User className="h-4 w-4 text-gray-400" />
+                      <User className="h-4 w-4 text-muted-foreground" />
                       <span>{report.createdBy}</span>
                     </div>
                     <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse ${getRTLAwareTextAlign('start')}`}>
-                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{new Date(report.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
-                  <div className={`text-xs text-gray-500 space-y-1 ${getRTLAwareTextAlign('start')}`}>
+                  <div className={`text-xs text-muted-foreground space-y-1 ${getRTLAwareTextAlign('start')}`}>
                     <div>Data Source: {report.dataSource}</div>
                     <div>Filters: {report.filters} | Columns: {report.columns}</div>
                     <div>Last Run: {new Date(report.lastRun).toLocaleDateString()}</div>

@@ -54,7 +54,7 @@ export function LanguageSwitcher() {
           <DropdownMenuItem
             key={language.code}
             onClick={() => handleLanguageChange(language.code)}
-            className={`rtl:text-right ${i18n.language === language.code ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+            className={`rtl:text-right ${i18n.language === language.code ? 'bg-accent/20 text-accent-foreground' : ''}`}
           >
             <div className="flex items-center justify-between w-full rtl:flex-row-reverse">
               <span className="font-medium">{language.nativeName}</span>

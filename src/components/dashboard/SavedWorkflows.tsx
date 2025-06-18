@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -99,7 +100,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -108,21 +109,21 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
     <div>
       {workflows.length === 0 ? (
         <div className="text-center py-8">
-          <Workflow className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-          <p className="text-purple-600 mb-2">{t('dashboard.noSavedWorkflows')}</p>
-          <p className="text-sm text-purple-500">{t('dashboard.createFirstWorkflow')}</p>
+          <Workflow className="h-12 w-12 text-primary/40 mx-auto mb-4" />
+          <p className="text-primary mb-2">{t('dashboard.noSavedWorkflows')}</p>
+          <p className="text-sm text-muted-foreground">{t('dashboard.createFirstWorkflow')}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {workflows.slice(0, 5).map((workflow) => (
             <div
               key={workflow.id}
-              className="border border-purple-200 rounded-lg p-4 bg-white hover:bg-purple-25 transition-colors"
+              className="border border-border rounded-lg p-4 bg-card hover:bg-accent/5 transition-colors"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm text-purple-800">{workflow.name}</h4>
+                    <h4 className="font-medium text-sm text-foreground">{workflow.name}</h4>
                     <Badge 
                       variant={workflow.is_reusable ? "default" : "secondary"}
                       className={workflow.is_reusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
@@ -138,9 +139,9 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                     </Badge>
                   </div>
                   {workflow.description && (
-                    <p className="text-xs text-purple-600 mb-2">{workflow.description}</p>
+                    <p className="text-xs text-muted-foreground mb-2">{workflow.description}</p>
                   )}
-                  <div className="flex items-center gap-4 text-xs text-purple-600">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {t('workflow.updated')} {formatLocalizedDistanceToNow(new Date(workflow.updated_at), i18n.language)}
@@ -177,7 +178,7 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(workflow.id, workflow.name)}
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                    className="flex items-center gap-1 text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -186,8 +187,8 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
             </div>
           ))}
           {workflows.length > 5 && (
-            <div className="text-center pt-4 border-t border-purple-200">
-              <p className="text-sm text-purple-600">
+            <div className="text-center pt-4 border-t border-border">
+              <p className="text-sm text-muted-foreground">
                 {t('workflow.moreWorkflows', { count: workflows.length - 5 })}
               </p>
             </div>

@@ -41,7 +41,7 @@ export function AnimatedCounter({ value, duration = 500, className = '' }: Anima
 
   return (
     <span 
-      className={`${className} ${isAnimating ? 'text-blue-600 font-bold' : ''} transition-colors duration-200`}
+      className={`${className} ${isAnimating ? 'text-primary font-bold' : ''} transition-colors duration-200`}
     >
       {displayValue}
     </span>
