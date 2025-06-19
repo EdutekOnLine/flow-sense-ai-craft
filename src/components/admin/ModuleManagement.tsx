@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
@@ -48,10 +49,22 @@ export default function ModuleManagement() {
   }
 
   const modules = getModulesWithStatus();
-  const filteredModules = modules.filter(module =>
-    module.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    module.name.toLowerCase().includes(searchTerm.toLowerCase())
+  
+  // Memoize filtered modules to prevent unnecessary recalculations
+  const filteredModules = useMemo(() => 
+    modules.filter(module =>
+      module.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ), [modules, searchTerm]
   );
+
+  // Memoize module display names mapping
+  const moduleDisplayNames = useMemo(() => 
+    modules.reduce((acc, module) => {
+      acc[module.name] = module.displayName;
+      return acc;
+    }, {} as Record<string, string>)
+  , [modules]);
 
   const activeModulesCount = modules.filter(m => m.isActive).length;
   const totalModulesCount = modules.length;
@@ -121,6 +134,7 @@ export default function ModuleManagement() {
         </div>
         <BulkActions
           selectedModules={selectedModules}
+          moduleDisplayNames={moduleDisplayNames}
           onBulkToggle={handleBulkToggle}
           isLoading={toggleModule.isPending}
         />

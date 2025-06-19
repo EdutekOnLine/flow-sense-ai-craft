@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { OptimizedLiveMetricsCards } from './OptimizedLiveMetricsCards';
+import { OptimizedRealtimeActivityFeed } from './OptimizedRealtimeActivityFeed';
 import { SavedWorkflows } from './SavedWorkflows';
 import { DashboardTasks } from './tasks/DashboardTasks';
 import { MyReusableWorkflows } from './MyReusableWorkflows';
-import { LiveMetricsCards } from './LiveMetricsCards';
-import { RealtimeActivityFeed } from './RealtimeActivityFeed';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useAuth } from '@/hooks/useAuth';
@@ -90,10 +90,10 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
       </div>
 
       {/* Live Metrics Cards */}
-      <LiveMetricsCards />
+      <OptimizedLiveMetricsCards />
 
       {/* Two-column layout for main content and activity feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Main content - 2/3 width */}
         <div className="lg:col-span-2 space-y-8">
           {/* My Assigned Tasks Section - Show for ALL users */}
@@ -182,7 +182,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
               </div>
             </div>
             <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
-              <RealtimeActivityFeed />
+              <OptimizedRealtimeActivityFeed />
             </div>
           </div>
         </div>
