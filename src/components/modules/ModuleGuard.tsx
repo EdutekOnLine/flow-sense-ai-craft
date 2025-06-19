@@ -5,8 +5,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Lock, AlertCircle, Settings, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Lock, AlertCircle, Settings, ArrowLeft, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ModuleGuardProps {
   moduleName: string;
@@ -30,31 +31,74 @@ export function ModuleGuard({
     canManageModules 
   } = useModulePermissions();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isChecking, setIsChecking] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const checkAccess = async () => {
       setIsChecking(true);
-      const access = canAccessModule(moduleName);
-      setHasAccess(access);
-      setIsChecking(false);
-
-      // Show toast notification for access denial
-      if (!access && moduleName !== 'neura-core') {
-        toast({
-          title: 'Access Restricted',
-          description: `${getModuleDisplayName(moduleName)} is not available in your workspace.`,
-          variant: 'destructive',
-        });
+      
+      try {
+        const access = canAccessModule(moduleName);
+        setHasAccess(access);
+        
+        // Show toast notification for access denial (only on first check)
+        if (!access && moduleName !== 'neura-core' && retryCount === 0) {
+          toast({
+            title: 'Access Restricted',
+            description: `${getModuleDisplayName(moduleName)} is not available in your workspace.`,
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Error checking module access:', error);
+        
+        if (isOnline) {
+          toast({
+            title: 'Connection Error',
+            description: 'Unable to verify module access. Please try again.',
+            variant: 'destructive',
+          });
+        }
+      } finally {
+        setIsChecking(false);
       }
     };
 
     checkAccess();
-  }, [moduleName, canAccessModule, toast, getModuleDisplayName]);
+  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline]);
 
   const moduleStatus = getModuleStatus(moduleName);
   const displayName = getModuleDisplayName(moduleName);
+
+  const handleRetry = async () => {
+    setRetryCount(prev => prev + 1);
+    
+    // Invalidate queries to refresh data
+    await queryClient.invalidateQueries({ queryKey: ['workspace-modules'] });
+    await queryClient.invalidateQueries({ queryKey: ['module-access-info'] });
+    
+    toast({
+      title: 'Refreshing...',
+      description: 'Checking module access again.',
+    });
+  };
 
   if (isChecking) {
     return (
@@ -89,7 +133,9 @@ export function ModuleGuard({
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-muted/10 rounded-full flex items-center justify-center">
-              {moduleStatus.isRestricted ? (
+              {!isOnline ? (
+                <WifiOff className="h-8 w-8 text-red-500" />
+              ) : moduleStatus.isRestricted ? (
                 <Lock className="h-8 w-8 text-muted-foreground" />
               ) : (
                 <AlertCircle className="h-8 w-8 text-yellow-500" />
@@ -98,18 +144,31 @@ export function ModuleGuard({
           </div>
           
           <div className="space-y-2">
-            <AlertTitle className="text-xl">{displayName} Not Available</AlertTitle>
-            <Badge 
-              variant={moduleStatus.isActive ? "default" : "secondary"}
-              className="mx-auto"
-            >
-              {moduleStatus.statusMessage}
-            </Badge>
+            <AlertTitle className="text-xl">
+              {!isOnline ? 'Connection Lost' : `${displayName} Not Available`}
+            </AlertTitle>
+            <div className="flex items-center justify-center gap-2">
+              <Badge 
+                variant={moduleStatus.isActive ? "default" : "secondary"}
+                className="mx-auto"
+              >
+                {!isOnline ? 'Offline' : moduleStatus.statusMessage}
+              </Badge>
+              {!isOnline && <WifiOff className="h-4 w-4 text-red-500" />}
+              {isOnline && <Wifi className="h-4 w-4 text-green-500" />}
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {showDetailedStatus && (
+          {!isOnline ? (
+            <Alert className="border-red-200 bg-red-50">
+              <WifiOff className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                You appear to be offline. Please check your internet connection and try again.
+              </AlertDescription>
+            </Alert>
+          ) : showDetailedStatus && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-sm">
@@ -156,15 +215,27 @@ export function ModuleGuard({
               Go Back
             </Button>
 
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRetry}
+              className="flex-1"
+              disabled={!isOnline}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+
             {canManageModules() && (
               <Button 
                 variant="default" 
                 size="sm"
                 onClick={handleManageModules}
                 className="flex-1"
+                disabled={!isOnline}
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Manage Modules
+                Settings
               </Button>
             )}
           </div>

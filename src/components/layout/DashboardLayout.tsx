@@ -7,11 +7,14 @@ import { DashboardContentRenderer } from './DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
+import { useSessionManagement } from '@/hooks/useSessionManagement';
+import { SessionWarningDialog } from './SessionWarningDialog';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { sessionWarning, extendSession } = useSessionManagement();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -51,6 +54,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       
       <ModuleStatusNotifier />
+      
+      {sessionWarning && (
+        <SessionWarningDialog
+          onExtendSession={extendSession}
+          onSignOut={handleSignOut}
+        />
+      )}
     </SidebarProvider>
   );
 }
