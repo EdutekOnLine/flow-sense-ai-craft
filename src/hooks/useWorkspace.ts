@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -125,7 +124,25 @@ export function useWorkspace() {
     enabled: !!profile?.workspace_id && !!profile?.id,
   });
 
-  // Toggle module activation with dependency checking
+  // Get dependent modules for a specific module
+  const getDependentModules = async (moduleName: string) => {
+    if (!profile?.workspace_id) return [];
+    
+    const { data, error } = await supabase
+      .rpc('get_dependent_modules', {
+        p_workspace_id: profile.workspace_id,
+        p_module_name: moduleName
+      });
+
+    if (error) {
+      console.error('Error fetching dependent modules:', error);
+      return [];
+    }
+
+    return data || [];
+  };
+
+  // Enhanced toggle module with dependency and audit logging
   const toggleModule = useMutation({
     mutationFn: async ({ moduleId, isActive }: { moduleId: string; isActive: boolean }) => {
       if (!profile?.workspace_id) throw new Error('No workspace found');
@@ -138,26 +155,47 @@ export function useWorkspace() {
         }
       }
 
+      // If deactivating, check for dependent modules
+      if (!isActive) {
+        const dependentModules = await getDependentModules(moduleId);
+        const activeDependents = dependentModules.filter(dep => dep.is_active);
+        
+        if (activeDependents.length > 0) {
+          const dependentNames = activeDependents.map(dep => dep.display_name).join(', ');
+          console.warn(`Warning: Deactivating ${moduleId} while dependent modules are active: ${dependentNames}`);
+        }
+      }
+
+      // Get the module ID from the name
+      const module = allModules?.find(m => m.name === moduleId);
+      if (!module) throw new Error('Module not found');
+
       const { data, error } = await supabase
         .from('workspace_modules')
         .upsert({
           workspace_id: profile.workspace_id,
-          module_id: moduleId,
+          module_id: module.id,
           is_active: isActive,
           activated_by: profile.id,
+          activated_at: isActive ? new Date().toISOString() : null,
         }, {
           onConflict: 'workspace_id,module_id'
-        });
+        })
+        .select();
 
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workspace-modules'] });
       queryClient.invalidateQueries({ queryKey: ['module-access-info'] });
+      
+      const action = variables.isActive ? 'enabled' : 'disabled';
+      const moduleName = allModules?.find(m => m.name === variables.moduleId)?.display_name || variables.moduleId;
+      
       toast({
         title: 'Module Updated',
-        description: 'Module status has been updated successfully.',
+        description: `${moduleName} has been ${action} successfully.`,
       });
     },
     onError: (error: Error) => {
@@ -206,13 +244,19 @@ export function useWorkspace() {
     },
   });
 
-  // Check if a specific module is active
+  // Enhanced module access check with real-time updates
   const isModuleActive = (moduleName: string) => {
+    if (moduleAccessInfo) {
+      const moduleInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
+      return moduleInfo?.is_active || false;
+    }
     return workspaceModules?.some(wm => wm.module.name === moduleName && wm.is_active) || false;
   };
 
   // Get active module names
-  const activeModules = workspaceModules?.map(wm => wm.module.name) || [];
+  const activeModules = moduleAccessInfo 
+    ? moduleAccessInfo.filter(m => m.is_active).map(m => m.module_name)
+    : workspaceModules?.map(wm => wm.module.name) || [];
 
   // Check if module dependencies are satisfied
   const checkModuleDependencies = async (moduleName: string): Promise<boolean> => {
@@ -246,6 +290,7 @@ export function useWorkspace() {
     isModuleActive,
     activeModules,
     checkModuleDependencies,
+    getDependentModules,
     isWorkspaceOwner: workspace?.owner_id === profile?.id,
   };
 }

@@ -1,17 +1,19 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Settings, 
   CheckCircle, 
   XCircle, 
   AlertCircle, 
   Info,
-  Package
+  Package,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -22,8 +24,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Module {
   name: string;
@@ -32,6 +35,8 @@ interface Module {
   isAvailable: boolean;
   isRestricted: boolean;
   statusMessage?: string;
+  hasDependencies?: boolean;
+  missingDependencies?: string[];
 }
 
 interface ModuleCardProps {
@@ -42,16 +47,47 @@ interface ModuleCardProps {
   isLoading: boolean;
 }
 
+interface DependentModule {
+  module_name: string;
+  display_name: string;
+  is_active: boolean;
+}
+
 export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }: ModuleCardProps) {
+  const { workspace } = useWorkspace();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingAction, setPendingAction] = useState<boolean | null>(null);
+  const [dependentModules, setDependentModules] = useState<DependentModule[]>([]);
+  const [loadingDependencies, setLoadingDependencies] = useState(false);
 
-  const handleToggleClick = (newState: boolean) => {
+  const handleToggleClick = async (newState: boolean) => {
     if (module.name === 'neura-core') {
       return; // Core module cannot be toggled
     }
     
     setPendingAction(newState);
+    
+    // If deactivating, check for dependent modules
+    if (!newState && workspace?.id) {
+      setLoadingDependencies(true);
+      try {
+        const { data, error } = await supabase
+          .rpc('get_dependent_modules', {
+            p_workspace_id: workspace.id,
+            p_module_name: module.name
+          });
+        
+        if (!error && data) {
+          const activeDependents = data.filter(dep => dep.is_active);
+          setDependentModules(activeDependents);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dependent modules:', error);
+      } finally {
+        setLoadingDependencies(false);
+      }
+    }
+    
     setShowConfirmation(true);
   };
 
@@ -59,11 +95,19 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
     if (pendingAction !== null) {
       await onToggle(module.name, pendingAction);
       setPendingAction(null);
+      setDependentModules([]);
     }
     setShowConfirmation(false);
   };
 
+  const cancelToggle = () => {
+    setPendingAction(null);
+    setDependentModules([]);
+    setShowConfirmation(false);
+  };
+
   const getStatusIcon = () => {
+    if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
     if (module.name === 'neura-core') return <Package className="h-4 w-4 text-blue-500" />;
     if (module.isActive) return <CheckCircle className="h-4 w-4 text-green-500" />;
     if (module.isRestricted) return <XCircle className="h-4 w-4 text-red-500" />;
@@ -96,7 +140,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
 
   return (
     <>
-      <Card className={`transition-all duration-200 hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''}`}>
+      <Card className={`transition-all duration-200 hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''} ${isLoading ? 'opacity-75' : ''}`}>
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
@@ -107,6 +151,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={onSelect}
+                disabled={isLoading}
                 className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
               {getStatusBadge()}
@@ -138,10 +183,19 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
               <span className="text-xs text-muted-foreground">{module.statusMessage}</span>
             </div>
           )}
+
+          {module.missingDependencies && module.missingDependencies.length > 0 && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                Missing dependencies: {module.missingDependencies.join(', ')}
+              </AlertDescription>
+            </Alert>
+          )}
           
           <div className="flex items-center justify-between pt-2 border-t">
             <span className="text-xs text-muted-foreground">Module ID: {module.name}</span>
-            <Button variant="ghost" size="sm" className="h-8">
+            <Button variant="ghost" size="sm" className="h-8" disabled={isLoading}>
               <Settings className="h-3 w-3 mr-1" />
               Configure
             </Button>
@@ -150,23 +204,57 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
       </Card>
 
       <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendingAction ? 'Enable' : 'Disable'} {module.displayName}
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {pendingAction 
-                ? `Are you sure you want to enable ${module.displayName}? This will make its features available to users with appropriate permissions.`
-                : `Are you sure you want to disable ${module.displayName}? This will immediately restrict access to its features for all users.`
-              }
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  {pendingAction 
+                    ? `Are you sure you want to enable ${module.displayName}? This will make its features available to users with appropriate permissions.`
+                    : `Are you sure you want to disable ${module.displayName}? This will immediately restrict access to its features for all users.`
+                  }
+                </p>
+                
+                {!pendingAction && dependentModules.length > 0 && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      <div className="space-y-2">
+                        <p className="font-medium">Warning: Other modules depend on this module!</p>
+                        <p>The following active modules will be affected:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {dependentModules.map(dep => (
+                            <li key={dep.module_name} className="text-sm">
+                              {dep.display_name}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="text-sm">Consider deactivating these modules first.</p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {loadingDependencies && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Checking dependencies...
+                  </div>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingAction(null)}>
+            <AlertDialogCancel onClick={cancelToggle}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmToggle}>
+            <AlertDialogAction 
+              onClick={confirmToggle}
+              className={!pendingAction && dependentModules.length > 0 ? 'bg-red-600 hover:bg-red-700' : ''}
+            >
               {pendingAction ? 'Enable' : 'Disable'} Module
             </AlertDialogAction>
           </AlertDialogFooter>

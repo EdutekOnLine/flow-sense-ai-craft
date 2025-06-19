@@ -45,6 +45,42 @@ export type Database = {
         }
         Relationships: []
       }
+      module_audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          module_name: string
+          new_state: Json | null
+          performed_by: string
+          previous_state: Json | null
+          reason: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          module_name: string
+          new_state?: Json | null
+          performed_by: string
+          previous_state?: Json | null
+          reason?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          module_name?: string
+          new_state?: Json | null
+          performed_by?: string
+          previous_state?: Json | null
+          reason?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       modules: {
         Row: {
           created_at: string
@@ -764,6 +800,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_module_data: {
+        Args: { p_user_id: string; p_module_name: string }
+        Returns: boolean
+      }
       check_module_dependencies: {
         Args: { p_workspace_id: string; p_module_name: string }
         Returns: boolean
@@ -771,6 +811,14 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_dependent_modules: {
+        Args: { p_workspace_id: string; p_module_name: string }
+        Returns: {
+          module_name: string
+          display_name: string
+          is_active: boolean
+        }[]
       }
       get_module_access_info: {
         Args: { p_workspace_id: string; p_user_id: string }
