@@ -1,16 +1,17 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DynamicSidebar } from './DynamicSidebar';
 import { DashboardHeader } from './DashboardHeader';
-import DashboardContentRenderer from '@/components/dashboard/DashboardContentRenderer';
+import { DashboardContentRenderer } from './DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -18,7 +19,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/auth');
+    navigate('/auth');
+  };
+
+  const handleOpenWorkflow = (workflowId: string) => {
+    console.log('Opening workflow:', workflowId);
+    setActiveTab('workflow-builder');
   };
 
   return (
@@ -31,14 +37,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
         
         <main className="flex-1 flex flex-col">
-          <DashboardHeader />
+          <DashboardHeader 
+            isMainDashboard={true}
+            isRTL={false}
+          />
           <div className="flex-1 p-6">
-            <DashboardContentRenderer activeTab={activeTab} />
+            <DashboardContentRenderer 
+              activeTab={activeTab} 
+              onOpenWorkflow={handleOpenWorkflow}
+            />
           </div>
         </main>
       </div>
       
-      {/* Add the module status notifier */}
       <ModuleStatusNotifier />
     </SidebarProvider>
   );
