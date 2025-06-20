@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  role: 'admin' | 'manager' | 'employee' | 'root';
+  role: Database['public']['Enums']['user_role'];
   department?: string;
   avatar_url?: string;
   workspace_id?: string;
