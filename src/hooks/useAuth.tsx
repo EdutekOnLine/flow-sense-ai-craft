@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +29,97 @@ export function useAuth() {
     }, 10000); // 10 second timeout
 
     return () => clearTimeout(timeout);
+  }, []);
+
+  // Fetch user profile with error handling and timeout
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    try {
+      console.log('Fetching profile for user:', userId);
+      
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setAuthError('Failed to load user profile');
+        return null;
+      }
+      
+      console.log('Profile fetched successfully:', profileData);
+      return profileData;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      setAuthError('Failed to load user profile');
+      return null;
+    }
+  };
+
+  // Separate effect to handle profile fetching when user changes
+  useEffect(() => {
+    if (user?.id) {
+      console.log('User detected, fetching profile...');
+      fetchUserProfile(user.id).then((profileData) => {
+        setProfile(profileData);
+        if (loading) {
+          setLoading(false);
+        }
+      });
+    } else {
+      console.log('No user, clearing profile');
+      setProfile(null);
+      if (loading) {
+        setLoading(false);
+      }
+    }
+  }, [user?.id, loading]);
+
+  useEffect(() => {
+    console.log('Setting up auth state listener');
+    
+    // Set up auth state listener - only handle synchronous state updates
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        // Only synchronous state updates here to prevent deadlock
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthError(null);
+        
+        // Don't fetch profile here - let the separate useEffect handle it
+        if (!session?.user) {
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    console.log('Checking for existing session...');
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        setAuthError('Failed to check authentication status');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Existing session check:', session?.user?.id);
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (!session?.user) {
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      console.log('Cleaning up auth state listener');
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Presence tracking for all users
@@ -108,101 +198,27 @@ export function useAuth() {
     };
   }, [user?.id, profile?.role]);
 
-  // Fetch user profile with error handling and timeout
-  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        setAuthError('Failed to load user profile');
-        return null;
-      }
-      
-      console.log('Profile fetched successfully:', profileData);
-      return profileData;
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      setAuthError('Failed to load user profile');
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    console.log('Setting up auth state listener');
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setAuthError(null);
-        
-        if (session?.user) {
-          console.log('User authenticated, fetching profile...');
-          const profileData = await fetchUserProfile(session.user.id);
-          setProfile(profileData);
-        } else {
-          console.log('User not authenticated, clearing profile');
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    console.log('Checking for existing session...');
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
-        setAuthError('Failed to check authentication status');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('Existing session check:', session?.user?.id);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchUserProfile(session.user.id).then((profileData) => {
-          setProfile(profileData);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      console.log('Cleaning up auth state listener');
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const signIn = async (email: string, password: string) => {
     setAuthError(null);
+    setLoading(true);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    
     if (error) {
       setAuthError(error.message);
+      setLoading(false);
     }
+    
     return { data, error };
   };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, bypassEmailConfirmation?: boolean) => {
     console.log('SignUp called with bypass:', bypassEmailConfirmation);
     setAuthError(null);
+    setLoading(true);
     
     const signUpOptions: any = {
       email,
@@ -227,6 +243,7 @@ export function useAuth() {
     
     if (error) {
       setAuthError(error.message);
+      setLoading(false);
     }
     
     console.log('Signup result:', { data, error });
