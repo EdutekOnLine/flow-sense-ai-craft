@@ -10,7 +10,7 @@ import { Users, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function UserManagement() {
-  const { allUsers, invitations, createInvitation, deleteInvitation } = useUserManagement();
+  const { allUsers, invitations, createInvitation, resendInvitation, deleteInvitation } = useUserManagement();
   const { canInviteUsers, canSeeUser, isRootUser, getRoleBadgeColor } = useUserPermissions();
 
   // Filter users based on permissions
@@ -40,6 +40,10 @@ export default function UserManagement() {
 
   const handleDeleteInvitation = (id: string) => {
     deleteInvitation.mutate(id);
+  };
+
+  const handleResendInvitation = (invitation: any) => {
+    resendInvitation.mutate(invitation);
   };
 
   return (
@@ -97,7 +101,9 @@ export default function UserManagement() {
             invitations={invitations}
             getRoleBadgeColor={getRoleBadgeColor}
             onDeleteInvitation={handleDeleteInvitation}
+            onResendInvitation={handleResendInvitation}
             isDeleting={deleteInvitation.isPending}
+            isResending={resendInvitation.isPending}
           />
         </TabsContent>
 

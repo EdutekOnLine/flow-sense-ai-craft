@@ -167,6 +167,94 @@ export function useUserManagement() {
     },
   });
 
+  const resendInvitation = useMutation({
+    mutationFn: async (invitation: UserInvitation) => {
+      if (!user?.id) {
+        throw new Error('You must be logged in to resend invitations');
+      }
+
+      if (!profile || !['admin', 'root'].includes(profile.role)) {
+        throw new Error('You do not have permission to resend invitations');
+      }
+
+      console.log('Resending invitation for:', invitation.email);
+
+      // First, delete the old invitation
+      const { error: deleteError } = await supabase
+        .from('user_invitations')
+        .delete()
+        .eq('id', invitation.id);
+
+      if (deleteError) {
+        console.error('Error deleting old invitation:', deleteError);
+        throw new Error(`Failed to delete old invitation: ${deleteError.message}`);
+      }
+
+      // Create a new invitation with the same details
+      const { data, error } = await supabase
+        .from('user_invitations')
+        .insert([{
+          email: invitation.email,
+          role: invitation.role,
+          department: invitation.department,
+          workspace_id: invitation.workspace_id,
+          invited_by: user.id,
+        }])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database error creating new invitation:', error);
+        throw new Error(`Failed to create new invitation: ${error.message}`);
+      }
+
+      console.log('Created new invitation record:', data);
+
+      // Send the invitation email
+      const emailResponse = await supabase.functions.invoke('send-user-invitation', {
+        body: {
+          email: invitation.email,
+          role: invitation.role,
+          department: invitation.department,
+          invitationToken: data.invitation_token,
+          invitedByName: profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}` 
+            : profile?.email,
+          invitedBy: user.id,
+          workspaceId: invitation.workspace_id,
+        },
+      });
+
+      console.log('Email response:', emailResponse);
+
+      if (emailResponse.error) {
+        console.error('Error sending invitation email:', emailResponse.error);
+        toast({
+          title: 'Invitation resent but email failed',
+          description: 'You can copy the invitation link manually.',
+          variant: 'destructive',
+        });
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t('users.invitationResent'),
+        description: t('users.invitationResentMessage', { email: data.email }),
+      });
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
+    },
+    onError: (error: any) => {
+      console.error('Error resending invitation:', error);
+      toast({
+        title: t('users.errorResendingInvitation'),
+        description: error.message || 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteInvitation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -224,6 +312,7 @@ export function useUserManagement() {
     allUsers,
     invitations,
     createInvitation,
+    resendInvitation,
     deleteInvitation,
     deleteUser,
   };

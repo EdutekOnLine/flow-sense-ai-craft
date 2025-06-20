@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Copy, Trash2, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Copy, Trash2, Clock, CheckCircle, XCircle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserInvitation {
@@ -22,14 +22,18 @@ interface InvitationsDisplayProps {
   invitations: UserInvitation[];
   getRoleBadgeColor: (role: string) => string;
   onDeleteInvitation: (id: string) => void;
+  onResendInvitation: (invitation: UserInvitation) => void;
   isDeleting: boolean;
+  isResending: boolean;
 }
 
 export function InvitationsDisplay({ 
   invitations, 
   getRoleBadgeColor, 
-  onDeleteInvitation, 
-  isDeleting 
+  onDeleteInvitation,
+  onResendInvitation,
+  isDeleting,
+  isResending
 }: InvitationsDisplayProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -56,7 +60,7 @@ export function InvitationsDisplay({
     !inv.used_at && new Date(inv.expires_at) < new Date()
   );
 
-  const renderInvitationTable = (categoryInvitations: UserInvitation[], showActions: boolean = true, showCopyLink: boolean = true) => (
+  const renderInvitationTable = (categoryInvitations: UserInvitation[], showActions: boolean = true, showCopyLink: boolean = true, showResend: boolean = false) => (
     <Table>
       <TableHeader>
         <TableRow>
@@ -97,6 +101,16 @@ export function InvitationsDisplay({
                       <Copy className="h-4 w-4" />
                     </Button>
                   )}
+                  {showResend && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onResendInvitation(invitation)}
+                      disabled={isResending}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
@@ -133,7 +147,7 @@ export function InvitationsDisplay({
         <CardContent>
           {pendingInvitations.length > 0 ? (
             <div className="bg-card/60 backdrop-blur-sm rounded-lg overflow-hidden">
-              {renderInvitationTable(pendingInvitations, true, true)}
+              {renderInvitationTable(pendingInvitations, true, true, true)}
             </div>
           ) : (
             renderEmptyState("No pending invitations")
@@ -152,7 +166,7 @@ export function InvitationsDisplay({
         <CardContent>
           {usedInvitations.length > 0 ? (
             <div className="bg-card/60 backdrop-blur-sm rounded-lg overflow-hidden">
-              {renderInvitationTable(usedInvitations, true, false)}
+              {renderInvitationTable(usedInvitations, true, false, false)}
             </div>
           ) : (
             renderEmptyState("No used invitations")
@@ -171,7 +185,7 @@ export function InvitationsDisplay({
         <CardContent>
           {expiredInvitations.length > 0 ? (
             <div className="bg-card/60 backdrop-blur-sm rounded-lg overflow-hidden">
-              {renderInvitationTable(expiredInvitations, true, false)}
+              {renderInvitationTable(expiredInvitations, true, false, true)}
             </div>
           ) : (
             renderEmptyState("No expired invitations")
