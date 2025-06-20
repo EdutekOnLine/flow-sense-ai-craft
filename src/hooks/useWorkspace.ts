@@ -49,6 +49,12 @@ interface ModuleAccessInfo {
   settings: any;
 }
 
+interface DependentModule {
+  module_name: string;
+  display_name: string;
+  is_active: boolean;
+}
+
 export function useWorkspace() {
   const { profile, isRootUser } = useAuth();
   const { toast } = useToast();
@@ -69,7 +75,7 @@ export function useWorkspace() {
       if (error) throw error;
       return data as Workspace;
     },
-    enabled: !!profile && !isRootUser(),
+    enabled: !!profile && !isRootUser() && !!profile.workspace_id,
   });
 
   // Get all available modules
@@ -155,10 +161,15 @@ export function useWorkspace() {
   });
 
   // Get dependent modules for a specific module
-  const getDependentModules = async (moduleName: string) => {
+  const getDependentModules = async (moduleName: string): Promise<DependentModule[]> => {
     if (isRootUser()) {
       // Root users can see all module dependencies
-      return allModules?.filter(m => m.required_modules?.includes(moduleName)) || [];
+      const dependentModules = allModules?.filter(m => m.required_modules?.includes(moduleName)) || [];
+      return dependentModules.map(module => ({
+        module_name: module.name,
+        display_name: module.display_name,
+        is_active: true, // Root users always have access
+      }));
     }
 
     if (!profile?.workspace_id) return [];
