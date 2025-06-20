@@ -13,7 +13,7 @@ export interface ModuleStatus {
 }
 
 export function useModulePermissions() {
-  const { profile } = useAuth();
+  const { profile, isRootUser } = useAuth();
   const { 
     isModuleActive, 
     activeModules, 
@@ -31,6 +31,19 @@ export function useModulePermissions() {
         isAvailable: false,
         isRestricted: true,
         statusMessage: 'Authentication required'
+      };
+    }
+
+    // Root users have access to all modules
+    if (isRootUser()) {
+      return {
+        isActive: true,
+        isAvailable: true,
+        isRestricted: false,
+        statusMessage: 'Root Access - All Modules Available',
+        hasDependencies: true,
+        missingDependencies: [],
+        version: allModules?.find(m => m.name === moduleName)?.version || '1.0.0'
       };
     }
 
@@ -91,6 +104,9 @@ export function useModulePermissions() {
   const canAccessModule = (moduleName: string) => {
     if (!profile) return false;
     
+    // Root users can access all modules
+    if (isRootUser()) return true;
+    
     // Core module is always accessible to authenticated users
     if (moduleName === 'neura-core') return true;
     
@@ -100,23 +116,41 @@ export function useModulePermissions() {
 
   // Check if user can manage modules (root users only)
   const canManageModules = () => {
-    return profile?.role === 'root';
+    return isRootUser();
   };
 
   // Check if user can access workspace settings
   const canManageWorkspace = () => {
     if (!profile) return false;
-    return ['root', 'admin'].includes(profile.role);
+    return isRootUser() || ['admin'].includes(profile.role);
   };
 
   // Get list of accessible modules for current user
   const getAccessibleModules = () => {
+    if (isRootUser()) {
+      return allModules?.map(m => m.name) || [];
+    }
     const coreModules = ['neura-core'];
     return [...coreModules, ...activeModules];
   };
 
   // Get modules with their status information (enhanced with database function data)
   const getModulesWithStatus = () => {
+    if (isRootUser() && allModules) {
+      return allModules.map(module => ({
+        name: module.name,
+        displayName: module.display_name,
+        isActive: true,
+        isAvailable: true,
+        isRestricted: false,
+        statusMessage: 'Root Access',
+        hasDependencies: true,
+        missingDependencies: [],
+        version: module.version,
+        settings: module.settings_schema
+      }));
+    }
+
     if (moduleAccessInfo && moduleAccessInfo.length > 0) {
       return moduleAccessInfo.map(accessInfo => ({
         name: accessInfo.module_name,
@@ -146,6 +180,11 @@ export function useModulePermissions() {
 
   // Get display name for a module
   const getModuleDisplayName = (moduleName: string) => {
+    if (allModules) {
+      const module = allModules.find(m => m.name === moduleName);
+      if (module) return module.display_name;
+    }
+
     if (moduleAccessInfo) {
       const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       if (accessInfo) return accessInfo.display_name;
@@ -163,6 +202,8 @@ export function useModulePermissions() {
 
   // Check if module can be activated (dependencies satisfied)
   const canActivateModule = (moduleName: string) => {
+    if (isRootUser()) return true;
+
     if (moduleAccessInfo) {
       const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return accessInfo ? accessInfo.has_dependencies : false;
@@ -172,6 +213,8 @@ export function useModulePermissions() {
 
   // Get missing dependencies for a module
   const getMissingDependencies = (moduleName: string): string[] => {
+    if (isRootUser()) return [];
+
     if (moduleAccessInfo) {
       const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return accessInfo ? accessInfo.missing_dependencies : [];

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -49,15 +50,15 @@ interface ModuleAccessInfo {
 }
 
 export function useWorkspace() {
-  const { profile } = useAuth();
+  const { profile, isRootUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get current workspace
+  // Get current workspace - root users don't have a workspace
   const { data: workspace, isLoading: workspaceLoading } = useQuery({
     queryKey: ['workspace', profile?.workspace_id],
     queryFn: async () => {
-      if (!profile?.workspace_id) return null;
+      if (!profile?.workspace_id || isRootUser()) return null;
       
       const { data, error } = await supabase
         .from('workspaces')
@@ -68,7 +69,7 @@ export function useWorkspace() {
       if (error) throw error;
       return data as Workspace;
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && !isRootUser(),
   });
 
   // Get all available modules
@@ -83,12 +84,26 @@ export function useWorkspace() {
       if (error) throw error;
       return data as Module[];
     },
+    enabled: !!profile,
   });
 
-  // Get active modules for current workspace
+  // Get active modules for current workspace - root users get all modules
   const { data: workspaceModules, isLoading: workspaceModulesLoading } = useQuery({
     queryKey: ['workspace-modules', profile?.workspace_id],
     queryFn: async () => {
+      if (isRootUser()) {
+        // Root users get all modules as active
+        if (!allModules) return [];
+        return allModules.map(module => ({
+          id: `root-${module.id}`,
+          workspace_id: 'root',
+          module_id: module.id,
+          is_active: true,
+          settings: {},
+          module: module,
+        })) as WorkspaceModule[];
+      }
+
       if (!profile?.workspace_id) return [];
       
       const { data, error } = await supabase
@@ -103,13 +118,28 @@ export function useWorkspace() {
       if (error) throw error;
       return data as WorkspaceModule[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile.workspace_id || isRootUser()) && !!allModules,
   });
 
-  // Get comprehensive module access information using the new database function
+  // Get comprehensive module access information - root users get all modules
   const { data: moduleAccessInfo, isLoading: moduleAccessLoading } = useQuery({
     queryKey: ['module-access-info', profile?.workspace_id, profile?.id],
     queryFn: async () => {
+      if (isRootUser()) {
+        // Root users get all modules as active
+        if (!allModules) return [];
+        return allModules.map(module => ({
+          module_name: module.name,
+          display_name: module.display_name,
+          is_active: true,
+          is_available: true,
+          has_dependencies: true,
+          missing_dependencies: [],
+          version: module.version,
+          settings: {},
+        })) as ModuleAccessInfo[];
+      }
+
       if (!profile?.workspace_id || !profile?.id) return [];
       
       const { data, error } = await supabase
@@ -121,11 +151,16 @@ export function useWorkspace() {
       if (error) throw error;
       return data as ModuleAccessInfo[];
     },
-    enabled: !!profile?.workspace_id && !!profile?.id,
+    enabled: !!profile && (!!profile.workspace_id || isRootUser()) && !!allModules,
   });
 
   // Get dependent modules for a specific module
   const getDependentModules = async (moduleName: string) => {
+    if (isRootUser()) {
+      // Root users can see all module dependencies
+      return allModules?.filter(m => m.required_modules?.includes(moduleName)) || [];
+    }
+
     if (!profile?.workspace_id) return [];
     
     const { data, error } = await supabase
@@ -145,6 +180,11 @@ export function useWorkspace() {
   // Enhanced toggle module with dependency and audit logging
   const toggleModule = useMutation({
     mutationFn: async ({ moduleId, isActive }: { moduleId: string; isActive: boolean }) => {
+      if (isRootUser()) {
+        // Root users can't toggle modules - they have access to all
+        throw new Error('Root users have access to all modules by default');
+      }
+
       if (!profile?.workspace_id) throw new Error('No workspace found');
 
       // If activating a module, check dependencies first
@@ -211,6 +251,17 @@ export function useWorkspace() {
   // Update module settings
   const updateModuleSettings = useMutation({
     mutationFn: async ({ moduleId, settings }: { moduleId: string; settings: any }) => {
+      if (isRootUser()) {
+        // Root users can update global module settings
+        const { data, error } = await supabase
+          .from('modules')
+          .update({ settings_schema: settings })
+          .eq('name', moduleId);
+
+        if (error) throw error;
+        return data;
+      }
+
       if (!profile?.workspace_id) throw new Error('No workspace found');
 
       const { data, error } = await supabase
@@ -244,8 +295,13 @@ export function useWorkspace() {
     },
   });
 
-  // Enhanced module access check with real-time updates
+  // Enhanced module access check with root user support
   const isModuleActive = (moduleName: string) => {
+    if (isRootUser()) {
+      // Root users have access to all modules
+      return true;
+    }
+
     if (moduleAccessInfo) {
       const moduleInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return moduleInfo?.is_active || false;
@@ -254,12 +310,19 @@ export function useWorkspace() {
   };
 
   // Get active module names
-  const activeModules = moduleAccessInfo 
-    ? moduleAccessInfo.filter(m => m.is_active).map(m => m.module_name)
-    : workspaceModules?.map(wm => wm.module.name) || [];
+  const activeModules = isRootUser() 
+    ? allModules?.map(m => m.name) || []
+    : moduleAccessInfo 
+      ? moduleAccessInfo.filter(m => m.is_active).map(m => m.module_name)
+      : workspaceModules?.map(wm => wm.module.name) || [];
 
   // Check if module dependencies are satisfied
   const checkModuleDependencies = async (moduleName: string): Promise<boolean> => {
+    if (isRootUser()) {
+      // Root users bypass dependency checks
+      return true;
+    }
+
     if (!profile?.workspace_id) return false;
     
     const { data, error } = await supabase

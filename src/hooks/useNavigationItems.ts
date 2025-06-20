@@ -4,10 +4,15 @@ import { useModulePermissions } from './useModulePermissions';
 import { navigationItems, NavigationItem } from '@/components/layout/sidebar/navigationItems';
 
 export function useNavigationItems() {
-  const { profile } = useAuth();
+  const { profile, isRootUser } = useAuth();
   const { canAccessModule } = useModulePermissions();
 
   const getVisibleItems = (): NavigationItem[] => {
+    if (isRootUser()) {
+      // Root users see all navigation items
+      return navigationItems;
+    }
+
     return navigationItems.filter(item => 
       item.roles.includes(profile?.role || 'employee') && canAccessModule(item.module)
     );
