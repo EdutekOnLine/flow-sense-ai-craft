@@ -804,10 +804,6 @@ export type Database = {
         Args: { p_user_id: string; p_module_name: string }
         Returns: boolean
       }
-      can_user_access_workspace: {
-        Args: { user_id: string; target_workspace_id: string }
-        Returns: boolean
-      }
       check_module_dependencies: {
         Args: { p_workspace_id: string; p_module_name: string }
         Returns: boolean
@@ -841,10 +837,6 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      get_user_workspace_id: {
-        Args: { user_id: string }
-        Returns: string
-      }
       has_workflow_permissions: {
         Args: { user_id: string }
         Returns: boolean
@@ -860,19 +852,11 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_workspace_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
       user_has_role_in: {
         Args: {
           user_id: string
           roles: Database["public"]["Enums"]["user_role"][]
         }
-        Returns: boolean
-      }
-      verify_api_access: {
-        Args: { p_user_id: string; p_module_name: string; p_action?: string }
         Returns: boolean
       }
     }

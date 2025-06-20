@@ -3,127 +3,237 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface AdvanceWorkflowRequest {
+  workflowId: string;
+  completedStepId: string;
+  completedBy: string;
+  completionNotes?: string;
+}
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get user from JWT
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { workflowId, completedStepId, completedBy, completionNotes }: AdvanceWorkflowRequest = await req.json();
 
-    // Verify API access for neura-flow module
-    const { data: hasAccess } = await supabase.rpc('verify_api_access', {
-      p_user_id: user.id,
-      p_module_name: 'neura-flow',
-      p_action: 'write'
-    });
+    console.log(`Advancing workflow ${workflowId}, completed step ${completedStepId} by ${completedBy}`);
 
-    if (!hasAccess) {
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions for workflow operations' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { workflowId, stepId } = await req.json();
-
-    if (!workflowId || !stepId) {
-      return new Response(
-        JSON.stringify({ error: 'Missing workflowId or stepId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Advance the workflow step
-    const { data: updatedStep, error: stepError } = await supabase
-      .from('workflow_steps')
-      .update({ 
-        status: 'completed',
-        actual_hours: 1 // This could be calculated based on time tracking
-      })
-      .eq('id', stepId)
+    // Get the active workflow instance for this workflow
+    const { data: workflowInstance, error: instanceError } = await supabaseClient
+      .from('workflow_instances')
+      .select('*')
       .eq('workflow_id', workflowId)
-      .select()
+      .eq('status', 'active')
       .single();
 
-    if (stepError) {
-      return new Response(
-        JSON.stringify({ error: stepError.message }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (instanceError || !workflowInstance) {
+      console.error('Error fetching workflow instance:', instanceError);
+      throw new Error(`No active workflow instance found for workflow ${workflowId}`);
     }
 
-    // Get next step in the workflow
-    const { data: nextStep } = await supabase
+    console.log('Found workflow instance:', workflowInstance);
+
+    // Verify this is the current step
+    if (workflowInstance.current_step_id !== completedStepId) {
+      throw new Error('Cannot complete step - this is not the current step in the workflow');
+    }
+
+    // Log the step completion
+    const { error: logError } = await supabaseClient
+      .from('workflow_comments')
+      .insert({
+        workflow_id: workflowId,
+        user_id: completedBy,
+        comment: `Step completed: ${completionNotes || 'No additional notes'}`
+      });
+
+    if (logError) {
+      console.error('Error logging step completion:', logError);
+    }
+
+    // Get current workflow steps ordered by step_order
+    const { data: workflowSteps, error: stepsError } = await supabaseClient
       .from('workflow_steps')
       .select('*')
       .eq('workflow_id', workflowId)
-      .eq('status', 'pending')
-      .order('step_order')
-      .limit(1)
-      .single();
+      .order('step_order', { ascending: true });
 
-    // Update workflow instance if there's a next step
-    if (nextStep) {
-      await supabase
+    if (stepsError) {
+      throw new Error(`Failed to fetch workflow steps: ${stepsError.message}`);
+    }
+
+    // Find the completed step and the next step
+    const completedStepIndex = workflowSteps.findIndex(step => step.id === completedStepId);
+    if (completedStepIndex === -1) {
+      throw new Error('Completed step not found in workflow');
+    }
+
+    const completedStep = workflowSteps[completedStepIndex];
+    console.log(`Completed step: ${completedStep.name} (order: ${completedStep.step_order})`);
+
+    // Update the completed step status
+    const { error: updateStepError } = await supabaseClient
+      .from('workflow_steps')
+      .update({ 
+        status: 'completed',
+        actual_hours: completedStep.estimated_hours
+      })
+      .eq('id', completedStepId);
+
+    if (updateStepError) {
+      console.error('Error updating step status:', updateStepError);
+    }
+
+    // Check if there's a next step
+    const nextStepIndex = completedStepIndex + 1;
+    if (nextStepIndex < workflowSteps.length) {
+      const nextStep = workflowSteps[nextStepIndex];
+      console.log(`Next step: ${nextStep.name} (order: ${nextStep.step_order})`);
+
+      // Update workflow instance to point to next step
+      const { error: instanceUpdateError } = await supabaseClient
         .from('workflow_instances')
-        .update({ current_step_id: nextStep.id })
-        .eq('workflow_id', workflowId);
+        .update({ 
+          current_step_id: nextStep.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', workflowInstance.id);
+
+      if (instanceUpdateError) {
+        console.error('Error updating workflow instance:', instanceUpdateError);
+        throw instanceUpdateError;
+      }
+
+      // Update next step status to pending if it's not already
+      const { error: nextStepError } = await supabaseClient
+        .from('workflow_steps')
+        .update({ status: 'pending' })
+        .eq('id', nextStep.id);
+
+      if (nextStepError) {
+        console.error('Error updating next step status:', nextStepError);
+      }
+
+      // CRITICAL FIX: Instead of creating a new assignment, update the existing one
+      // Check if an assignment already exists for the next step
+      const { data: existingAssignment, error: assignmentCheckError } = await supabaseClient
+        .from('workflow_step_assignments')
+        .select('*')
+        .eq('workflow_step_id', nextStep.id)
+        .eq('assigned_to', nextStep.assigned_to)
+        .single();
+
+      if (assignmentCheckError && assignmentCheckError.code !== 'PGRST116') {
+        console.error('Error checking for existing assignment:', assignmentCheckError);
+      }
+
+      if (existingAssignment) {
+        // Assignment exists, just update its status to make it active
+        console.log(`Updating existing assignment ${existingAssignment.id} for next step`);
+        
+        const { error: assignmentUpdateError } = await supabaseClient
+          .from('workflow_step_assignments')
+          .update({
+            status: 'pending',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingAssignment.id);
+
+        if (assignmentUpdateError) {
+          console.error('Error updating assignment:', assignmentUpdateError);
+          throw assignmentUpdateError;
+        } else {
+          console.log('Successfully updated existing assignment for next step');
+        }
+      } else if (nextStep.assigned_to) {
+        // No existing assignment and someone is assigned - create new assignment
+        console.log(`Creating new assignment for next step assigned to: ${nextStep.assigned_to}`);
+        
+        const { error: assignmentError } = await supabaseClient
+          .from('workflow_step_assignments')
+          .insert({
+            workflow_step_id: nextStep.id,
+            assigned_to: nextStep.assigned_to,
+            assigned_by: completedBy,
+            status: 'pending',
+            due_date: nextStep.metadata?.due_date || null
+          });
+
+        if (assignmentError) {
+          console.error('Error creating step assignment:', assignmentError);
+          // Don't throw here - the workflow still advanced successfully
+          console.log('Workflow advanced successfully despite assignment creation error');
+        } else {
+          console.log('Step assignment created successfully for next step');
+        }
+      }
     } else {
-      // Mark workflow as completed
-      await supabase
+      // This was the last step, mark workflow instance as completed
+      console.log('Workflow completed - marking instance as completed');
+      
+      const { error: instanceCompleteError } = await supabaseClient
         .from('workflow_instances')
         .update({ 
           status: 'completed',
-          completed_at: new Date().toISOString()
+          completed_at: new Date().toISOString(),
+          current_step_id: null,
+          updated_at: new Date().toISOString()
         })
-        .eq('workflow_id', workflowId);
+        .eq('id', workflowInstance.id);
+
+      if (instanceCompleteError) {
+        console.error('Error updating workflow instance:', instanceCompleteError);
+        throw instanceCompleteError;
+      }
+
+      // Log workflow completion
+      const { error: completionLogError } = await supabaseClient
+        .from('workflow_comments')
+        .insert({
+          workflow_id: workflowId,
+          user_id: completedBy,
+          comment: 'Workflow completed - all steps finished'
+        });
+
+      if (completionLogError) {
+        console.error('Error logging workflow completion:', completionLogError);
+      }
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        updatedStep,
-        nextStep: nextStep || null,
-        workflowCompleted: !nextStep
+      JSON.stringify({
+        success: true,
+        message: 'Workflow advanced successfully',
+        workflowId,
+        completedStepId,
+        nextStepExists: nextStepIndex < workflowSteps.length,
+        workflowInstanceId: workflowInstance.id
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
     );
 
-  } catch (error) {
-    console.error('Error advancing workflow:', error);
+  } catch (error: any) {
+    console.error("Error in advance-workflow function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
     );
   }
 });
-
