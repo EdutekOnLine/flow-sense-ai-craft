@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,40 +58,35 @@ export function useAuth() {
     }
   };
 
-  // Separate effect to handle profile fetching when user changes
-  useEffect(() => {
-    if (user?.id) {
-      console.log('User detected, fetching profile...');
-      fetchUserProfile(user.id).then((profileData) => {
-        setProfile(profileData);
-        if (loading) {
-          setLoading(false);
-        }
-      });
-    } else {
-      console.log('No user, clearing profile');
-      setProfile(null);
-      if (loading) {
-        setLoading(false);
-      }
-    }
-  }, [user?.id, loading]);
-
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state listener - only handle synchronous state updates
+    // Set up auth state listener - handle both user and profile loading
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        // Only synchronous state updates here to prevent deadlock
+        // Update session and user synchronously
         setSession(session);
         setUser(session?.user ?? null);
         setAuthError(null);
         
-        // Don't fetch profile here - let the separate useEffect handle it
-        if (!session?.user) {
+        if (session?.user) {
+          // Don't set loading to false until we have profile data
+          console.log('User detected, fetching profile...');
+          try {
+            const profileData = await fetchUserProfile(session.user.id);
+            setProfile(profileData);
+            console.log('Profile loaded, setting loading to false');
+            setLoading(false);
+          } catch (error) {
+            console.error('Error fetching profile in auth state change:', error);
+            setProfile(null);
+            setLoading(false);
+          }
+        } else {
+          // No user, clear profile and stop loading
+          console.log('No user, clearing profile and stopping loading');
           setProfile(null);
           setLoading(false);
         }
@@ -99,7 +95,7 @@ export function useAuth() {
 
     // Check for existing session
     console.log('Checking for existing session...');
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
         setAuthError('Failed to check authentication status');
@@ -111,7 +107,20 @@ export function useAuth() {
       setSession(session);
       setUser(session?.user ?? null);
       
-      if (!session?.user) {
+      if (session?.user) {
+        console.log('Existing user found, fetching profile...');
+        try {
+          const profileData = await fetchUserProfile(session.user.id);
+          setProfile(profileData);
+          console.log('Profile loaded from existing session, setting loading to false');
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching profile from existing session:', error);
+          setProfile(null);
+          setLoading(false);
+        }
+      } else {
+        console.log('No existing user, setting loading to false');
         setLoading(false);
       }
     });

@@ -26,7 +26,7 @@ export function useModuleGuard(moduleName: string) {
     const timeout = setTimeout(() => {
       console.warn(`Module guard timeout for ${moduleName}, forcing check to complete`);
       setIsChecking(false);
-    }, 5000);
+    }, 8000); // Increased timeout to allow for profile loading
 
     return () => clearTimeout(timeout);
   }, [moduleName]);
@@ -62,6 +62,14 @@ export function useModuleGuard(moduleName: string) {
       if (authError && moduleName === 'neura-core') {
         console.log('Auth error detected, allowing core module access');
         setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // If auth failed for non-core modules, deny access
+      if (authError && moduleName !== 'neura-core') {
+        console.log('Auth error detected, denying access to non-core module');
+        setHasAccess(false);
         setIsChecking(false);
         return;
       }
@@ -147,8 +155,8 @@ export function useModuleGuard(moduleName: string) {
   const moduleStatus = getModuleStatus(moduleName);
   const displayName = getModuleDisplayName(moduleName);
 
-  // Only show loading if auth is loading or we're still checking (but not indefinitely)
-  const isLoading = (authLoading && !authError) || (isChecking && retryCount < 3);
+  // Only show loading if auth is loading OR we're still checking (but not indefinitely)
+  const isLoading = authLoading || (isChecking && retryCount < 3);
 
   return {
     isLoading,

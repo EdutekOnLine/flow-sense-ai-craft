@@ -15,16 +15,27 @@ export function useAppLoadingState() {
   const isAuthReady = !authLoading && (profile !== null || authError !== null);
   
   // For root users, we don't need to wait for workspace data
-  const isRootUser = profile?.role === 'root';
+  const isRootUser = profile?.role === 'root' as any;
   
   // Calculate if we have minimum required data
+  // We need auth to be ready, and for non-root users we should have a profile
   const hasMinimumData = isAuthReady && (isRootUser || profile !== null || authError !== null);
   
-  // Calculate if we're still loading critical data
+  // Calculate if we're still loading critical data (auth + profile)
   const isCriticalLoading = authLoading && !authError;
   
   // Calculate if we're loading optional data (only relevant for non-root users)
-  const isOptionalLoading = !isRootUser && (modulesLoading || workspaceModulesLoading || moduleAccessLoading);
+  const isOptionalLoading = !isRootUser && !authError && (modulesLoading || workspaceModulesLoading || moduleAccessLoading);
+
+  console.log('AppLoadingState:', {
+    authLoading,
+    isAuthReady,
+    isRootUser,
+    hasMinimumData,
+    isCriticalLoading,
+    profileRole: profile?.role,
+    authError: !!authError
+  });
 
   return {
     // Critical loading that blocks the UI

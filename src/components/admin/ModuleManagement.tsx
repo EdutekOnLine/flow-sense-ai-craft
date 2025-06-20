@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { useAppLoadingState } from '@/hooks/useAppLoadingState';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Shield, Loader2 } from 'lucide-react';
 import { ModuleManagementHeader } from './module-management/ModuleManagementHeader';
@@ -14,7 +15,8 @@ import { ModuleSettings } from './module-management/ModuleSettings';
 import { ModuleMarketplace } from './module-management/ModuleMarketplace';
 
 export default function ModuleManagement() {
-  const { profile, loading: authLoading, authError } = useAuth();
+  const { profile } = useAuth();
+  const { isCriticalLoading, authError } = useAppLoadingState();
   const { t } = useTranslation();
   const { getModulesWithStatus, canManageModules } = useModulePermissions();
   const { toggleModule } = useWorkspace();
@@ -22,8 +24,8 @@ export default function ModuleManagement() {
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Show loading state while profile is being fetched
-  if (authLoading) {
+  // Show loading state for critical loading
+  if (isCriticalLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -53,8 +55,20 @@ export default function ModuleManagement() {
     );
   }
 
-  // Access control - ensure we have a profile before checking permissions
-  if (!profile || !canManageModules()) {
+  // Access control - ensure we have a profile and check permissions
+  if (!profile) {
+    return (
+      <div className="text-center py-8">
+        <div className="flex flex-col items-center space-y-4">
+          <Shield className="h-16 w-16 text-muted-foreground" />
+          <h2 className="text-2xl font-bold text-foreground">Loading...</h2>
+          <p className="text-muted-foreground">Loading user profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!canManageModules()) {
     return (
       <div className="text-center py-8">
         <div className="flex flex-col items-center space-y-4">
@@ -63,13 +77,11 @@ export default function ModuleManagement() {
           <p className="text-muted-foreground">
             Only root users can access module management.
           </p>
-          {profile && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                Current user: {profile.email} (Role: {profile.role})
-              </p>
-            </div>
-          )}
+          <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Current user: {profile.email} (Role: {profile.role})
+            </p>
+          </div>
         </div>
       </div>
     );
