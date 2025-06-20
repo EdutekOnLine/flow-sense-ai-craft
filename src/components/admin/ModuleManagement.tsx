@@ -4,28 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useWorkspace } from '@/hooks/useWorkspace';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Settings, 
-  Search, 
-  Package, 
-  Shield,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Info,
-  Loader2
-} from 'lucide-react';
-import { ModuleCard } from './module-management/ModuleCard';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Shield, Loader2 } from 'lucide-react';
+import { ModuleManagementHeader } from './module-management/ModuleManagementHeader';
+import { ModuleManagementSearch } from './module-management/ModuleManagementSearch';
+import { ModuleManagementTabs } from './module-management/ModuleManagementTabs';
+import { ModuleManagementOverview } from './module-management/ModuleManagementOverview';
 import { ModuleSettings } from './module-management/ModuleSettings';
 import { ModuleMarketplace } from './module-management/ModuleMarketplace';
-import { BulkActions } from './module-management/BulkActions';
 
 export default function ModuleManagement() {
   const { profile, loading } = useAuth();
@@ -110,106 +96,42 @@ export default function ModuleManagement() {
     setSelectedModules([]);
   };
 
+  const handleModuleSelect = (moduleId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedModules([...selectedModules, moduleId]);
+    } else {
+      setSelectedModules(selectedModules.filter(id => id !== moduleId));
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Module Management</h1>
-                <p className="text-muted-foreground">Manage and configure workspace modules</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {activeModulesCount} Active
-              </Badge>
-              <Badge variant="outline" className="bg-muted/10 text-muted-foreground border-muted/20">
-                <Package className="h-3 w-3 mr-1" />
-                {totalModulesCount} Total
-              </Badge>
-            </div>
-          </div>
-          <Badge variant="secondary" className="bg-secondary/10 text-secondary">
-            <Shield className="h-3 w-3 mr-1" />
-            Root Access
-          </Badge>
-        </div>
-      </div>
+      <ModuleManagementHeader
+        activeModulesCount={activeModulesCount}
+        totalModulesCount={totalModulesCount}
+      />
 
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search modules..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <BulkActions
-          selectedModules={selectedModules}
-          moduleDisplayNames={moduleDisplayNames}
-          onBulkToggle={handleBulkToggle}
-          isLoading={toggleModule.isPending}
-        />
-      </div>
+      <ModuleManagementSearch
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedModules={selectedModules}
+        moduleDisplayNames={moduleDisplayNames}
+        onBulkToggle={handleBulkToggle}
+        isLoading={toggleModule.isPending}
+      />
 
-      {/* Module Management Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </TabsTrigger>
-          <TabsTrigger value="marketplace" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Marketplace
-          </TabsTrigger>
-        </TabsList>
+        <ModuleManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <TabsContent value="overview" className="space-y-6">
-          {filteredModules.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No modules found</h3>
-                <p className="text-muted-foreground text-center">
-                  {searchTerm ? 'Try adjusting your search criteria.' : 'No modules are available.'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredModules.map(module => (
-                <ModuleCard
-                  key={module.name}
-                  module={module}
-                  isSelected={selectedModules.includes(module.name)}
-                  onSelect={(selected) => {
-                    if (selected) {
-                      setSelectedModules([...selectedModules, module.name]);
-                    } else {
-                      setSelectedModules(selectedModules.filter(id => id !== module.name));
-                    }
-                  }}
-                  onToggle={handleModuleToggle}
-                  isLoading={toggleModule.isPending}
-                />
-              ))}
-            </div>
-          )}
+          <ModuleManagementOverview
+            modules={filteredModules}
+            selectedModules={selectedModules}
+            onModuleSelect={handleModuleSelect}
+            onModuleToggle={handleModuleToggle}
+            isLoading={toggleModule.isPending}
+            searchTerm={searchTerm}
+          />
         </TabsContent>
 
         <TabsContent value="settings">
