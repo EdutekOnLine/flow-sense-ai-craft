@@ -26,7 +26,7 @@ export function useModuleGuard(moduleName: string) {
     const timeout = setTimeout(() => {
       console.warn(`Module guard timeout for ${moduleName}, forcing check to complete`);
       setIsChecking(false);
-    }, 8000); // 8 second timeout
+    }, 5000); // Reduced timeout to 5 seconds
 
     return () => clearTimeout(timeout);
   }, [moduleName]);
@@ -48,9 +48,15 @@ export function useModuleGuard(moduleName: string) {
     const checkAccess = async () => {
       console.log(`Checking access for module: ${moduleName}`, {
         authLoading,
-        profile: profile?.role,
+        profile: profile ? { id: profile.id, role: profile.role } : null,
         authError
       });
+
+      // If auth is still loading, wait
+      if (authLoading) {
+        console.log('Auth still loading, waiting...');
+        return;
+      }
 
       // If auth failed, allow access to core module for fallback
       if (authError && moduleName === 'neura-core') {
@@ -60,31 +66,31 @@ export function useModuleGuard(moduleName: string) {
         return;
       }
 
-      // Wait for auth to load, but with timeout
-      if (authLoading) {
-        return;
-      }
-
-      // If no profile but we have been waiting, allow core module access
-      if (!profile && moduleName === 'neura-core') {
-        console.log('No profile but allowing core module access');
-        setHasAccess(true);
+      // If no profile after auth loading is complete, check for core module
+      if (!profile) {
+        if (moduleName === 'neura-core') {
+          console.log('No profile but allowing core module access');
+          setHasAccess(true);
+        } else {
+          console.log('No profile, denying access to non-core module');
+          setHasAccess(false);
+        }
         setIsChecking(false);
         return;
       }
 
-      // Root users get access to everything - fix the type comparison
-      if (profile && profile.role === 'root') {
+      // Root users get access to everything immediately
+      if (profile.role === 'root') {
         console.log('Root user detected, granting access to all modules');
         setHasAccess(true);
         setIsChecking(false);
         return;
       }
 
-      setIsChecking(true);
-      
+      // For non-root users, check module permissions
       try {
         const access = canAccessModule(moduleName);
+        console.log(`Module access check result for ${moduleName}:`, access);
         setHasAccess(access);
         
         // Show toast notification for access denial (only on first check)
@@ -102,13 +108,13 @@ export function useModuleGuard(moduleName: string) {
         if (moduleName === 'neura-core') {
           console.log('Error checking access, allowing core module');
           setHasAccess(true);
-        } else if (profile && profile.role === 'root') {
+        } else if (profile.role === 'root') {
           console.log('Error checking access, but root user gets access');
           setHasAccess(true);
         } else {
           setHasAccess(false);
           
-          if (isOnline) {
+          if (isOnline && retryCount === 0) {
             toast({
               title: 'Connection Error',
               description: 'Unable to verify module access. Please try again.',
@@ -126,6 +132,7 @@ export function useModuleGuard(moduleName: string) {
 
   const handleRetry = async () => {
     setRetryCount(prev => prev + 1);
+    setIsChecking(true);
     
     // Invalidate queries to refresh data
     await queryClient.invalidateQueries({ queryKey: ['workspace-modules'] });
@@ -140,8 +147,8 @@ export function useModuleGuard(moduleName: string) {
   const moduleStatus = getModuleStatus(moduleName);
   const displayName = getModuleDisplayName(moduleName);
 
-  // Calculate loading state with fallbacks
-  const isLoading = (authLoading || isChecking) && retryCount < 3;
+  // Only show loading if auth is loading or we're still checking (but not indefinitely)
+  const isLoading = (authLoading && !authError) || (isChecking && retryCount < 3);
 
   return {
     isLoading,

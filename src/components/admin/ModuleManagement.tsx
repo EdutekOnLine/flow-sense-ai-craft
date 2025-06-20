@@ -14,7 +14,7 @@ import { ModuleSettings } from './module-management/ModuleSettings';
 import { ModuleMarketplace } from './module-management/ModuleMarketplace';
 
 export default function ModuleManagement() {
-  const { profile, loading } = useAuth();
+  const { profile, loading: authLoading, authError } = useAuth();
   const { t } = useTranslation();
   const { getModulesWithStatus, canManageModules } = useModulePermissions();
   const { toggleModule } = useWorkspace();
@@ -23,7 +23,7 @@ export default function ModuleManagement() {
   const [activeTab, setActiveTab] = useState('overview');
 
   // Show loading state while profile is being fetched
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -34,8 +34,27 @@ export default function ModuleManagement() {
     );
   }
 
-  // Access control - now that we know profile is loaded
-  if (!canManageModules()) {
+  // Show auth error if present
+  if (authError) {
+    return (
+      <div className="text-center py-8">
+        <div className="flex flex-col items-center space-y-4">
+          <Shield className="h-16 w-16 text-muted-foreground" />
+          <h2 className="text-2xl font-bold text-foreground">Authentication Error</h2>
+          <p className="text-muted-foreground">{authError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Access control - ensure we have a profile before checking permissions
+  if (!profile || !canManageModules()) {
     return (
       <div className="text-center py-8">
         <div className="flex flex-col items-center space-y-4">
@@ -66,7 +85,6 @@ export default function ModuleManagement() {
     ), [modules, searchTerm]
   );
 
-  // Memoize module display names mapping
   const moduleDisplayNames = useMemo(() => 
     modules.reduce((acc, module) => {
       acc[module.name] = module.displayName;

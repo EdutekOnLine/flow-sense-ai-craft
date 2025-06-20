@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWorkspace } from '@/hooks/useWorkspace';
 
 export function useAppLoadingState() {
-  const { loading: authLoading, profile } = useAuth();
+  const { loading: authLoading, profile, authError } = useAuth();
   const { 
     workspaceLoading, 
     modulesLoading, 
@@ -11,20 +11,20 @@ export function useAppLoadingState() {
     moduleAccessLoading 
   } = useWorkspace();
 
-  // Core auth must be loaded
-  const isAuthReady = !authLoading;
+  // Core auth must be loaded and either we have a profile OR there's an auth error
+  const isAuthReady = !authLoading && (profile !== null || authError !== null);
   
   // For root users, we don't need to wait for workspace data
   const isRootUser = profile?.role === 'root';
   
   // Calculate if we have minimum required data
-  const hasMinimumData = isAuthReady && (isRootUser || profile !== null);
+  const hasMinimumData = isAuthReady && (isRootUser || profile !== null || authError !== null);
   
   // Calculate if we're still loading critical data
-  const isCriticalLoading = authLoading || (!isRootUser && workspaceLoading);
+  const isCriticalLoading = authLoading && !authError;
   
-  // Calculate if we're loading optional data
-  const isOptionalLoading = modulesLoading || workspaceModulesLoading || moduleAccessLoading;
+  // Calculate if we're loading optional data (only relevant for non-root users)
+  const isOptionalLoading = !isRootUser && (modulesLoading || workspaceModulesLoading || moduleAccessLoading);
 
   return {
     // Critical loading that blocks the UI
@@ -41,6 +41,8 @@ export function useAppLoadingState() {
     moduleAccessLoading,
     // User info
     isRootUser,
-    profile
+    profile,
+    // Auth error state
+    authError
   };
 }

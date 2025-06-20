@@ -28,7 +28,7 @@ export function DashboardContentRenderer({
   children, 
   onOpenWorkflow 
 }: DashboardContentRendererProps) {
-  const { isCriticalLoading, hasMinimumData, profile, isRootUser } = useAppLoadingState();
+  const { isCriticalLoading, hasMinimumData, profile, isRootUser, authError } = useAppLoadingState();
   const { t } = useTranslation();
 
   // Show loading state only for critical loading
@@ -38,6 +38,24 @@ export function DashboardContentRenderer({
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If we have an auth error, show it
+  if (authError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Authentication Error</h2>
+          <p className="text-muted-foreground mb-4">{authError}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
