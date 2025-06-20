@@ -31,8 +31,18 @@ export function DashboardContentRenderer({
   const { isCriticalLoading, hasMinimumData, profile, isRootUser, authError } = useAppLoadingState();
   const { t } = useTranslation();
 
+  console.log('DashboardContentRenderer render:', {
+    activeTab,
+    isCriticalLoading,
+    hasMinimumData,
+    isRootUser,
+    profileRole: profile?.role,
+    authError: !!authError
+  });
+
   // Show loading state only for critical loading
   if (isCriticalLoading) {
+    console.log('Showing critical loading state');
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -45,6 +55,7 @@ export function DashboardContentRenderer({
 
   // If we have an auth error, show it
   if (authError) {
+    console.log('Showing auth error');
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -63,6 +74,7 @@ export function DashboardContentRenderer({
 
   // If we don't have minimum data, show error state
   if (!hasMinimumData) {
+    console.log('No minimum data available');
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -72,6 +84,8 @@ export function DashboardContentRenderer({
       </div>
     );
   }
+
+  console.log('Rendering content for activeTab:', activeTab);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -123,6 +137,7 @@ export function DashboardContentRenderer({
       case 'settings':
         return <ThemeSettings />;
       default:
+        console.log('Rendering default dashboard content');
         return children ? React.cloneElement(children as React.ReactElement, { onOpenWorkflow }) : <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
     }
   };

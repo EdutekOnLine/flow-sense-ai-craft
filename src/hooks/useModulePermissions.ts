@@ -94,8 +94,16 @@ export function useModulePermissions() {
     // Core module is always accessible to authenticated users
     if (moduleName === 'neura-core') return true;
     
+    // Root users get access to all modules regardless of workspace status
+    if (profile.role === 'root') {
+      console.log(`Root user granted access to module: ${moduleName}`);
+      return true;
+    }
+    
     // Check if module is active in workspace
-    return isModuleActive(moduleName);
+    const hasAccess = isModuleActive(moduleName);
+    console.log(`Module access check for ${moduleName}:`, hasAccess);
+    return hasAccess;
   };
 
   // Check if user can manage modules (root users only)
@@ -112,6 +120,12 @@ export function useModulePermissions() {
   // Get list of accessible modules for current user
   const getAccessibleModules = () => {
     const coreModules = ['neura-core'];
+    
+    // Root users get access to all modules
+    if (profile?.role === 'root') {
+      return [...coreModules, 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
+    }
+    
     return [...coreModules, ...activeModules];
   };
 
@@ -179,11 +193,11 @@ export function useModulePermissions() {
     return [];
   };
 
-  // Check specific module access
-  const canAccessNeuraFlow = () => canAccessModule('neura-flow');
-  const canAccessNeuraCRM = () => canAccessModule('neura-crm');
-  const canAccessNeuraForms = () => canAccessModule('neura-forms');
-  const canAccessNeuraEdu = () => canAccessModule('neura-edu');
+  // Check specific module access with root user override
+  const canAccessNeuraFlow = () => profile?.role === 'root' || canAccessModule('neura-flow');
+  const canAccessNeuraCRM = () => profile?.role === 'root' || canAccessModule('neura-crm');
+  const canAccessNeuraForms = () => profile?.role === 'root' || canAccessModule('neura-forms');
+  const canAccessNeuraEdu = () => profile?.role === 'root' || canAccessModule('neura-edu');
 
   return {
     canAccessModule,
