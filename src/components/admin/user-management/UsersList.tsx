@@ -42,7 +42,7 @@ export function UsersList({ users }: UsersListProps) {
       // For now, we'll use the existing users data and add workspace info
       const enhancedUsers = users.map(user => ({
         ...user,
-        workspace_name: user.workspace_id ? 'Testers' : 'No Workspace' // Simplified for now
+        workspace_name: user.workspace_id ? 'Testers' : (user.role === 'root' ? 'Super Users' : 'No Workspace')
       }));
       setUsersWithWorkspace(enhancedUsers);
     } else {
@@ -79,7 +79,7 @@ export function UsersList({ users }: UsersListProps) {
   // Group users by workspace if root user
   const groupedUsers = isRootUser
     ? usersWithWorkspace.reduce((acc, user) => {
-        const workspaceKey = user.workspace_name || 'No Workspace';
+        const workspaceKey = user.workspace_name || (user.role === 'root' ? 'Super Users' : 'No Workspace');
         if (!acc[workspaceKey]) acc[workspaceKey] = [];
         acc[workspaceKey].push(user);
         return acc;
@@ -119,7 +119,7 @@ export function UsersList({ users }: UsersListProps) {
                         )}
                         {isRootUser && (
                           <p className="text-sm text-muted-foreground">
-                            Workspace: {user.workspace_name || 'No Workspace'}
+                            Workspace: {user.workspace_name || (user.role === 'root' ? 'Super Users' : 'No Workspace')}
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground">
