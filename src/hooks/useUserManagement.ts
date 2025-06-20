@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,6 +54,7 @@ export function useUserManagement() {
       let query = supabase
         .from('user_invitations')
         .select('*')
+        .is('used_at', null) // Only fetch pending invitations
         .order('created_at', { ascending: false });
 
       // Non-root users can only see invitations for their workspace
