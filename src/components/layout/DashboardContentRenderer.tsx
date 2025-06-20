@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useModulePermissions } from '@/hooks/useModulePermissions';
+import { useAppLoadingState } from '@/hooks/useAppLoadingState';
 import { useTranslation } from 'react-i18next';
 import { ModuleGuard } from '@/components/modules/ModuleGuard';
 import { Loader2 } from 'lucide-react';
@@ -29,16 +28,28 @@ export function DashboardContentRenderer({
   children, 
   onOpenWorkflow 
 }: DashboardContentRendererProps) {
-  const { profile, loading } = useAuth();
+  const { isCriticalLoading, hasMinimumData, profile, isRootUser } = useAppLoadingState();
   const { t } = useTranslation();
 
-  // Show loading state while auth is loading
-  if (loading) {
+  // Show loading state only for critical loading
+  if (isCriticalLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If we don't have minimum data, show error state
+  if (!hasMinimumData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold mb-2">Unable to load application</h2>
+          <p className="text-muted-foreground">Please refresh the page or try again later.</p>
         </div>
       </div>
     );

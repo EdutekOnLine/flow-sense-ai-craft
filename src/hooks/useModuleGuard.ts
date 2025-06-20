@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function useModuleGuard(moduleName: string) {
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, profile, authError } = useAuth();
   const { 
     canAccessModule, 
     getModuleStatus, 
@@ -20,6 +20,16 @@ export function useModuleGuard(moduleName: string) {
   const [hasAccess, setHasAccess] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Timeout fallback to prevent infinite checking
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn(`Module guard timeout for ${moduleName}, forcing check to complete`);
+      setIsChecking(false);
+    }, 8000); // 8 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [moduleName]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -36,8 +46,38 @@ export function useModuleGuard(moduleName: string) {
 
   useEffect(() => {
     const checkAccess = async () => {
-      // Wait for auth to load before checking access
+      console.log(`Checking access for module: ${moduleName}`, {
+        authLoading,
+        profile: profile?.role,
+        authError
+      });
+
+      // If auth failed, allow access to core module for fallback
+      if (authError && moduleName === 'neura-core') {
+        console.log('Auth error detected, allowing core module access');
+        setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // Wait for auth to load, but with timeout
       if (authLoading) {
+        return;
+      }
+
+      // If no profile but we have been waiting, allow core module access
+      if (!profile && moduleName === 'neura-core') {
+        console.log('No profile but allowing core module access');
+        setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // Root users get access to everything
+      if (profile?.role === 'root') {
+        console.log('Root user detected, granting access to all modules');
+        setHasAccess(true);
+        setIsChecking(false);
         return;
       }
 
@@ -58,12 +98,23 @@ export function useModuleGuard(moduleName: string) {
       } catch (error) {
         console.error('Error checking module access:', error);
         
-        if (isOnline) {
-          toast({
-            title: 'Connection Error',
-            description: 'Unable to verify module access. Please try again.',
-            variant: 'destructive',
-          });
+        // Fallback: allow core module access on error
+        if (moduleName === 'neura-core') {
+          console.log('Error checking access, allowing core module');
+          setHasAccess(true);
+        } else if (profile?.role === 'root') {
+          console.log('Error checking access, but root user gets access');
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+          
+          if (isOnline) {
+            toast({
+              title: 'Connection Error',
+              description: 'Unable to verify module access. Please try again.',
+              variant: 'destructive',
+            });
+          }
         }
       } finally {
         setIsChecking(false);
@@ -71,7 +122,7 @@ export function useModuleGuard(moduleName: string) {
     };
 
     checkAccess();
-  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline, authLoading]);
+  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline, authLoading, profile, authError]);
 
   const handleRetry = async () => {
     setRetryCount(prev => prev + 1);
@@ -89,8 +140,11 @@ export function useModuleGuard(moduleName: string) {
   const moduleStatus = getModuleStatus(moduleName);
   const displayName = getModuleDisplayName(moduleName);
 
+  // Calculate loading state with fallbacks
+  const isLoading = (authLoading || isChecking) && retryCount < 3;
+
   return {
-    isLoading: authLoading || isChecking,
+    isLoading,
     hasAccess,
     moduleStatus,
     displayName,

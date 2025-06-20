@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,17 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn('Auth loading timeout reached, forcing loading to false');
+      setLoading(false);
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Presence tracking for all users
   useEffect(() => {
@@ -95,66 +107,101 @@ export function useAuth() {
     };
   }, [user?.id, profile?.role]);
 
+  // Fetch user profile with error handling and timeout
+  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
+    try {
+      console.log('Fetching profile for user:', userId);
+      
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setAuthError('Failed to load user profile');
+        return null;
+      }
+      
+      console.log('Profile fetched successfully:', profileData);
+      return profileData;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      setAuthError('Failed to load user profile');
+      return null;
+    }
+  };
+
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
+        setAuthError(null);
         
         if (session?.user) {
-          // Fetch user profile with workspace info
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            setProfile(profileData);
-            setLoading(false);
-          }, 0);
+          console.log('User authenticated, fetching profile...');
+          const profileData = await fetchUserProfile(session.user.id);
+          setProfile(profileData);
         } else {
+          console.log('User not authenticated, clearing profile');
           setProfile(null);
-          setLoading(false);
         }
+        
+        setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log('Checking for existing session...');
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        setAuthError('Failed to check authentication status');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Existing session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profileData }) => {
-            setProfile(profileData);
-            setLoading(false);
-          });
+        fetchUserProfile(session.user.id).then((profileData) => {
+          setProfile(profileData);
+          setLoading(false);
+        });
       } else {
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleaning up auth state listener');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    setAuthError(null);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (error) {
+      setAuthError(error.message);
+    }
     return { data, error };
   };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, bypassEmailConfirmation?: boolean) => {
     console.log('SignUp called with bypass:', bypassEmailConfirmation);
+    setAuthError(null);
     
     const signUpOptions: any = {
       email,
@@ -177,13 +224,21 @@ export function useAuth() {
 
     const { data, error } = await supabase.auth.signUp(signUpOptions);
     
+    if (error) {
+      setAuthError(error.message);
+    }
+    
     console.log('Signup result:', { data, error });
     
     return { data, error };
   };
 
   const signOut = async () => {
+    setAuthError(null);
     const { error } = await supabase.auth.signOut();
+    if (error) {
+      setAuthError(error.message);
+    }
     return { error };
   };
 
@@ -192,6 +247,7 @@ export function useAuth() {
     session,
     profile,
     loading,
+    authError,
     signIn,
     signUp,
     signOut,
