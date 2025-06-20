@@ -9,23 +9,34 @@ interface SidebarNavigationGroupProps {
   items: NavigationItem[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  customContent?: React.ReactNode;
 }
 
-export function SidebarNavigationGroup({ groupKey, items, activeTab, onTabChange }: SidebarNavigationGroupProps) {
+export function SidebarNavigationGroup({ 
+  groupKey, 
+  items, 
+  activeTab, 
+  onTabChange, 
+  customContent 
+}: SidebarNavigationGroupProps) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{getGroupTitle(groupKey)}</SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarNavigationItem
-              key={item.id}
-              item={item}
-              isActive={activeTab === item.id}
-              onTabChange={onTabChange}
-            />
-          ))}
-        </SidebarMenu>
+        {customContent ? (
+          customContent
+        ) : (
+          <SidebarMenu>
+            {items.map((item) => (
+              <SidebarNavigationItem
+                key={item.id}
+                item={item}
+                isActive={activeTab === item.id}
+                onTabChange={onTabChange}
+              />
+            ))}
+          </SidebarMenu>
+        )}
       </SidebarGroupContent>
     </SidebarGroup>
   );

@@ -2,6 +2,7 @@
 import { useAuth } from './useAuth';
 import { useModulePermissions } from './useModulePermissions';
 import { navigationItems, NavigationItem } from '@/components/layout/sidebar/navigationItems';
+import { MODULE_REGISTRY } from '@/modules';
 
 export function useNavigationItems() {
   const { profile } = useAuth();
@@ -34,8 +35,25 @@ export function useNavigationItems() {
     return groups;
   };
 
+  const groupItemsByModule = (items: NavigationItem[]) => {
+    const moduleGroups = items.reduce((acc, item) => {
+      const module = item.module;
+      if (!acc[module]) acc[module] = [];
+      acc[module].push(item);
+      return acc;
+    }, {} as Record<string, NavigationItem[]>);
+
+    return moduleGroups;
+  };
+
+  const getModuleDisplayName = (moduleName: string): string => {
+    return MODULE_REGISTRY[moduleName]?.name || moduleName;
+  };
+
   return {
     getVisibleItems,
     groupItems,
+    groupItemsByModule,
+    getModuleDisplayName,
   };
 }
