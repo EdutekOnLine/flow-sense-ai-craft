@@ -67,7 +67,7 @@ export default function UserManagement() {
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
-            Pending Invitations ({invitations.length})
+            Invitations ({invitations.length})
           </TabsTrigger>
           <TabsTrigger value="invite" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -95,9 +95,9 @@ export default function UserManagement() {
         <TabsContent value="invitations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pending Invitations</CardTitle>
+              <CardTitle>Invitations</CardTitle>
               <CardDescription>
-                Invitations that haven't been accepted yet
+                Manage user invitations
               </CardDescription>
             </CardHeader>
             <CardContent>
