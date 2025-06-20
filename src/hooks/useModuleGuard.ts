@@ -26,7 +26,7 @@ export function useModuleGuard(moduleName: string) {
     const timeout = setTimeout(() => {
       console.warn(`Module guard timeout for ${moduleName}, forcing check to complete`);
       setIsChecking(false);
-    }, 5000); // Reduced timeout to 5 seconds
+    }, 5000);
 
     return () => clearTimeout(timeout);
   }, [moduleName]);
@@ -80,7 +80,7 @@ export function useModuleGuard(moduleName: string) {
       }
 
       // Root users get access to everything immediately
-      if (profile.role === 'root') {
+      if (profile.role === 'root' as any) {
         console.log('Root user detected, granting access to all modules');
         setHasAccess(true);
         setIsChecking(false);
@@ -108,7 +108,7 @@ export function useModuleGuard(moduleName: string) {
         if (moduleName === 'neura-core') {
           console.log('Error checking access, allowing core module');
           setHasAccess(true);
-        } else if (profile.role === 'root') {
+        } else if (profile.role === 'root' as any) {
           console.log('Error checking access, but root user gets access');
           setHasAccess(true);
         } else {
