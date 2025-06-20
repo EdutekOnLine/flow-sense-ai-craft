@@ -23,6 +23,20 @@ export function useModulePermissions() {
     checkModuleDependencies 
   } = useWorkspace();
 
+  // Check if user can access a specific module
+  const canAccessModule = (moduleName: string) => {
+    if (!profile) return false;
+    
+    // Root users can access ALL modules regardless of workspace activation
+    if (profile.role === 'root') return true;
+    
+    // Core module is always accessible to authenticated users
+    if (moduleName === 'neura-core') return true;
+    
+    // Check if module is active in workspace for non-root users
+    return isModuleActive(moduleName);
+  };
+
   // Get detailed module status using the new database function results
   const getModuleStatus = (moduleName: string): ModuleStatus => {
     if (!profile) {
@@ -31,6 +45,19 @@ export function useModulePermissions() {
         isAvailable: false,
         isRestricted: true,
         statusMessage: 'Authentication required'
+      };
+    }
+
+    // Root users see all modules as active and available
+    if (profile.role === 'root') {
+      return {
+        isActive: true,
+        isAvailable: true,
+        isRestricted: false,
+        statusMessage: 'Root Access - All Modules Available',
+        hasDependencies: true,
+        missingDependencies: [],
+        version: '1.0.0'
       };
     }
 
@@ -87,17 +114,6 @@ export function useModulePermissions() {
     };
   };
 
-  // Check if user can access a specific module
-  const canAccessModule = (moduleName: string) => {
-    if (!profile) return false;
-    
-    // Core module is always accessible to authenticated users
-    if (moduleName === 'neura-core') return true;
-    
-    // Check if module is active in workspace
-    return isModuleActive(moduleName);
-  };
-
   // Check if user can manage modules (root users only)
   const canManageModules = () => {
     return profile?.role === 'root';
@@ -111,12 +127,35 @@ export function useModulePermissions() {
 
   // Get list of accessible modules for current user
   const getAccessibleModules = () => {
+    if (profile?.role === 'root') {
+      // Root users get all available modules
+      const allAvailableModules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
+      return allAvailableModules;
+    }
+    
     const coreModules = ['neura-core'];
     return [...coreModules, ...activeModules];
   };
 
   // Get modules with their status information (enhanced with database function data)
   const getModulesWithStatus = () => {
+    if (profile?.role === 'root') {
+      // Root users see all modules as available
+      const allAvailableModules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
+      return allAvailableModules.map(moduleName => ({
+        name: moduleName,
+        displayName: getModuleDisplayName(moduleName),
+        isActive: true,
+        isAvailable: true,
+        isRestricted: false,
+        statusMessage: 'Root Access',
+        hasDependencies: true,
+        missingDependencies: [],
+        version: '1.0.0',
+        settings: {}
+      }));
+    }
+
     if (moduleAccessInfo && moduleAccessInfo.length > 0) {
       return moduleAccessInfo.map(accessInfo => ({
         name: accessInfo.module_name,
@@ -163,6 +202,8 @@ export function useModulePermissions() {
 
   // Check if module can be activated (dependencies satisfied)
   const canActivateModule = (moduleName: string) => {
+    if (profile?.role === 'root') return true;
+    
     if (moduleAccessInfo) {
       const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return accessInfo ? accessInfo.has_dependencies : false;
@@ -172,6 +213,8 @@ export function useModulePermissions() {
 
   // Get missing dependencies for a module
   const getMissingDependencies = (moduleName: string): string[] => {
+    if (profile?.role === 'root') return []; // Root users don't have missing dependencies
+    
     if (moduleAccessInfo) {
       const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return accessInfo ? accessInfo.missing_dependencies : [];

@@ -11,6 +11,7 @@ import {
   FormInput,
   GraduationCap,
   Package,
+  UserCog,
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -84,6 +85,14 @@ export const navigationItems: NavigationItem[] = [
     label: 'navigation.users',
     icon: Users,
     roles: ['admin', 'manager', 'root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'workspace-assignment',
+    label: 'Workspace Assignment',
+    icon: UserCog,
+    roles: ['root'],
     module: 'neura-core',
     group: 'admin'
   },

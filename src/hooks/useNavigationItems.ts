@@ -8,8 +8,18 @@ export function useNavigationItems() {
   const { canAccessModule } = useModulePermissions();
 
   const getVisibleItems = (): NavigationItem[] => {
+    if (!profile) return [];
+
+    // Root users see ALL navigation items for their role without module filtering
+    if (profile.role === 'root') {
+      return navigationItems.filter(item => 
+        item.roles.includes(profile.role)
+      );
+    }
+
+    // Non-root users see items filtered by role AND module access
     return navigationItems.filter(item => 
-      item.roles.includes(profile?.role || 'employee') && canAccessModule(item.module)
+      item.roles.includes(profile.role) && canAccessModule(item.module)
     );
   };
 

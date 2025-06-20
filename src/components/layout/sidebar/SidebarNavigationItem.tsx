@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Lock } from 'lucide-react';
+import { Lock, Crown } from 'lucide-react';
 import { NavigationItem } from './navigationItems';
 
 interface SidebarNavigationItemProps {
@@ -15,14 +16,26 @@ interface SidebarNavigationItemProps {
 
 export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNavigationItemProps) {
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const { getModuleStatus, canAccessModule } = useModulePermissions();
   
   const Icon = item.icon;
   const moduleStatus = getModuleStatus(item.module);
   const hasAccess = canAccessModule(item.module);
+  const isRootUser = profile?.role === 'root';
   
   const getModuleBadge = (moduleName: string) => {
     if (moduleName === 'neura-core') return null;
+    
+    // Root users get a special badge
+    if (isRootUser) {
+      return (
+        <div className="flex items-center gap-1">
+          <Crown className="h-3 w-3 text-yellow-500" />
+          <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Root</Badge>
+        </div>
+      );
+    }
     
     if (!hasAccess) {
       return (
@@ -41,7 +54,8 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
   };
 
   const handleClick = () => {
-    if (hasAccess) {
+    // Root users always have access
+    if (isRootUser || hasAccess) {
       onTabChange(item.id);
     } else {
       // Could show a toast or modal explaining why access is denied
@@ -56,11 +70,11 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
     <SidebarMenuItem>
       <SidebarMenuButton
         onClick={handleClick}
-        isActive={isActive && hasAccess}
+        isActive={isActive && (isRootUser || hasAccess)}
         className={`w-full justify-start ${
-          !hasAccess ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+          !isRootUser && !hasAccess ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
         }`}
-        disabled={!hasAccess}
+        disabled={!isRootUser && !hasAccess}
       >
         <Icon className="h-4 w-4" />
         <span className="flex-1">{label}</span>
