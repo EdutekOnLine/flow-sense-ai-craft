@@ -20,10 +20,14 @@ export function useUserPermissions() {
   const canEditUser = (targetUser: UserProfile) => {
     if (!profile) return false;
     
-    // Users in different workspaces cannot edit each other
+    // Root users can edit anyone except other root users
+    if (profile.role === 'root') {
+      return targetUser.role !== 'root' || targetUser.id === profile.id;
+    }
+    
+    // Users in different workspaces cannot edit each other (except root)
     if (profile.workspace_id !== targetUser.workspace_id) return false;
     
-    if (profile.role === 'root') return true;
     if (profile.role === 'admin' && targetUser.role !== 'root') return true;
     if (profile.id === targetUser.id) return true;
     
@@ -34,10 +38,14 @@ export function useUserPermissions() {
     if (!profile) return false;
     if (profile.id === targetUser.id) return false;
     
-    // Users in different workspaces cannot delete each other
+    // Root users can delete anyone except other root users
+    if (profile.role === 'root') {
+      return targetUser.role !== 'root';
+    }
+    
+    // Users in different workspaces cannot delete each other (except root)
     if (profile.workspace_id !== targetUser.workspace_id) return false;
     
-    if (profile.role === 'root' && targetUser.role !== 'root') return true;
     if (profile.role === 'admin' && ['employee', 'manager'].includes(targetUser.role)) return true;
     
     return false;
@@ -47,10 +55,12 @@ export function useUserPermissions() {
     if (!profile) return false;
     if (profile.id === targetUser.id) return true;
     
+    // Root users can see ALL users across ALL workspaces
+    if (profile.role === 'root') return true;
+    
     // Users can only see users in their workspace
     if (profile.workspace_id !== targetUser.workspace_id) return false;
     
-    if (profile.role === 'root') return true;
     if (profile.role === 'admin') {
       return !['admin', 'root'].includes(targetUser.role) || targetUser.id === profile.id;
     }
@@ -63,6 +73,10 @@ export function useUserPermissions() {
 
   const canInviteUsers = () => {
     return profile && ['root', 'admin'].includes(profile.role) && canManageWorkspace();
+  };
+
+  const canManageWorkspaceAssignment = () => {
+    return profile?.role === 'root';
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -79,7 +93,9 @@ export function useUserPermissions() {
     canDeleteUser,
     canSeeUser,
     canInviteUsers,
+    canManageWorkspaceAssignment,
     getRoleBadgeColor,
     isManagerRole: profile?.role === 'manager',
+    isRootUser: profile?.role === 'root',
   };
 }

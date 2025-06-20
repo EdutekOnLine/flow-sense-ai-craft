@@ -1,34 +1,26 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Users, 
-  Building2, 
-  UserPlus, 
-  Plus,
-  Crown,
-  Shield,
-  Briefcase,
-  User
-} from 'lucide-react';
+import { Users, Building, UserCog } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
-interface User {
+interface UserWithWorkspace {
   id: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  role: 'admin' | 'manager' | 'employee' | 'root';
+  role: string;
+  department?: string;
   workspace_id?: string;
   workspace_name?: string;
+  workspace_slug?: string;
 }
 
 interface Workspace {
@@ -43,25 +35,12 @@ export default function WorkspaceAssignment() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedWorkspace, setSelectedWorkspace] = useState<string>('');
-  const [newWorkspaceName, setNewWorkspaceName] = useState('');
-  const [newWorkspaceSlug, setNewWorkspaceSlug] = useState('');
-  const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
 
-  // Only root users can access this
-  if (profile?.role !== 'root') {
-    return (
-      <div className="text-center py-8">
-        <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-foreground">Root Access Required</h2>
-        <p className="text-muted-foreground">Only root users can manage workspace assignments.</p>
-      </div>
-    );
-  }
-
-  // Fetch all users with workspace info
-  const { data: users = [] } = useQuery({
-    queryKey: ['users-with-workspaces'],
+  // Fetch all users with their workspace information
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['all-users-with-workspaces'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -71,392 +50,299 @@ export default function WorkspaceAssignment() {
           first_name,
           last_name,
           role,
+          department,
           workspace_id,
-          workspaces!inner(name)
+          workspaces:workspace_id (
+            name,
+            slug
+          )
         `)
-        .order('role', { ascending: true })
+        .order('role', { ascending: false })
         .order('email', { ascending: true });
-      
+
       if (error) throw error;
       
       return data.map(user => ({
         ...user,
-        workspace_name: user.workspaces?.name || null
-      })) as User[];
+        workspace_name: user.workspaces?.name,
+        workspace_slug: user.workspaces?.slug
+      })) as UserWithWorkspace[];
     },
+    enabled: profile?.role === 'root',
   });
 
   // Fetch all workspaces
-  const { data: workspaces = [] } = useQuery({
-    queryKey: ['workspaces'],
+  const { data: workspaces = [], isLoading: workspacesLoading } = useQuery({
+    queryKey: ['all-workspaces'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workspaces')
         .select('*')
-        .order('name', { ascending: true });
-      
+        .order('name');
+
       if (error) throw error;
       return data as Workspace[];
     },
+    enabled: profile?.role === 'root',
   });
 
-  // Create new workspace
-  const createWorkspace = useMutation({
-    mutationFn: async (workspaceData: { name: string; slug: string; description?: string }) => {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .insert([{
-          name: workspaceData.name,
-          slug: workspaceData.slug,
-          description: workspaceData.description,
-          owner_id: profile!.id
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Workspace Created',
-        description: 'New workspace has been created successfully.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
-      setNewWorkspaceName('');
-      setNewWorkspaceSlug('');
-      setNewWorkspaceDescription('');
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Assign user to workspace
-  const assignToWorkspace = useMutation({
-    mutationFn: async ({ userId, workspaceId }: { userId: string; workspaceId: string }) => {
+  // Mutation to update user workspace
+  const updateUserWorkspace = useMutation({
+    mutationFn: async ({ userId, workspaceId }: { userId: string; workspaceId: string | null }) => {
       const { error } = await supabase
         .from('profiles')
         .update({ workspace_id: workspaceId })
         .eq('id', userId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
       toast({
-        title: 'User Assigned',
-        description: 'User has been assigned to workspace successfully.',
+        title: 'Workspace Updated',
+        description: 'User workspace assignment has been updated successfully.',
       });
-      queryClient.invalidateQueries({ queryKey: ['users-with-workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['all-users-with-workspaces'] });
+      setSelectedUserId('');
+      setSelectedWorkspaceId('');
     },
     onError: (error: any) => {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'Failed to update user workspace.',
         variant: 'destructive',
       });
     },
   });
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'root': return <Crown className="h-4 w-4 text-yellow-500" />;
-      case 'admin': return <Shield className="h-4 w-4 text-blue-500" />;
-      case 'manager': return <Briefcase className="h-4 w-4 text-green-500" />;
-      case 'employee': return <User className="h-4 w-4 text-gray-500" />;
-      default: return <User className="h-4 w-4" />;
-    }
+  const handleAssignWorkspace = () => {
+    if (!selectedUserId || !selectedWorkspaceId) return;
+    
+    updateUserWorkspace.mutate({
+      userId: selectedUserId,
+      workspaceId: selectedWorkspaceId === 'none' ? null : selectedWorkspaceId
+    });
   };
+
+  const handleRemoveFromWorkspace = (userId: string) => {
+    updateUserWorkspace.mutate({
+      userId,
+      workspaceId: null
+    });
+  };
+
+  if (profile?.role !== 'root') {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              Access Denied
+            </CardTitle>
+            <CardDescription>
+              Only root users can manage workspace assignments.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (usersLoading || workspacesLoading) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Group users by workspace
+  const groupedUsers = users.reduce((acc, user) => {
+    const workspaceKey = user.workspace_id || 'unassigned';
+    const workspaceName = user.workspace_name || 'Unassigned Users';
+    
+    if (!acc[workspaceKey]) {
+      acc[workspaceKey] = {
+        name: workspaceName,
+        users: []
+      };
+    }
+    acc[workspaceKey].users.push(user);
+    return acc;
+  }, {} as Record<string, { name: string; users: UserWithWorkspace[] }>);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'root': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'admin': return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'manager': return 'bg-green-100 text-green-800 border-green-300';
-      case 'employee': return 'bg-gray-100 text-gray-800 border-gray-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'root': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'manager': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const unassignedUsers = users.filter(user => !user.workspace_id && user.role !== 'root');
-  const assignedUsers = users.filter(user => user.workspace_id);
-  const rootUsers = users.filter(user => user.role === 'root');
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">Workspace Assignment</h1>
-                <p className="text-muted-foreground">Manage user workspace assignments and create new workspaces</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                <Users className="h-3 w-3 mr-1" />
-                {users.length} Total Users
-              </Badge>
-              <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
-                <UserPlus className="h-3 w-3 mr-1" />
-                {unassignedUsers.length} Unassigned
-              </Badge>
-            </div>
-          </div>
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            <Crown className="h-3 w-3 mr-1" />
-            Root Access
-          </Badge>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <UserCog className="h-6 w-6" />
+            Workspace Assignment
+          </h1>
+          <p className="text-muted-foreground">
+            Manage user workspace assignments across the platform
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Create New Workspace */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              Create New Workspace
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="workspace-name">Workspace Name</Label>
-              <Input
-                id="workspace-name"
-                value={newWorkspaceName}
-                onChange={(e) => setNewWorkspaceName(e.target.value)}
-                placeholder="e.g., Marketing Team"
-              />
+      {/* Quick Assignment Tool */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Assignment</CardTitle>
+          <CardDescription>
+            Assign a user to a workspace quickly
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select User</label>
+              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a user..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.filter(user => user.role !== 'root').map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.first_name && user.last_name 
+                        ? `${user.first_name} ${user.last_name} (${user.email})`
+                        : user.email
+                      }
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="workspace-slug">Workspace Slug</Label>
-              <Input
-                id="workspace-slug"
-                value={newWorkspaceSlug}
-                onChange={(e) => setNewWorkspaceSlug(e.target.value)}
-                placeholder="e.g., marketing-team"
-              />
+            
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select Workspace</label>
+              <Select value={selectedWorkspaceId} onValueChange={setSelectedWorkspaceId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a workspace..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Remove from workspace</SelectItem>
+                  {workspaces.map(workspace => (
+                    <SelectItem key={workspace.id} value={workspace.id}>
+                      {workspace.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="workspace-description">Description (Optional)</Label>
-              <Input
-                id="workspace-description"
-                value={newWorkspaceDescription}
-                onChange={(e) => setNewWorkspaceDescription(e.target.value)}
-                placeholder="Brief description of the workspace"
-              />
+            
+            <div className="flex items-end">
+              <Button 
+                onClick={handleAssignWorkspace}
+                disabled={!selectedUserId || !selectedWorkspaceId || updateUserWorkspace.isPending}
+                className="w-full"
+              >
+                {updateUserWorkspace.isPending ? 'Updating...' : 'Assign'}
+              </Button>
             </div>
-            <Button 
-              onClick={() => createWorkspace.mutate({
-                name: newWorkspaceName,
-                slug: newWorkspaceSlug,
-                description: newWorkspaceDescription
-              })}
-              disabled={!newWorkspaceName || !newWorkspaceSlug || createWorkspace.isPending}
-              className="w-full"
-            >
-              {createWorkspace.isPending ? 'Creating...' : 'Create Workspace'}
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Existing Workspaces */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Existing Workspaces ({workspaces.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {workspaces.map((workspace) => (
-                <div key={workspace.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{workspace.name}</h4>
-                    <p className="text-sm text-muted-foreground">{workspace.slug}</p>
-                    {workspace.description && (
-                      <p className="text-xs text-muted-foreground mt-1">{workspace.description}</p>
-                    )}
-                  </div>
-                  <Badge variant="outline">
-                    {assignedUsers.filter(u => u.workspace_id === workspace.id).length} users
-                  </Badge>
-                </div>
-              ))}
-              {workspaces.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No workspaces created yet
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Unassigned Users */}
-      {unassignedUsers.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-600">
-              <UserPlus className="h-5 w-5" />
-              Unassigned Users ({unassignedUsers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {unassignedUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg bg-orange-50">
-                  <div className="flex items-center gap-3">
-                    {getRoleIcon(user.role)}
-                    <div>
-                      <p className="font-medium">
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}` 
-                          : user.email}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                    <Badge className={getRoleBadgeColor(user.role)}>
-                      {user.role}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={selectedWorkspace}
-                      onValueChange={setSelectedWorkspace}
-                    >
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Select workspace" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workspaces.map((workspace) => (
-                          <SelectItem key={workspace.id} value={workspace.id}>
-                            {workspace.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (selectedWorkspace) {
-                          assignToWorkspace.mutate({
-                            userId: user.id,
-                            workspaceId: selectedWorkspace
-                          });
-                        }
-                      }}
-                      disabled={!selectedWorkspace || assignToWorkspace.isPending}
-                    >
-                      Assign
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Root Users */}
-      {rootUsers.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-600">
-              <Crown className="h-5 w-5" />
-              Root Users ({rootUsers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {rootUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50">
-                  <div className="flex items-center gap-3">
-                    <Crown className="h-4 w-4 text-yellow-500" />
-                    <div>
-                      <p className="font-medium">
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}` 
-                          : user.email}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                      Root User
-                    </Badge>
-                  </div>
-                  <Badge variant="secondary">
-                    Platform-wide Access
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Assigned Users by Workspace */}
-      {workspaces.map((workspace) => {
-        const workspaceUsers = assignedUsers.filter(u => u.workspace_id === workspace.id);
-        if (workspaceUsers.length === 0) return null;
-
-        return (
-          <Card key={workspace.id}>
+      {/* Users by Workspace */}
+      <div className="space-y-4">
+        {Object.entries(groupedUsers).map(([workspaceKey, group]) => (
+          <Card key={workspaceKey}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                {workspace.name} ({workspaceUsers.length} users)
+                <Building className="h-5 w-5" />
+                {group.name}
+                <Badge variant="secondary" className="ml-2">
+                  {group.users.length} users
+                </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {workspaceUsers.map((user) => (
+                {group.users.map(user => (
                   <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      {getRoleIcon(user.role)}
-                      <div>
-                        <p className="font-medium">
+                      <div className="flex flex-col">
+                        <div className="font-medium">
                           {user.first_name && user.last_name 
-                            ? `${user.first_name} ${user.last_name}` 
-                            : user.email}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                            ? `${user.first_name} ${user.last_name}`
+                            : user.email
+                          }
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {user.email}
+                          {user.department && ` • ${user.department}`}
+                        </div>
                       </div>
                       <Badge className={getRoleBadgeColor(user.role)}>
                         {user.role}
                       </Badge>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        assignToWorkspace.mutate({
-                          userId: user.id,
-                          workspaceId: ''
-                        });
-                      }}
-                      disabled={assignToWorkspace.isPending}
-                    >
-                      Remove from Workspace
-                    </Button>
+                    
+                    {user.role !== 'root' && user.workspace_id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveFromWorkspace(user.id)}
+                        disabled={updateUserWorkspace.isPending}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+        ))}
+      </div>
+
+      {/* Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Platform Statistics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{users.length}</div>
+              <div className="text-sm text-muted-foreground">Total Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{workspaces.length}</div>
+              <div className="text-sm text-muted-foreground">Workspaces</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">
+                {users.filter(u => u.workspace_id).length}
+              </div>
+              <div className="text-sm text-muted-foreground">Assigned Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">
+                {users.filter(u => !u.workspace_id && u.role !== 'root').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Unassigned Users</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

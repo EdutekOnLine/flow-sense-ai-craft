@@ -1,116 +1,117 @@
 
-import { useTranslation } from 'react-i18next';
-import { Badge } from '@/components/ui/badge';
-import { Users, Shield } from 'lucide-react';
-import { UserPresenceDashboard } from './UserPresenceDashboard';
-import { UserInvitationForm } from './user-management/UserInvitationForm';
-import { UsersList } from './user-management/UsersList';
-import { PendingInvitations } from './user-management/PendingInvitations';
+import React from 'react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { UsersList } from './user-management/UsersList';
+import { PendingInvitations } from './user-management/PendingInvitations';
+import { UserInvitationForm } from './user-management/UserInvitationForm';
+import { Users, UserPlus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function UserManagement() {
-  const { t } = useTranslation();
-  const { profile } = useAuth();
-  const {
-    canEditUser,
-    canDeleteUser,
-    canSeeUser,
-    canInviteUsers,
-    getRoleBadgeColor,
-    isManagerRole,
-  } = useUserPermissions();
+  const { allUsers, invitations } = useUserManagement();
+  const { canInviteUsers, canSeeUser, isRootUser } = useUserPermissions();
 
-  const {
-    allUsers,
-    invitations,
-    createInvitation,
-    deleteInvitation,
-    deleteUser,
-  } = useUserManagement();
+  // Filter users based on permissions
+  const visibleUsers = allUsers.filter(user => canSeeUser(user));
 
-  const users = allUsers.filter(canSeeUser);
-
-  if (profile?.role === 'employee') {
+  if (!canInviteUsers()) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-2xl font-bold text-foreground mb-4">{t('users.accessDenied')}</h2>
-        <p className="text-muted-foreground">{t('users.noPermission')}</p>
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Access Denied
+            </CardTitle>
+            <CardDescription>
+              You don't have permission to manage users.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Gradient Header */}
-      <div className="relative bg-gradient-theme-primary border border-border rounded-xl p-8">
-        <div className="absolute inset-0 bg-gradient-theme-primary rounded-xl"></div>
-        <div className="relative">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
-              <Users className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-foreground">
-                {isManagerRole ? t('users.teamMembers') : t('navigation.users')}
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                {isManagerRole ? t('users.viewTeamMembers') : t('users.manageUsersDescription')}
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                  {users.length} Active Users
-                </span>
-                {isManagerRole && (
-                  <Badge variant="secondary" className="bg-secondary/10 text-secondary">
-                    <Shield className="h-3 w-3 mr-1" />
-                    {t('users.viewOnly')}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Users className="h-6 w-6" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground">
+            {isRootUser 
+              ? 'Manage all users across all workspaces on the platform'
+              : 'Manage users and send invitations to new team members'
+            }
+          </p>
         </div>
       </div>
 
-      {/* User Presence Dashboard - Only show for root users */}
-      {profile?.role === 'root' && (
-        <UserPresenceDashboard />
-      )}
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Active Users ({visibleUsers.length})
+          </TabsTrigger>
+          <TabsTrigger value="invitations" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Pending Invitations ({invitations.length})
+          </TabsTrigger>
+          <TabsTrigger value="invite" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Send Invitation
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Invite New User - Only show for root and admin */}
-        {canInviteUsers() && (
-          <UserInvitationForm
-            onInviteUser={(invitation) => createInvitation.mutate(invitation)}
-            isLoading={createInvitation.isPending}
-          />
-        )}
+        <TabsContent value="users" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Users</CardTitle>
+              <CardDescription>
+                {isRootUser 
+                  ? 'All users across all workspaces on the platform'
+                  : 'Users in your workspace'
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UsersList users={visibleUsers} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* Active Users */}
-        <div className={canInviteUsers() ? '' : 'lg:col-span-2'}>
-          <UsersList
-            users={users}
-            canEditUser={canEditUser}
-            canDeleteUser={canDeleteUser}
-            getRoleBadgeColor={getRoleBadgeColor}
-            onDeleteUser={(userId) => deleteUser.mutate(userId)}
-            isDeleting={deleteUser.isPending}
-            isManagerRole={isManagerRole}
-          />
-        </div>
-      </div>
+        <TabsContent value="invitations" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Invitations</CardTitle>
+              <CardDescription>
+                Invitations that haven't been accepted yet
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PendingInvitations invitations={invitations} />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Pending Invitations - Only show for root and admin */}
-      {canInviteUsers() && (
-        <PendingInvitations
-          invitations={invitations}
-          getRoleBadgeColor={getRoleBadgeColor}
-          onDeleteInvitation={(id) => deleteInvitation.mutate(id)}
-          isDeleting={deleteInvitation.isPending}
-        />
-      )}
+        <TabsContent value="invite" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Send User Invitation</CardTitle>
+              <CardDescription>
+                Invite a new user to join the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserInvitationForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
