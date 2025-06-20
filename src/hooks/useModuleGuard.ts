@@ -73,8 +73,8 @@ export function useModuleGuard(moduleName: string) {
         return;
       }
 
-      // Root users get access to everything
-      if (profile?.role === 'root') {
+      // Root users get access to everything - fix the type comparison
+      if (profile && profile.role === 'root') {
         console.log('Root user detected, granting access to all modules');
         setHasAccess(true);
         setIsChecking(false);
@@ -102,7 +102,7 @@ export function useModuleGuard(moduleName: string) {
         if (moduleName === 'neura-core') {
           console.log('Error checking access, allowing core module');
           setHasAccess(true);
-        } else if (profile?.role === 'root') {
+        } else if (profile && profile.role === 'root') {
           console.log('Error checking access, but root user gets access');
           setHasAccess(true);
         } else {
