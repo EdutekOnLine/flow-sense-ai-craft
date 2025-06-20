@@ -47,7 +47,16 @@ export function useSavedWorkflows() {
         }
 
         console.log('Fetched saved workflows:', data?.length || 0, 'workflows');
-        setWorkflows(data || []);
+        
+        // Transform the data to ensure proper types
+        const transformedData = (data || []).map(workflow => ({
+          ...workflow,
+          nodes: Array.isArray(workflow.nodes) ? workflow.nodes : [],
+          edges: Array.isArray(workflow.edges) ? workflow.edges : [],
+          viewport: workflow.viewport || { x: 0, y: 0, zoom: 1 }
+        }));
+        
+        setWorkflows(transformedData);
       } catch (error) {
         console.error('Failed to fetch saved workflows:', error);
         setWorkflows([]);

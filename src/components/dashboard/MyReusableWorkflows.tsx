@@ -22,36 +22,23 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
 
   // Convert saved workflow to startable workflow format
   const convertToStartableWorkflow = (savedWorkflow: any): StartableWorkflow => {
-    const nodes = savedWorkflow.nodes || [];
-    
-    // Find the first/start node with an assigned user
-    const startNode = nodes.find((node: any) => {
-      return node?.data && node.data.assignedTo && (
-        node.data.stepType === 'trigger' || 
-        node.data.stepType === 'start' ||
-        node.position?.y === Math.min(...nodes.filter((n: any) => n?.position?.y !== undefined).map((n: any) => n.position.y))
-      );
-    }) || nodes.find((node: any) => node?.data?.assignedTo) || nodes[0];
-
     return {
       id: savedWorkflow.id,
       name: savedWorkflow.name,
       description: savedWorkflow.description,
       is_reusable: savedWorkflow.is_reusable || false,
       start_step: {
-        id: startNode?.id || 'start',
-        name: startNode?.data?.label || 'Start Step',
-        description: startNode?.data?.description || '',
-        metadata: startNode?.data?.metadata || {}
+        id: 'start',
+        name: 'Start Step',
+        description: '',
+        metadata: {}
       }
     };
   };
 
-  // Get the assigned user name for the first step
+  // Get the assigned user name
   const getAssignedUserName = (workflow: any) => {
-    const nodes = workflow.nodes || [];
-    const startNode = nodes.find((node: any) => node?.data?.assignedTo);
-    const assignedUserId = startNode?.data?.assignedTo;
+    const assignedUserId = workflow.assigned_to;
     
     if (!assignedUserId) {
       return t('workflow.unassigned');
@@ -107,10 +94,10 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
                   </div>
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {t('workflow.startsWith')}: {getAssignedUserName(workflow)}
+                    {t('workflow.assignedTo')}: {getAssignedUserName(workflow)}
                   </div>
                   <Badge variant="secondary" className="text-xs">
-                    {workflow.nodes.length} {t('workflow.steps')}
+                    {workflow.status}
                   </Badge>
                 </div>
               </div>

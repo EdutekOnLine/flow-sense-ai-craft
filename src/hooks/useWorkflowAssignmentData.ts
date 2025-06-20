@@ -82,7 +82,14 @@ export function useWorkflowAssignmentData() {
       }
 
       console.log('Fetched workflow assignments:', data?.length || 0, 'assignments');
-      setAssignments(data || []);
+      
+      // Transform the data to ensure proper types
+      const transformedData = (data || []).map(assignment => ({
+        ...assignment,
+        status: assignment.status as AssignmentStatus
+      }));
+      
+      setAssignments(transformedData);
     } catch (error) {
       console.error('Failed to fetch workflow assignments:', error);
       setAssignments([]);

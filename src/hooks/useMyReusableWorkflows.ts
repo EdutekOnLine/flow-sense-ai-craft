@@ -11,11 +11,12 @@ interface ReusableWorkflow {
   created_at: string;
   updated_at: string;
   is_reusable: boolean;
-  nodes: any[];
-  edges: any[];
-  tags?: string[];
   status: string;
   priority: string;
+  assigned_to?: string;
+  due_date?: string;
+  metadata?: any;
+  tags?: string[];
 }
 
 export function useMyReusableWorkflows() {
@@ -34,7 +35,7 @@ export function useMyReusableWorkflows() {
       try {
         let query = supabase
           .from('workflows')
-          .select('*')
+          .select('id, name, description, created_by, created_at, updated_at, is_reusable, status, priority, assigned_to, due_date, metadata, tags')
           .eq('is_reusable', true);
 
         // Root users can see all reusable workflows, regular users see public ones and their own
