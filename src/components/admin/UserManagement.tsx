@@ -10,8 +10,8 @@ import { Users, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function UserManagement() {
-  const { allUsers, invitations } = useUserManagement();
-  const { canInviteUsers, canSeeUser, isRootUser } = useUserPermissions();
+  const { allUsers, invitations, createInvitation, deleteInvitation } = useUserManagement();
+  const { canInviteUsers, canSeeUser, isRootUser, getRoleBadgeColor } = useUserPermissions();
 
   // Filter users based on permissions
   const visibleUsers = allUsers.filter(user => canSeeUser(user));
@@ -33,6 +33,14 @@ export default function UserManagement() {
       </div>
     );
   }
+
+  const handleInviteUser = (invitation: { email: string; role: 'admin' | 'manager' | 'employee'; department: string }) => {
+    createInvitation.mutate(invitation);
+  };
+
+  const handleDeleteInvitation = (id: string) => {
+    deleteInvitation.mutate(id);
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -93,7 +101,12 @@ export default function UserManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PendingInvitations invitations={invitations} />
+              <PendingInvitations 
+                invitations={invitations}
+                getRoleBadgeColor={getRoleBadgeColor}
+                onDeleteInvitation={handleDeleteInvitation}
+                isDeleting={deleteInvitation.isPending}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -107,7 +120,10 @@ export default function UserManagement() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UserInvitationForm />
+              <UserInvitationForm 
+                onInviteUser={handleInviteUser}
+                isLoading={createInvitation.isPending}
+              />
             </CardContent>
           </Card>
         </TabsContent>

@@ -177,8 +177,8 @@ export function UsersList({ users }: UsersListProps) {
       {editingUser && (
         <EditUserDialog
           user={editingUser}
-          open={!!editingUser}
-          onOpenChange={(open) => !open && setEditingUser(null)}
+          isOpen={!!editingUser}
+          onClose={() => setEditingUser(null)}
         />
       )}
     </div>
