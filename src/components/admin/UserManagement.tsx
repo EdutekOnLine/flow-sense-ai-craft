@@ -4,7 +4,7 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UsersList } from './user-management/UsersList';
-import { PendingInvitations } from './user-management/PendingInvitations';
+import { InvitationsDisplay } from './user-management/InvitationsDisplay';
 import { UserInvitationForm } from './user-management/UserInvitationForm';
 import { Users, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -93,22 +93,12 @@ export default function UserManagement() {
         </TabsContent>
 
         <TabsContent value="invitations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Invitations</CardTitle>
-              <CardDescription>
-                Manage user invitations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PendingInvitations 
-                invitations={invitations}
-                getRoleBadgeColor={getRoleBadgeColor}
-                onDeleteInvitation={handleDeleteInvitation}
-                isDeleting={deleteInvitation.isPending}
-              />
-            </CardContent>
-          </Card>
+          <InvitationsDisplay 
+            invitations={invitations}
+            getRoleBadgeColor={getRoleBadgeColor}
+            onDeleteInvitation={handleDeleteInvitation}
+            isDeleting={deleteInvitation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value="invite" className="space-y-4">
