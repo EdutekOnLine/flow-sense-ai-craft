@@ -1,11 +1,12 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
+import { useAuth } from '@/hooks/useAuth';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Lock, AlertCircle, Settings, ArrowLeft, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Lock, AlertCircle, Settings, ArrowLeft, RefreshCw, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -24,6 +25,7 @@ export function ModuleGuard({
   showDetailedStatus = true,
   redirectPath = '/'
 }: ModuleGuardProps) {
+  const { loading: authLoading } = useAuth();
   const { 
     canAccessModule, 
     getModuleStatus, 
@@ -52,6 +54,11 @@ export function ModuleGuard({
 
   useEffect(() => {
     const checkAccess = async () => {
+      // Wait for auth to load before checking access
+      if (authLoading) {
+        return;
+      }
+
       setIsChecking(true);
       
       try {
@@ -82,7 +89,7 @@ export function ModuleGuard({
     };
 
     checkAccess();
-  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline]);
+  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline, authLoading]);
 
   const moduleStatus = getModuleStatus(moduleName);
   const displayName = getModuleDisplayName(moduleName);
@@ -100,11 +107,12 @@ export function ModuleGuard({
     });
   };
 
-  if (isChecking) {
+  // Show loading while auth is loading or while checking access
+  if (authLoading || isChecking) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <RefreshCw className="h-5 w-5 animate-spin" />
+          <Loader2 className="h-5 w-5 animate-spin" />
           <span>Checking module access...</span>
         </div>
       </div>

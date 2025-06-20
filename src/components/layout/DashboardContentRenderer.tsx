@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useTranslation } from 'react-i18next';
 import { ModuleGuard } from '@/components/modules/ModuleGuard';
+import { Loader2 } from 'lucide-react';
 
 // Component imports
 import UserManagement from '@/components/admin/UserManagement';
@@ -28,8 +29,20 @@ export function DashboardContentRenderer({
   children, 
   onOpenWorkflow 
 }: DashboardContentRendererProps) {
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
   const { t } = useTranslation();
+
+  // Show loading state while auth is loading
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
