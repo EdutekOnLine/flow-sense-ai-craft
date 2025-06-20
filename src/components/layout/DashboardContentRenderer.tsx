@@ -4,8 +4,8 @@ import DashboardContent from '@/components/dashboard/DashboardContent';
 import UserManagement from '@/components/admin/UserManagement';
 import ModuleManagement from '@/components/admin/ModuleManagement';
 import WorkspaceAssignment from '@/components/admin/WorkspaceAssignment';
-import ReportsPage from '@/components/reports/ReportsPage';
-import WorkflowInbox from '@/components/workflow/WorkflowInbox';
+import { ReportsPage } from '@/components/reports/ReportsPage';
+import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { ModuleGuard } from '@/components/modules/ModuleGuard';
 
