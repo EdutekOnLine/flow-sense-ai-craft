@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,7 +104,7 @@ export function useAuth() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with workspace info
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from('profiles')
@@ -113,7 +112,6 @@ export function useAuth() {
               .eq('id', session.user.id)
               .single();
             
-            console.log('Profile loaded:', profileData);
             setProfile(profileData);
             setLoading(false);
           }, 0);
@@ -136,7 +134,6 @@ export function useAuth() {
           .eq('id', session.user.id)
           .single()
           .then(({ data: profileData }) => {
-            console.log('Initial profile loaded:', profileData);
             setProfile(profileData);
             setLoading(false);
           });
@@ -190,11 +187,6 @@ export function useAuth() {
     return { error };
   };
 
-  // Helper function to check if user is root
-  const isRootUser = () => {
-    return profile?.role === 'root';
-  };
-
   return {
     user,
     session,
@@ -203,6 +195,5 @@ export function useAuth() {
     signIn,
     signUp,
     signOut,
-    isRootUser,
   };
 }

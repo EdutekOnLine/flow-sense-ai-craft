@@ -1,143 +1,141 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardMetrics {
-  totalWorkflows: number;
-  activeWorkflows: number;
-  completedWorkflows: number;
   pendingTasks: number;
-  completedTasks: number;
-  completedTasksToday: number;
   inProgressTasks: number;
-  totalUsers: number;
-  onlineUsers: number;
+  completedTasksToday: number;
+  activeWorkflows: number;
   myReusableWorkflows: number;
   totalSavedWorkflows: number;
 }
 
 export function useRealtimeDashboardMetrics() {
+  const { profile } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics>({
-    totalWorkflows: 0,
-    activeWorkflows: 0,
-    completedWorkflows: 0,
     pendingTasks: 0,
-    completedTasks: 0,
-    completedTasksToday: 0,
     inProgressTasks: 0,
-    totalUsers: 0,
-    onlineUsers: 0,
+    completedTasksToday: 0,
+    activeWorkflows: 0,
     myReusableWorkflows: 0,
     totalSavedWorkflows: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const { profile, isRootUser } = useAuth();
 
   const fetchMetrics = async () => {
-    if (!profile?.id) {
-      setIsLoading(false);
-      return;
-    }
+    if (!profile) return;
 
     try {
-      // Fetch workflow metrics
-      let workflowQuery = supabase.from('workflows').select('status');
-      let taskQuery = supabase.from('workflow_step_assignments').select('status, completed_at');
-      let savedWorkflowQuery = supabase.from('saved_workflows').select('id');
+      // Fetch task assignments metrics
+      const { data: assignments } = await supabase
+        .from('workflow_step_assignments')
+        .select('status, created_at')
+        .eq('assigned_to', profile.id);
+
+      // Fetch workflow instances - ONLY include those with valid saved_workflows
+      const { data: instances } = await supabase
+        .from('workflow_instances')
+        .select(`
+          status,
+          saved_workflows!inner(id)
+        `)
+        .eq('started_by', profile.id);
+
+      // Fetch saved workflows based on role
+      let workflowQuery = supabase.from('saved_workflows').select('id, is_reusable, created_by');
       
-      // Root users see all data, regular users see only their workspace data  
-      if (!isRootUser() && profile.workspace_id) {
-        // For regular users, we would need to join with workspace data
-        // For now, let them see all data in this demo
+      if (profile.role === 'employee') {
+        workflowQuery = workflowQuery.eq('created_by', profile.id);
       }
 
-      const [workflowsResult, tasksResult, usersResult, presenceResult, savedWorkflowsResult] = await Promise.all([
-        workflowQuery,
-        taskQuery,
-        supabase.from('profiles').select('id, role'),
-        supabase.from('user_presence').select('is_online'),
-        savedWorkflowQuery
-      ]);
+      const { data: workflows } = await workflowQuery;
 
-      const workflows = workflowsResult.data || [];
-      const tasks = tasksResult.data || [];
-      const users = usersResult.data || [];
-      const presence = presenceResult.data || [];
-      const savedWorkflows = savedWorkflowsResult.data || [];
-
-      // Calculate completed tasks today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const completedToday = tasks.filter(t => 
-        t.status === 'completed' && 
-        t.completed_at && 
-        new Date(t.completed_at) >= today
-      ).length;
 
-      // Calculate reusable workflows (from workflows table)
-      const reusableWorkflowsResult = await supabase
-        .from('workflows')
-        .select('id')
-        .eq('is_reusable', true);
-      const reusableWorkflows = reusableWorkflowsResult.data || [];
+      const newMetrics: DashboardMetrics = {
+        pendingTasks: assignments?.filter(a => a.status === 'pending').length || 0,
+        inProgressTasks: assignments?.filter(a => a.status === 'in_progress').length || 0,
+        completedTasksToday: assignments?.filter(a => 
+          a.status === 'completed' && 
+          new Date(a.created_at) >= today
+        ).length || 0,
+        // Only count workflow instances that have valid saved workflows
+        activeWorkflows: instances?.filter(i => i.status === 'active').length || 0,
+        myReusableWorkflows: workflows?.filter(w => w.is_reusable).length || 0,
+        totalSavedWorkflows: workflows?.length || 0,
+      };
 
-      setMetrics({
-        totalWorkflows: workflows.length,
-        activeWorkflows: workflows.filter(w => w.status === 'active').length,
-        completedWorkflows: workflows.filter(w => w.status === 'completed').length,
-        pendingTasks: tasks.filter(t => t.status === 'pending').length,
-        completedTasks: tasks.filter(t => t.status === 'completed').length,
-        completedTasksToday: completedToday,
-        inProgressTasks: tasks.filter(t => t.status === 'in_progress').length,
-        totalUsers: users.length,
-        onlineUsers: presence.filter(p => p.is_online).length,
-        myReusableWorkflows: reusableWorkflows.length,
-        totalSavedWorkflows: savedWorkflows.length,
-      });
-
-      console.log('Dashboard metrics updated:', {
-        workflows: workflows.length,
-        tasks: tasks.length,
-        users: users.length,
-        savedWorkflows: savedWorkflows.length
-      });
+      setMetrics(newMetrics);
     } catch (error) {
-      console.error('Failed to fetch dashboard metrics:', error);
+      console.error('Error fetching dashboard metrics:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!profile) return;
+
+    // Initial fetch
     fetchMetrics();
 
-    // Set up real-time subscriptions for metrics updates
-    const workflowsChannel = supabase
-      .channel('dashboard-workflows')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'workflows' }, 
-        () => fetchMetrics()
+    // Set up real-time subscriptions
+    const assignmentsChannel = supabase
+      .channel('dashboard-assignments')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workflow_step_assignments',
+          filter: `assigned_to=eq.${profile.id}`
+        },
+        () => {
+          fetchMetrics();
+        }
       )
       .subscribe();
 
-    const tasksChannel = supabase
-      .channel('dashboard-tasks')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'workflow_step_assignments' }, 
-        () => fetchMetrics()
+    const instancesChannel = supabase
+      .channel('dashboard-instances')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workflow_instances',
+          filter: `started_by=eq.${profile.id}`
+        },
+        () => {
+          fetchMetrics();
+        }
+      )
+      .subscribe();
+
+    const workflowsChannel = supabase
+      .channel('dashboard-workflows')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'saved_workflows'
+        },
+        () => {
+          fetchMetrics();
+        }
       )
       .subscribe();
 
     return () => {
+      supabase.removeChannel(assignmentsChannel);
+      supabase.removeChannel(instancesChannel);
       supabase.removeChannel(workflowsChannel);
-      supabase.removeChannel(tasksChannel);
     };
-  }, [profile?.id, isRootUser]);
+  }, [profile?.id, profile?.role]);
 
-  return {
-    metrics,
-    isLoading,
-    refetch: fetchMetrics,
-  };
+  return { metrics, isLoading, refresh: fetchMetrics };
 }

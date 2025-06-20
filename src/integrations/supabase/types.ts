@@ -804,10 +804,6 @@ export type Database = {
         Args: { p_user_id: string; p_module_name: string }
         Returns: boolean
       }
-      can_user_access_workspace: {
-        Args: { user_id: string; target_workspace_id: string }
-        Returns: boolean
-      }
       check_module_dependencies: {
         Args: { p_workspace_id: string; p_module_name: string }
         Returns: boolean
@@ -815,16 +811,6 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
-      }
-      get_dependency_conflicts: {
-        Args: { p_workspace_id: string; p_modules_to_deactivate: string[] }
-        Returns: {
-          affected_module: string
-          display_name: string
-          conflict_type: string
-          impact_level: number
-          suggested_action: string
-        }[]
       }
       get_dependent_modules: {
         Args: { p_workspace_id: string; p_module_name: string }
@@ -847,25 +833,9 @@ export type Database = {
           settings: Json
         }[]
       }
-      get_module_dependency_tree: {
-        Args: { p_workspace_id: string; p_module_name?: string }
-        Returns: {
-          module_name: string
-          display_name: string
-          level: number
-          is_active: boolean
-          depends_on: string[]
-          dependents: string[]
-          path: string[]
-        }[]
-      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
-      }
-      get_user_workspace_id: {
-        Args: { user_id: string }
-        Returns: string
       }
       has_workflow_permissions: {
         Args: { user_id: string }
@@ -882,41 +852,11 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_workspace_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      resolve_activation_order: {
-        Args: { p_workspace_id: string; p_modules_to_activate: string[] }
-        Returns: {
-          activation_order: number
-          module_name: string
-          display_name: string
-          reason: string
-          is_required: boolean
-        }[]
-      }
       user_has_role_in: {
         Args: {
           user_id: string
           roles: Database["public"]["Enums"]["user_role"][]
         }
-        Returns: boolean
-      }
-      validate_module_configuration: {
-        Args: {
-          p_workspace_id: string
-          p_module_name: string
-          p_settings: Json
-        }
-        Returns: {
-          is_valid: boolean
-          validation_errors: string[]
-          warnings: string[]
-        }[]
-      }
-      verify_api_access: {
-        Args: { p_user_id: string; p_module_name: string; p_action?: string }
         Returns: boolean
       }
     }

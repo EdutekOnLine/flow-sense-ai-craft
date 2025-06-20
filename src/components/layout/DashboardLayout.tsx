@@ -1,20 +1,16 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DynamicSidebar } from './DynamicSidebar';
 import { DashboardHeader } from './DashboardHeader';
-import { DashboardContentRenderer } from './DashboardContentRenderer';
+import DashboardContentRenderer from '@/components/dashboard/DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
-import { useSessionManagement } from '@/hooks/useSessionManagement';
-import { SessionWarningDialog } from './SessionWarningDialog';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
-  const navigate = useNavigate();
-  const { sessionWarning, extendSession } = useSessionManagement();
+  const router = useRouter();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -22,12 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
-  };
-
-  const handleOpenWorkflow = (workflowId: string) => {
-    console.log('Opening workflow:', workflowId);
-    setActiveTab('workflow-builder');
+    router.push('/auth');
   };
 
   return (
@@ -40,27 +31,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
         
         <main className="flex-1 flex flex-col">
-          <DashboardHeader 
-            isMainDashboard={true}
-            isRTL={false}
-          />
+          <DashboardHeader />
           <div className="flex-1 p-6">
-            <DashboardContentRenderer 
-              activeTab={activeTab} 
-              onOpenWorkflow={handleOpenWorkflow}
-            />
+            <DashboardContentRenderer activeTab={activeTab} />
           </div>
         </main>
       </div>
       
+      {/* Add the module status notifier */}
       <ModuleStatusNotifier />
-      
-      {sessionWarning && (
-        <SessionWarningDialog
-          onExtendSession={extendSession}
-          onSignOut={handleSignOut}
-        />
-      )}
     </SidebarProvider>
   );
 }
