@@ -21,22 +21,31 @@ export function useAppLoadingState() {
   // We need auth to be ready, and if we have a user, we should eventually have a profile
   const hasMinimumData = isAuthReady && (authError !== null || user === null || profile !== null);
   
-  // Calculate if we're still loading critical data (auth without error)
+  // Calculate if we're still loading critical data
+  // IMPORTANT: Only consider it critical loading if auth is actually loading AND there's no error
   const isCriticalLoading = authLoading && !authError;
   
   // Calculate if we're loading optional data (only relevant for non-root users with profiles)
   const isOptionalLoading = !isRootUser && !authError && profile && (modulesLoading || workspaceModulesLoading || moduleAccessLoading);
 
-  console.log('AppLoadingState:', {
+  console.log('AppLoadingState detailed:', {
+    // Auth states
     authLoading,
     isAuthReady,
-    isRootUser,
-    hasMinimumData,
-    isCriticalLoading,
     hasUser: !!user,
     hasProfile: !!profile,
     profileRole: profile?.role,
-    authError: !!authError
+    authError: !!authError,
+    // Computed states
+    isRootUser,
+    hasMinimumData,
+    isCriticalLoading,
+    isOptionalLoading,
+    // Workspace states (for debugging)
+    workspaceLoading,
+    modulesLoading,
+    workspaceModulesLoading,
+    moduleAccessLoading
   });
 
   return {

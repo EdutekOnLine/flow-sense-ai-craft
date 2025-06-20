@@ -10,8 +10,18 @@ export default function Dashboard() {
   const { user, profile, authError } = useAuth();
   const { isCriticalLoading, hasMinimumData } = useAppLoadingState();
 
+  console.log('Dashboard render decision:', {
+    isCriticalLoading,
+    hasMinimumData,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    authError: !!authError,
+    profileRole: profile?.role
+  });
+
   // Show loading only for critical loading
   if (isCriticalLoading) {
+    console.log('Dashboard: Showing critical loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
@@ -24,6 +34,7 @@ export default function Dashboard() {
 
   // Show auth error if present
   if (authError) {
+    console.log('Dashboard: Showing auth error');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -40,11 +51,20 @@ export default function Dashboard() {
     );
   }
 
-  // If no user or no minimum data, show auth page
-  if (!user || !hasMinimumData) {
+  // If no user, show auth page
+  if (!user) {
+    console.log('Dashboard: No user, showing auth page');
     return <AuthPage />;
   }
 
+  // If we have a user but no minimum data, show loading briefly then proceed
+  if (!hasMinimumData) {
+    console.log('Dashboard: User exists but no minimum data, showing dashboard anyway');
+    // For now, proceed to dashboard even without full data
+    // This prevents infinite loading for users who have auth but profile issues
+  }
+
+  console.log('Dashboard: Rendering dashboard layout');
   return (
     <DashboardLayout>
       <DashboardContent />

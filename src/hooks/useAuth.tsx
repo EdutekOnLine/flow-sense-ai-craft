@@ -22,12 +22,21 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  console.log('useAuth state:', {
+    loading,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    profileRole: profile?.role,
+    authError: !!authError,
+    userId: user?.id
+  });
+
   // Timeout fallback to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
       console.warn('Auth loading timeout reached, forcing loading to false');
       setLoading(false);
-    }, 8000); // Reduced timeout
+    }, 5000); // Reduced timeout to 5 seconds
 
     return () => clearTimeout(timeout);
   }, []);
@@ -57,26 +66,36 @@ export function useAuth() {
     }
   };
 
-  // Set up auth state listener - COMPLETELY SYNCHRONOUS
+  // Set up auth state listener
   useEffect(() => {
     console.log('Setting up auth state listener');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('Auth state changed:', event, {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id
+        });
         
-        // Update session and user synchronously ONLY
+        // Update session and user synchronously
         setSession(session);
         setUser(session?.user ?? null);
         setAuthError(null);
         
-        // Set loading to false immediately when we have auth state resolution
-        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        // Handle different auth events
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out, clearing state');
+          setProfile(null);
           setLoading(false);
-        }
-        
-        if (!session?.user) {
-          console.log('No user, clearing profile and stopping loading');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, will fetch profile');
+          // Don't set loading to false yet, wait for profile
+        } else if (!session?.user) {
+          console.log('No user in session, stopping loading');
           setProfile(null);
           setLoading(false);
         }
@@ -93,7 +112,12 @@ export function useAuth() {
         return;
       }
       
-      console.log('Existing session check:', session?.user?.id);
+      console.log('Initial session check:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id
+      });
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -112,29 +136,41 @@ export function useAuth() {
   // Separate effect to handle profile fetching when user changes
   useEffect(() => {
     if (!user?.id) {
-      setProfile(null);
+      if (profile) {
+        console.log('User cleared, clearing profile');
+        setProfile(null);
+      }
       return;
     }
 
-    console.log('User detected, fetching profile...');
+    console.log('User detected, fetching profile for:', user.id);
     
     const loadProfile = async () => {
       try {
         const profileData = await fetchUserProfile(user.id);
+        console.log('Profile fetch completed:', {
+          success: !!profileData,
+          role: profileData?.role
+        });
         setProfile(profileData);
-        console.log('Profile loaded, setting loading to false');
+        
+        // IMPORTANT: Set loading to false after profile attempt (success or failure)
+        console.log('Profile loading completed, setting loading to false');
         setLoading(false);
       } catch (error) {
         console.error('Error loading profile:', error);
         setProfile(null);
+        console.log('Profile loading failed, setting loading to false');
         setLoading(false);
       }
     };
 
-    // Use setTimeout to prevent any potential deadlocks
-    setTimeout(() => {
+    // Add a small delay to prevent race conditions
+    const timeoutId = setTimeout(() => {
       loadProfile();
-    }, 0);
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [user?.id]);
 
   // Presence tracking for all users
