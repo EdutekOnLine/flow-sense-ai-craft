@@ -19,7 +19,7 @@ export default function Dashboard() {
     profileRole: profile?.role
   });
 
-  // Show loading only for critical loading
+  // Show loading ONLY for critical loading (auth actually loading)
   if (isCriticalLoading) {
     console.log('Dashboard: Showing critical loading state');
     return (
@@ -57,11 +57,20 @@ export default function Dashboard() {
     return <AuthPage />;
   }
 
-  // If we have a user but no minimum data, show loading briefly then proceed
+  // If we don't have minimum data, show simple loading with timeout fallback
   if (!hasMinimumData) {
-    console.log('Dashboard: User exists but no minimum data, showing dashboard anyway');
-    // For now, proceed to dashboard even without full data
-    // This prevents infinite loading for users who have auth but profile issues
+    console.log('Dashboard: Waiting for minimum data');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-muted-foreground">Setting up your workspace...</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            If this takes too long, try refreshing the page
+          </p>
+        </div>
+      </div>
+    );
   }
 
   console.log('Dashboard: Rendering dashboard layout');

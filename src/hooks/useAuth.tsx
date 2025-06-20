@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,12 +30,12 @@ export function useAuth() {
     userId: user?.id
   });
 
-  // Timeout fallback to prevent infinite loading
+  // Force loading to false after maximum wait time
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.warn('Auth loading timeout reached, forcing loading to false');
+      console.warn('Auth loading timeout reached - forcing loading to false');
       setLoading(false);
-    }, 5000); // Reduced timeout to 5 seconds
+    }, 10000); // 10 second max wait
 
     return () => clearTimeout(timeout);
   }, []);
@@ -54,7 +53,6 @@ export function useAuth() {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        // Don't set auth error for profile fetch failures
         return null;
       }
       
@@ -78,7 +76,7 @@ export function useAuth() {
           userId: session?.user?.id
         });
         
-        // Update session and user synchronously
+        // Update session and user immediately
         setSession(session);
         setUser(session?.user ?? null);
         setAuthError(null);
@@ -89,11 +87,11 @@ export function useAuth() {
           setProfile(null);
           setLoading(false);
         } else if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed');
+          console.log('Token refreshed, setting loading to false');
           setLoading(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
           console.log('User signed in, will fetch profile');
-          // Don't set loading to false yet, wait for profile
+          // Profile fetch will happen in separate effect
         } else if (!session?.user) {
           console.log('No user in session, stopping loading');
           setProfile(null);
@@ -133,12 +131,16 @@ export function useAuth() {
     };
   }, []);
 
-  // Separate effect to handle profile fetching when user changes
+  // Profile fetching effect with timeout
   useEffect(() => {
     if (!user?.id) {
       if (profile) {
         console.log('User cleared, clearing profile');
         setProfile(null);
+      }
+      if (!loading) {
+        console.log('No user and not loading, ensuring loading is false');
+        setLoading(false);
       }
       return;
     }
@@ -153,24 +155,27 @@ export function useAuth() {
           role: profileData?.role
         });
         setProfile(profileData);
-        
-        // IMPORTANT: Set loading to false after profile attempt (success or failure)
-        console.log('Profile loading completed, setting loading to false');
-        setLoading(false);
       } catch (error) {
         console.error('Error loading profile:', error);
         setProfile(null);
-        console.log('Profile loading failed, setting loading to false');
+      } finally {
+        // Always set loading to false after profile attempt
+        console.log('Profile loading completed, setting loading to false');
         setLoading(false);
       }
     };
 
-    // Add a small delay to prevent race conditions
-    const timeoutId = setTimeout(() => {
-      loadProfile();
-    }, 100);
+    // Add timeout for profile loading
+    const profileTimeout = setTimeout(() => {
+      console.warn('Profile loading timeout, setting loading to false');
+      setLoading(false);
+    }, 5000);
 
-    return () => clearTimeout(timeoutId);
+    loadProfile().finally(() => {
+      clearTimeout(profileTimeout);
+    });
+
+    return () => clearTimeout(profileTimeout);
   }, [user?.id]);
 
   // Presence tracking for all users

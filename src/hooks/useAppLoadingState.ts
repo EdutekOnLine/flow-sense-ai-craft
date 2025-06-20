@@ -11,45 +11,82 @@ export function useAppLoadingState() {
     moduleAccessLoading 
   } = useWorkspace();
 
-  // Core auth must be loaded and either we have a user OR there's an auth error
-  const isAuthReady = !authLoading && (user !== null || authError !== null);
-  
-  // For root users, we don't need to wait for workspace data
-  const isRootUser = profile?.role === 'root' as any;
-  
-  // Calculate if we have minimum required data
-  // We need auth to be ready, and if we have a user, we should eventually have a profile
-  const hasMinimumData = isAuthReady && (authError !== null || user === null || profile !== null);
-  
-  // Calculate if we're still loading critical data
-  // IMPORTANT: Only consider it critical loading if auth is actually loading AND there's no error
-  const isCriticalLoading = authLoading && !authError;
-  
-  // Calculate if we're loading optional data (only relevant for non-root users with profiles)
-  const isOptionalLoading = !isRootUser && !authError && profile && (modulesLoading || workspaceModulesLoading || moduleAccessLoading);
-
-  console.log('AppLoadingState detailed:', {
-    // Auth states
+  console.log('useAppLoadingState called:', {
     authLoading,
-    isAuthReady,
     hasUser: !!user,
     hasProfile: !!profile,
     profileRole: profile?.role,
     authError: !!authError,
-    // Computed states
-    isRootUser,
-    hasMinimumData,
-    isCriticalLoading,
-    isOptionalLoading,
-    // Workspace states (for debugging)
     workspaceLoading,
     modulesLoading,
     workspaceModulesLoading,
     moduleAccessLoading
   });
 
+  // Core auth must be loaded first
+  const isAuthReady = !authLoading && (user !== null || authError !== null);
+  
+  // Root users bypass most loading requirements
+  const isRootUser = profile?.role === 'root';
+  
+  // For auth error or no user, we have minimum data to show error/login
+  const hasAuthData = isAuthReady && (authError !== null || user !== null);
+  
+  // For users with profiles, we have minimum data to proceed
+  const hasUserData = hasAuthData && (user === null || profile !== null);
+  
+  // Critical loading only when auth is actually loading
+  const isCriticalLoading = authLoading && !authError;
+  
+  // For root users: only wait for auth + profile, skip workspace queries
+  // For other users: wait for basic workspace data but don't block on everything
+  const isOptionalLoading = !isRootUser && hasUserData && profile && !authError && (
+    workspaceLoading || 
+    modulesLoading
+    // Removed workspaceModulesLoading and moduleAccessLoading from blocking
+  );
+
+  // Determine if we have minimum data to render the app
+  let hasMinimumData = false;
+  
+  if (authError) {
+    // Auth error means we can show error UI
+    hasMinimumData = true;
+  } else if (!user) {
+    // No user means we can show login UI
+    hasMinimumData = true;
+  } else if (user && !profile) {
+    // User exists but no profile yet - this might be loading or an error
+    // Only block if auth is still actively loading
+    hasMinimumData = !authLoading;
+  } else if (user && profile) {
+    // We have both user and profile
+    if (isRootUser) {
+      // Root users can proceed immediately
+      hasMinimumData = true;
+    } else {
+      // Regular users need basic modules data but not everything
+      hasMinimumData = !modulesLoading;
+    }
+  }
+
+  console.log('AppLoadingState computed:', {
+    isAuthReady,
+    hasAuthData,
+    hasUserData,
+    isRootUser,
+    hasMinimumData,
+    isCriticalLoading,
+    isOptionalLoading,
+    decision: {
+      showLoading: isCriticalLoading,
+      showApp: hasMinimumData && !isCriticalLoading,
+      authError: !!authError
+    }
+  });
+
   return {
-    // Critical loading that blocks the UI
+    // Critical loading that blocks the UI completely
     isCriticalLoading,
     // Optional loading that doesn't block the UI
     isOptionalLoading,
