@@ -4,9 +4,9 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UsersList } from './user-management/UsersList';
-import { InvitationsDisplay } from './user-management/InvitationsDisplay';
+import { PendingInvitations } from './user-management/PendingInvitations';
 import { UserInvitationForm } from './user-management/UserInvitationForm';
-import { Users, UserPlus, Mail } from 'lucide-react';
+import { Users, UserPlus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function UserManagement() {
@@ -66,8 +66,8 @@ export default function UserManagement() {
             Active Users ({visibleUsers.length})
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Invitations ({invitations.length})
+            <UserPlus className="h-4 w-4" />
+            Pending Invitations ({invitations.length})
           </TabsTrigger>
           <TabsTrigger value="invite" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -95,13 +95,13 @@ export default function UserManagement() {
         <TabsContent value="invitations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Invitations</CardTitle>
+              <CardTitle>Pending Invitations</CardTitle>
               <CardDescription>
-                Manage all invitations - both pending and used
+                Invitations that haven't been accepted yet
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <InvitationsDisplay 
+              <PendingInvitations 
                 invitations={invitations}
                 getRoleBadgeColor={getRoleBadgeColor}
                 onDeleteInvitation={handleDeleteInvitation}
