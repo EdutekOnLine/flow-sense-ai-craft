@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { useAppLoadingState } from '@/hooks/useAppLoadingState';
+import { useAuth } from '@/hooks/useAuth';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useTranslation } from 'react-i18next';
 import { ModuleGuard } from '@/components/modules/ModuleGuard';
-import { Loader2 } from 'lucide-react';
 
 // Component imports
 import UserManagement from '@/components/admin/UserManagement';
@@ -28,64 +28,8 @@ export function DashboardContentRenderer({
   children, 
   onOpenWorkflow 
 }: DashboardContentRendererProps) {
-  const { isCriticalLoading, hasMinimumData, profile, isRootUser, authError } = useAppLoadingState();
+  const { profile } = useAuth();
   const { t } = useTranslation();
-
-  console.log('DashboardContentRenderer render:', {
-    activeTab,
-    isCriticalLoading,
-    hasMinimumData,
-    isRootUser,
-    profileRole: profile?.role,
-    authError: !!authError
-  });
-
-  // Show loading state only for critical loading
-  if (isCriticalLoading) {
-    console.log('Showing critical loading state');
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // If we have an auth error, show it
-  if (authError) {
-    console.log('Showing auth error');
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2">Authentication Error</h2>
-          <p className="text-muted-foreground mb-4">{authError}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // If we don't have minimum data, show error state
-  if (!hasMinimumData) {
-    console.log('No minimum data available');
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold mb-2">Unable to load application</h2>
-          <p className="text-muted-foreground">Please refresh the page or try again later.</p>
-        </div>
-      </div>
-    );
-  }
-
-  console.log('Rendering content for activeTab:', activeTab);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -137,7 +81,6 @@ export function DashboardContentRenderer({
       case 'settings':
         return <ThemeSettings />;
       default:
-        console.log('Rendering default dashboard content');
         return children ? React.cloneElement(children as React.ReactElement, { onOpenWorkflow }) : <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
     }
   };

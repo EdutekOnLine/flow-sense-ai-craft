@@ -53,22 +53,11 @@ export function useWorkspace() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  console.log('useWorkspace hook called:', {
-    hasProfile: !!profile,
-    profileRole: profile?.role,
-    workspaceId: profile?.workspace_id
-  });
-
-  // Get current workspace - always try to fetch if we have a profile
+  // Get current workspace
   const { data: workspace, isLoading: workspaceLoading } = useQuery({
     queryKey: ['workspace', profile?.workspace_id],
     queryFn: async () => {
-      console.log('Fetching workspace for ID:', profile?.workspace_id);
-      
-      if (!profile?.workspace_id) {
-        console.log('No workspace_id, returning null');
-        return null;
-      }
+      if (!profile?.workspace_id) return null;
       
       const { data, error } = await supabase
         .from('workspaces')
@@ -76,49 +65,31 @@ export function useWorkspace() {
         .eq('id', profile.workspace_id)
         .single();
 
-      if (error) {
-        console.error('Workspace fetch error:', error);
-        throw error;
-      }
-      
-      console.log('Workspace fetched:', data);
+      if (error) throw error;
       return data as Workspace;
     },
-    enabled: !!profile, // Only need profile to exist
+    enabled: !!profile?.workspace_id,
   });
 
-  // Get all available modules - always fetch
+  // Get all available modules
   const { data: allModules, isLoading: modulesLoading } = useQuery({
     queryKey: ['modules'],
     queryFn: async () => {
-      console.log('Fetching all modules');
-      
       const { data, error } = await supabase
         .from('modules')
         .select('*')
         .order('display_name');
 
-      if (error) {
-        console.error('Modules fetch error:', error);
-        throw error;
-      }
-      
-      console.log('All modules fetched:', data?.length, 'modules');
+      if (error) throw error;
       return data as Module[];
     },
-    // Always fetch modules - they're needed for root users too
   });
 
-  // Get active modules for current workspace - fetch if we have profile
+  // Get active modules for current workspace
   const { data: workspaceModules, isLoading: workspaceModulesLoading } = useQuery({
     queryKey: ['workspace-modules', profile?.workspace_id],
     queryFn: async () => {
-      console.log('Fetching workspace modules for workspace:', profile?.workspace_id);
-      
-      if (!profile?.workspace_id) {
-        console.log('No workspace_id, returning empty array');
-        return [];
-      }
+      if (!profile?.workspace_id) return [];
       
       const { data, error } = await supabase
         .from('workspace_modules')
@@ -129,27 +100,17 @@ export function useWorkspace() {
         .eq('workspace_id', profile.workspace_id)
         .eq('is_active', true);
 
-      if (error) {
-        console.error('Workspace modules fetch error:', error);
-        throw error;
-      }
-      
-      console.log('Workspace modules fetched:', data?.length, 'modules');
+      if (error) throw error;
       return data as WorkspaceModule[];
     },
-    enabled: !!profile, // Only need profile to exist
+    enabled: !!profile?.workspace_id,
   });
 
-  // Get comprehensive module access information - fetch if we have profile and workspace_id
+  // Get comprehensive module access information using the new database function
   const { data: moduleAccessInfo, isLoading: moduleAccessLoading } = useQuery({
     queryKey: ['module-access-info', profile?.workspace_id, profile?.id],
     queryFn: async () => {
-      console.log('Fetching module access info for user:', profile?.id, 'workspace:', profile?.workspace_id);
-      
-      if (!profile?.workspace_id || !profile?.id) {
-        console.log('Missing workspace_id or profile.id, returning empty array');
-        return [];
-      }
+      if (!profile?.workspace_id || !profile?.id) return [];
       
       const { data, error } = await supabase
         .rpc('get_module_access_info', {
@@ -157,15 +118,10 @@ export function useWorkspace() {
           p_user_id: profile.id
         });
 
-      if (error) {
-        console.error('Module access info fetch error:', error);
-        throw error;
-      }
-      
-      console.log('Module access info fetched:', data?.length, 'entries');
+      if (error) throw error;
       return data as ModuleAccessInfo[];
     },
-    enabled: !!profile, // Only need profile to exist
+    enabled: !!profile?.workspace_id && !!profile?.id,
   });
 
   // Get dependent modules for a specific module
@@ -319,16 +275,6 @@ export function useWorkspace() {
 
     return data;
   };
-
-  console.log('useWorkspace returning:', {
-    workspaceLoading,
-    modulesLoading,
-    workspaceModulesLoading,
-    moduleAccessLoading,
-    hasWorkspace: !!workspace,
-    hasAllModules: !!allModules,
-    activeModulesCount: activeModules.length
-  });
 
   return {
     workspace,

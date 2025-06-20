@@ -13,8 +13,7 @@ import {
   Info,
   Package,
   AlertTriangle,
-  Loader2,
-  GitBranch
+  Loader2
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -27,8 +26,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useWorkspace } from '@/hooks/useWorkspace';
-import { useDependencyGraph } from '@/hooks/useDependencyGraph';
-import { CascadingDeactivationDialog } from './CascadingDeactivationDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Module {
   name: string;
@@ -57,39 +55,55 @@ interface DependentModule {
 
 export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }: ModuleCardProps) {
   const { workspace } = useWorkspace();
-  const { getModuleDependents, canSafelyDeactivate } = useDependencyGraph();
-  const [showCascadingDialog, setShowCascadingDialog] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingAction, setPendingAction] = useState<boolean | null>(null);
-
-  const dependents = getModuleDependents(module.name);
-  const canSafelyDeact = canSafelyDeactivate([module.name]);
+  const [dependentModules, setDependentModules] = useState<DependentModule[]>([]);
+  const [loadingDependencies, setLoadingDependencies] = useState(false);
 
   const handleToggleClick = async (newState: boolean) => {
     if (module.name === 'neura-core') {
-      return;
+      return; // Core module cannot be toggled
     }
     
     setPendingAction(newState);
     
-    // For deactivation, check if we need the cascading dialog
-    if (!newState && (!canSafelyDeact || dependents.length > 0)) {
-      setShowCascadingDialog(true);
-    } else {
-      // Safe to proceed directly
-      await onToggle(module.name, newState);
-      setPendingAction(null);
+    // If deactivating, check for dependent modules
+    if (!newState && workspace?.id) {
+      setLoadingDependencies(true);
+      try {
+        const { data, error } = await supabase
+          .rpc('get_dependent_modules', {
+            p_workspace_id: workspace.id,
+            p_module_name: module.name
+          });
+        
+        if (!error && data) {
+          const activeDependents = data.filter(dep => dep.is_active);
+          setDependentModules(activeDependents);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dependent modules:', error);
+      } finally {
+        setLoadingDependencies(false);
+      }
     }
+    
+    setShowConfirmation(true);
   };
 
-  const handleCascadingConfirm = async () => {
+  const confirmToggle = async () => {
     if (pendingAction !== null) {
       await onToggle(module.name, pendingAction);
       setPendingAction(null);
+      setDependentModules([]);
     }
+    setShowConfirmation(false);
   };
 
-  const handleCascadingCancel = () => {
+  const cancelToggle = () => {
     setPendingAction(null);
+    setDependentModules([]);
+    setShowConfirmation(false);
   };
 
   const getStatusIcon = () => {
@@ -163,16 +177,6 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
             </div>
           </div>
           
-          {/* Dependency information */}
-          {dependents.length > 0 && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md">
-              <GitBranch className="h-4 w-4 text-blue-600" />
-              <span className="text-xs text-blue-800">
-                {dependents.length} module{dependents.length !== 1 ? 's' : ''} depend{dependents.length === 1 ? 's' : ''} on this
-              </span>
-            </div>
-          )}
-          
           {module.statusMessage && (
             <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
               <Info className="h-4 w-4 text-muted-foreground" />
@@ -199,14 +203,63 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
         </CardContent>
       </Card>
 
-      <CascadingDeactivationDialog
-        open={showCascadingDialog}
-        onOpenChange={setShowCascadingDialog}
-        modulesToDeactivate={[module.name]}
-        moduleDisplayNames={{ [module.name]: module.displayName }}
-        onConfirm={handleCascadingConfirm}
-        onCancel={handleCascadingCancel}
-      />
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingAction ? 'Enable' : 'Disable'} {module.displayName}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  {pendingAction 
+                    ? `Are you sure you want to enable ${module.displayName}? This will make its features available to users with appropriate permissions.`
+                    : `Are you sure you want to disable ${module.displayName}? This will immediately restrict access to its features for all users.`
+                  }
+                </p>
+                
+                {!pendingAction && dependentModules.length > 0 && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      <div className="space-y-2">
+                        <p className="font-medium">Warning: Other modules depend on this module!</p>
+                        <p>The following active modules will be affected:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {dependentModules.map(dep => (
+                            <li key={dep.module_name} className="text-sm">
+                              {dep.display_name}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="text-sm">Consider deactivating these modules first.</p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {loadingDependencies && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Checking dependencies...
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelToggle}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmToggle}
+              className={!pendingAction && dependentModules.length > 0 ? 'bg-red-600 hover:bg-red-700' : ''}
+            >
+              {pendingAction ? 'Enable' : 'Disable'} Module
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

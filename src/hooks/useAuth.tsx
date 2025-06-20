@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
 
 export interface UserProfile {
   id: string;
   email: string;
   first_name?: string;
   last_name?: string;
-  role: Database['public']['Enums']['user_role'];
+  role: 'admin' | 'manager' | 'employee' | 'root';
   department?: string;
   avatar_url?: string;
   workspace_id?: string;
@@ -19,164 +18,6 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  console.log('useAuth state:', {
-    loading,
-    hasUser: !!user,
-    hasProfile: !!profile,
-    profileRole: profile?.role,
-    authError: !!authError,
-    userId: user?.id
-  });
-
-  // Force loading to false after maximum wait time
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.warn('Auth loading timeout reached - forcing loading to false');
-      setLoading(false);
-    }, 10000); // 10 second max wait
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  // Fetch user profile - separate from auth state change
-  const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-      
-      console.log('Profile fetched successfully:', profileData);
-      return profileData;
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      return null;
-    }
-  };
-
-  // Set up auth state listener
-  useEffect(() => {
-    console.log('Setting up auth state listener');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id
-        });
-        
-        // Update session and user immediately
-        setSession(session);
-        setUser(session?.user ?? null);
-        setAuthError(null);
-        
-        // Handle different auth events
-        if (event === 'SIGNED_OUT') {
-          console.log('User signed out, clearing state');
-          setProfile(null);
-          setLoading(false);
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed, setting loading to false');
-          setLoading(false);
-        } else if (event === 'SIGNED_IN' && session?.user) {
-          console.log('User signed in, will fetch profile');
-          // Profile fetch will happen in separate effect
-        } else if (!session?.user) {
-          console.log('No user in session, stopping loading');
-          setProfile(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    // Check for existing session
-    console.log('Checking for existing session...');
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error getting session:', error);
-        setAuthError('Failed to check authentication status');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('Initial session check:', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userId: session?.user?.id
-      });
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (!session?.user) {
-        console.log('No existing user, setting loading to false');
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      console.log('Cleaning up auth state listener');
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Profile fetching effect with timeout
-  useEffect(() => {
-    if (!user?.id) {
-      if (profile) {
-        console.log('User cleared, clearing profile');
-        setProfile(null);
-      }
-      if (!loading) {
-        console.log('No user and not loading, ensuring loading is false');
-        setLoading(false);
-      }
-      return;
-    }
-
-    console.log('User detected, fetching profile for:', user.id);
-    
-    const loadProfile = async () => {
-      try {
-        const profileData = await fetchUserProfile(user.id);
-        console.log('Profile fetch completed:', {
-          success: !!profileData,
-          role: profileData?.role
-        });
-        setProfile(profileData);
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        setProfile(null);
-      } finally {
-        // Always set loading to false after profile attempt
-        console.log('Profile loading completed, setting loading to false');
-        setLoading(false);
-      }
-    };
-
-    // Add timeout for profile loading
-    const profileTimeout = setTimeout(() => {
-      console.warn('Profile loading timeout, setting loading to false');
-      setLoading(false);
-    }, 5000);
-
-    loadProfile().finally(() => {
-      clearTimeout(profileTimeout);
-    });
-
-    return () => clearTimeout(profileTimeout);
-  }, [user?.id]);
 
   // Presence tracking for all users
   useEffect(() => {
@@ -254,27 +95,66 @@ export function useAuth() {
     };
   }, [user?.id, profile?.role]);
 
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile with workspace info
+          setTimeout(async () => {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            setProfile(profileData);
+            setLoading(false);
+          }, 0);
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profileData }) => {
+            setProfile(profileData);
+            setLoading(false);
+          });
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const signIn = async (email: string, password: string) => {
-    setAuthError(null);
-    setLoading(true);
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    
-    if (error) {
-      setAuthError(error.message);
-      setLoading(false);
-    }
-    
     return { data, error };
   };
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string, bypassEmailConfirmation?: boolean) => {
     console.log('SignUp called with bypass:', bypassEmailConfirmation);
-    setAuthError(null);
-    setLoading(true);
     
     const signUpOptions: any = {
       email,
@@ -297,22 +177,13 @@ export function useAuth() {
 
     const { data, error } = await supabase.auth.signUp(signUpOptions);
     
-    if (error) {
-      setAuthError(error.message);
-      setLoading(false);
-    }
-    
     console.log('Signup result:', { data, error });
     
     return { data, error };
   };
 
   const signOut = async () => {
-    setAuthError(null);
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      setAuthError(error.message);
-    }
     return { error };
   };
 
@@ -321,7 +192,6 @@ export function useAuth() {
     session,
     profile,
     loading,
-    authError,
     signIn,
     signUp,
     signOut,
