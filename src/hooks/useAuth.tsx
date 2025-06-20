@@ -27,12 +27,12 @@ export function useAuth() {
     const timeout = setTimeout(() => {
       console.warn('Auth loading timeout reached, forcing loading to false');
       setLoading(false);
-    }, 10000); // 10 second timeout
+    }, 8000); // Reduced timeout
 
     return () => clearTimeout(timeout);
   }, []);
 
-  // Fetch user profile with error handling and timeout
+  // Fetch user profile - separate from auth state change
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log('Fetching profile for user:', userId);
@@ -45,7 +45,7 @@ export function useAuth() {
       
       if (error) {
         console.error('Error fetching profile:', error);
-        setAuthError('Failed to load user profile');
+        // Don't set auth error for profile fetch failures
         return null;
       }
       
@@ -53,39 +53,29 @@ export function useAuth() {
       return profileData;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      setAuthError('Failed to load user profile');
       return null;
     }
   };
 
+  // Set up auth state listener - COMPLETELY SYNCHRONOUS
   useEffect(() => {
     console.log('Setting up auth state listener');
     
-    // Set up auth state listener - handle both user and profile loading
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        // Update session and user synchronously
+        // Update session and user synchronously ONLY
         setSession(session);
         setUser(session?.user ?? null);
         setAuthError(null);
         
-        if (session?.user) {
-          // Don't set loading to false until we have profile data
-          console.log('User detected, fetching profile...');
-          try {
-            const profileData = await fetchUserProfile(session.user.id);
-            setProfile(profileData);
-            console.log('Profile loaded, setting loading to false');
-            setLoading(false);
-          } catch (error) {
-            console.error('Error fetching profile in auth state change:', error);
-            setProfile(null);
-            setLoading(false);
-          }
-        } else {
-          // No user, clear profile and stop loading
+        // Set loading to false immediately when we have auth state resolution
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setLoading(false);
+        }
+        
+        if (!session?.user) {
           console.log('No user, clearing profile and stopping loading');
           setProfile(null);
           setLoading(false);
@@ -95,7 +85,7 @@ export function useAuth() {
 
     // Check for existing session
     console.log('Checking for existing session...');
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error('Error getting session:', error);
         setAuthError('Failed to check authentication status');
@@ -107,19 +97,7 @@ export function useAuth() {
       setSession(session);
       setUser(session?.user ?? null);
       
-      if (session?.user) {
-        console.log('Existing user found, fetching profile...');
-        try {
-          const profileData = await fetchUserProfile(session.user.id);
-          setProfile(profileData);
-          console.log('Profile loaded from existing session, setting loading to false');
-          setLoading(false);
-        } catch (error) {
-          console.error('Error fetching profile from existing session:', error);
-          setProfile(null);
-          setLoading(false);
-        }
-      } else {
+      if (!session?.user) {
         console.log('No existing user, setting loading to false');
         setLoading(false);
       }
@@ -130,6 +108,34 @@ export function useAuth() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Separate effect to handle profile fetching when user changes
+  useEffect(() => {
+    if (!user?.id) {
+      setProfile(null);
+      return;
+    }
+
+    console.log('User detected, fetching profile...');
+    
+    const loadProfile = async () => {
+      try {
+        const profileData = await fetchUserProfile(user.id);
+        setProfile(profileData);
+        console.log('Profile loaded, setting loading to false');
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        setProfile(null);
+        setLoading(false);
+      }
+    };
+
+    // Use setTimeout to prevent any potential deadlocks
+    setTimeout(() => {
+      loadProfile();
+    }, 0);
+  }, [user?.id]);
 
   // Presence tracking for all users
   useEffect(() => {

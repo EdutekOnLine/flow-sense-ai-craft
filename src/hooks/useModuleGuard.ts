@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 export function useModuleGuard(moduleName: string) {
-  const { loading: authLoading, profile, authError } = useAuth();
+  const { loading: authLoading, profile, authError, user } = useAuth();
   const { 
     canAccessModule, 
     getModuleStatus, 
@@ -26,7 +26,7 @@ export function useModuleGuard(moduleName: string) {
     const timeout = setTimeout(() => {
       console.warn(`Module guard timeout for ${moduleName}, forcing check to complete`);
       setIsChecking(false);
-    }, 8000); // Increased timeout to allow for profile loading
+    }, 6000); // Reduced timeout
 
     return () => clearTimeout(timeout);
   }, [moduleName]);
@@ -48,7 +48,9 @@ export function useModuleGuard(moduleName: string) {
     const checkAccess = async () => {
       console.log(`Checking access for module: ${moduleName}`, {
         authLoading,
-        profile: profile ? { id: profile.id, role: profile.role } : null,
+        hasUser: !!user,
+        hasProfile: !!profile,
+        profileRole: profile?.role,
         authError
       });
 
@@ -74,21 +76,33 @@ export function useModuleGuard(moduleName: string) {
         return;
       }
 
-      // If no profile after auth loading is complete, check for core module
-      if (!profile) {
+      // If no user after auth loading is complete, check for core module
+      if (!user) {
         if (moduleName === 'neura-core') {
-          console.log('No profile but allowing core module access');
+          console.log('No user but allowing core module access');
           setHasAccess(true);
         } else {
-          console.log('No profile, denying access to non-core module');
+          console.log('No user, denying access to non-core module');
           setHasAccess(false);
         }
         setIsChecking(false);
         return;
       }
 
-      // Root users get access to everything immediately
-      if (profile.role === 'root' as any) {
+      // We have a user, but may still be loading profile
+      // For root users check, we need to wait for profile unless it's been too long
+      if (!profile && retryCount < 2) {
+        console.log('User exists but profile still loading, waiting...');
+        // Set a shorter timeout to retry profile check
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+        }, 1000);
+        return;
+      }
+
+      // Root users get access to everything (even if profile failed to load, check user metadata)
+      const isRootUser = profile?.role === 'root' || user?.user_metadata?.role === 'root';
+      if (isRootUser) {
         console.log('Root user detected, granting access to all modules');
         setHasAccess(true);
         setIsChecking(false);
@@ -116,7 +130,7 @@ export function useModuleGuard(moduleName: string) {
         if (moduleName === 'neura-core') {
           console.log('Error checking access, allowing core module');
           setHasAccess(true);
-        } else if (profile.role === 'root' as any) {
+        } else if (isRootUser) {
           console.log('Error checking access, but root user gets access');
           setHasAccess(true);
         } else {
@@ -136,7 +150,7 @@ export function useModuleGuard(moduleName: string) {
     };
 
     checkAccess();
-  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline, authLoading, profile, authError]);
+  }, [moduleName, canAccessModule, toast, getModuleDisplayName, retryCount, isOnline, authLoading, profile, authError, user]);
 
   const handleRetry = async () => {
     setRetryCount(prev => prev + 1);
