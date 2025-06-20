@@ -38,7 +38,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Inbox,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-flow',
-    group: 'workflow'
+    group: 'modules'
   },
   {
     id: 'workflow-builder',
@@ -46,7 +46,7 @@ export const navigationItems: NavigationItem[] = [
     icon: Workflow,
     roles: ['admin', 'manager', 'root'],
     module: 'neura-flow',
-    group: 'workflow'
+    group: 'modules'
   },
   {
     id: 'templates',
@@ -54,7 +54,7 @@ export const navigationItems: NavigationItem[] = [
     icon: FileText,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-flow',
-    group: 'workflow'
+    group: 'modules'
   },
   {
     id: 'crm',
@@ -125,7 +125,6 @@ export const navigationItems: NavigationItem[] = [
 export const getGroupTitle = (groupKey: string): string => {
   const titles: Record<string, string> = {
     core: 'Core',
-    workflow: 'Workflow',
     modules: 'Modules',
     admin: 'Administration'
   };
