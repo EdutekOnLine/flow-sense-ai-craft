@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 interface UserInvitation {
   id: string;
   email: string;
   role: 'admin' | 'manager' | 'employee';
   department?: string;
+  workspace_id?: string;
   invitation_token: string;
   expires_at: string;
   used_at?: string;
@@ -23,6 +25,7 @@ interface UserProfile {
   last_name?: string;
   role: 'admin' | 'manager' | 'employee' | 'root';
   department?: string;
+  workspace_id?: string;
   created_at: string;
 }
 
@@ -31,6 +34,7 @@ export function useUserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { profile, user } = useAuth();
+  const { workspace } = useWorkspace();
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['users'],
@@ -48,18 +52,31 @@ export function useUserManagement() {
   const { data: invitations = [] } = useQuery({
     queryKey: ['invitations'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_invitations')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Non-root users can only see invitations for their workspace
+      if (profile?.role !== 'root' && workspace?.id) {
+        query = query.eq('workspace_id', workspace.id);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as UserInvitation[];
     },
+    enabled: !!profile,
   });
 
   const createInvitation = useMutation({
-    mutationFn: async (invitation: { email: string; role: 'admin' | 'manager' | 'employee'; department: string }) => {
+    mutationFn: async (invitation: { 
+      email: string; 
+      role: 'admin' | 'manager' | 'employee'; 
+      department: string;
+      workspace_id?: string;
+    }) => {
       if (!user?.id) {
         throw new Error('You must be logged in to send invitations');
       }
@@ -70,12 +87,30 @@ export function useUserManagement() {
 
       console.log('Creating invitation with user ID:', user.id);
 
+      // Determine the target workspace
+      let targetWorkspaceId: string;
+      
+      if (profile.role === 'root') {
+        // Root users must specify a workspace
+        if (!invitation.workspace_id) {
+          throw new Error('Workspace selection is required for root users');
+        }
+        targetWorkspaceId = invitation.workspace_id;
+      } else {
+        // Non-root users invite to their own workspace
+        if (!workspace?.id) {
+          throw new Error('You must be assigned to a workspace to send invitations');
+        }
+        targetWorkspaceId = workspace.id;
+      }
+
       const { data, error } = await supabase
         .from('user_invitations')
         .insert([{
           email: invitation.email,
           role: invitation.role,
           department: invitation.department || null,
+          workspace_id: targetWorkspaceId,
           invited_by: user.id,
         }])
         .select()
@@ -98,6 +133,7 @@ export function useUserManagement() {
             ? `${profile.first_name} ${profile.last_name}` 
             : profile?.email,
           invitedBy: user.id,
+          workspaceId: targetWorkspaceId,
         },
       });
 

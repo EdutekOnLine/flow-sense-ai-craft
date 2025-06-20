@@ -10,9 +10,15 @@ import { UserPlus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { WorkspaceSelector } from '../WorkspaceSelector';
 
 interface UserInvitationFormProps {
-  onInviteUser: (invitation: { email: string; role: 'admin' | 'manager' | 'employee'; department: string }) => void;
+  onInviteUser: (invitation: { 
+    email: string; 
+    role: 'admin' | 'manager' | 'employee'; 
+    department: string;
+    workspace_id?: string;
+  }) => void;
   isLoading: boolean;
 }
 
@@ -25,7 +31,10 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
     email: '',
     role: 'employee' as 'admin' | 'manager' | 'employee',
     department: '',
+    workspace_id: workspace?.id || '',
   });
+
+  const isRootUser = profile?.role === 'root';
 
   const handleInviteUser = () => {
     if (!inviteForm.email) {
@@ -55,7 +64,18 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
       return;
     }
 
-    if (!workspace) {
+    // For root users, workspace selection is required
+    if (isRootUser && !inviteForm.workspace_id) {
+      toast({
+        title: 'Workspace Required',
+        description: 'Please select a workspace for this invitation',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // For non-root users, ensure they have a workspace
+    if (!isRootUser && !workspace) {
       toast({
         title: 'Workspace Required',
         description: 'You must be in a workspace to send invitations',
@@ -64,8 +84,20 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
       return;
     }
 
-    onInviteUser(inviteForm);
-    setInviteForm({ email: '', role: 'employee', department: '' });
+    const invitationData = {
+      email: inviteForm.email,
+      role: inviteForm.role,
+      department: inviteForm.department,
+      ...(isRootUser ? { workspace_id: inviteForm.workspace_id } : {})
+    };
+
+    onInviteUser(invitationData);
+    setInviteForm({ 
+      email: '', 
+      role: 'employee', 
+      department: '',
+      workspace_id: isRootUser ? '' : workspace?.id || ''
+    });
   };
 
   return (
@@ -76,7 +108,7 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
             <UserPlus className="h-4 w-4 text-primary-foreground" />
           </div>
           {t('users.inviteNewUser')}
-          {workspace && (
+          {!isRootUser && workspace && (
             <span className="ml-2 text-sm text-muted-foreground">
               to {workspace.name}
             </span>
@@ -95,6 +127,15 @@ export function UserInvitationForm({ onInviteUser, isLoading }: UserInvitationFo
             className="bg-card/80 backdrop-blur-sm"
           />
         </div>
+
+        {isRootUser && (
+          <WorkspaceSelector
+            value={inviteForm.workspace_id}
+            onValueChange={(workspace_id) => setInviteForm({ ...inviteForm, workspace_id })}
+            disabled={isLoading}
+          />
+        )}
+
         <div>
           <Label htmlFor="role">{t('users.roleLabel')}</Label>
           <Select value={inviteForm.role} onValueChange={(value: any) => setInviteForm({ ...inviteForm, role: value })}>

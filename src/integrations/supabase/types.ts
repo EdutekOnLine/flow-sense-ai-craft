@@ -261,6 +261,7 @@ export type Database = {
           invited_by: string
           role: Database["public"]["Enums"]["user_role"]
           used_at: string | null
+          workspace_id: string | null
         }
         Insert: {
           created_at?: string
@@ -272,6 +273,7 @@ export type Database = {
           invited_by: string
           role?: Database["public"]["Enums"]["user_role"]
           used_at?: string | null
+          workspace_id?: string | null
         }
         Update: {
           created_at?: string
@@ -283,8 +285,17 @@ export type Database = {
           invited_by?: string
           role?: Database["public"]["Enums"]["user_role"]
           used_at?: string | null
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_presence: {
         Row: {
