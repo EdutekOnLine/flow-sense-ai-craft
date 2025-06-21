@@ -3,7 +3,6 @@ import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import UserManagement from '@/components/admin/UserManagement';
 import ModuleManagement from '@/components/admin/ModuleManagement';
-import WorkspaceAssignment from '@/components/admin/WorkspaceAssignment';
 import WorkspaceManagement from '@/components/admin/WorkspaceManagement';
 import { ReportsPage } from '@/components/reports/ReportsPage';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -80,9 +79,6 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
       
       case 'workspace-management':
         return <WorkspaceManagement />;
-      
-      case 'workspace-assignment':
-        return <WorkspaceAssignment />;
       
       case 'reports':
         return <ReportsPage />;
