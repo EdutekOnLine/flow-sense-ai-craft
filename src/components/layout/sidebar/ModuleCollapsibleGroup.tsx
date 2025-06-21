@@ -46,8 +46,8 @@ export function ModuleCollapsibleGroup({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
-        <SidebarMenuItem>
-          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent">
+        <SidebarMenuItem className="list-none before:hidden after:hidden">
+          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent list-none before:hidden after:hidden">
             <div className="flex items-center gap-2">
               <ModuleIcon className="h-4 w-4" />
               <span className="font-medium text-sidebar-foreground/90">{moduleDisplayName}</span>
@@ -62,7 +62,7 @@ export function ModuleCollapsibleGroup({
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
         <div className="ml-6 pl-2">
-          <SidebarMenu>
+          <SidebarMenu className="list-none">
             {items.map((item) => (
               <SidebarNavigationItem
                 key={item.id}
