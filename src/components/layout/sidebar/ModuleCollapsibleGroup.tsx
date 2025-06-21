@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Workflow, Building2, FileText, GraduationCap } from 'lucide-react';
 import { 
   Collapsible, 
   CollapsibleContent, 
@@ -22,6 +22,17 @@ interface ModuleCollapsibleGroupProps {
   onTabChange: (tabId: string) => void;
 }
 
+// Module icon mapping
+const getModuleIcon = (moduleName: string) => {
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    'neura-flow': Workflow,
+    'neura-crm': Building2,
+    'neura-forms': FileText,
+    'neura-edu': GraduationCap,
+  };
+  return iconMap[moduleName] || FileText;
+};
+
 export function ModuleCollapsibleGroup({ 
   moduleName, 
   moduleDisplayName, 
@@ -29,14 +40,18 @@ export function ModuleCollapsibleGroup({
   activeTab, 
   onTabChange 
 }: ModuleCollapsibleGroupProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const ModuleIcon = getModuleIcon(moduleName);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
         <SidebarMenuItem>
           <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent">
-            <span className="font-medium text-sidebar-foreground/90">{moduleDisplayName}</span>
+            <div className="flex items-center gap-2">
+              <ModuleIcon className="h-4 w-4" />
+              <span className="font-medium text-sidebar-foreground/90">{moduleDisplayName}</span>
+            </div>
             <ChevronDown 
               className={`h-4 w-4 transition-transform duration-200 ${
                 isOpen ? 'rotate-180' : ''
@@ -46,7 +61,7 @@ export function ModuleCollapsibleGroup({
         </SidebarMenuItem>
       </CollapsibleTrigger>
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-        <div className="ml-4 border-l border-sidebar-border pl-2">
+        <div className="ml-6 pl-2">
           <SidebarMenu>
             {items.map((item) => (
               <SidebarNavigationItem
