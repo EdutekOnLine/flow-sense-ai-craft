@@ -1,16 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   CheckCircle, 
   XCircle, 
   AlertTriangle,
   Loader2,
-  Lock
+  Lock,
+  Workflow,
+  Building2,
+  FileText,
+  GraduationCap,
+  Settings
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -38,8 +41,6 @@ interface Module {
 
 interface ModuleCardProps {
   module: Module;
-  isSelected: boolean;
-  onSelect: (selected: boolean) => void;
   onToggle: (moduleId: string, isActive: boolean) => Promise<void>;
   isLoading: boolean;
 }
@@ -50,7 +51,19 @@ interface DependentModule {
   is_active: boolean;
 }
 
-export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }: ModuleCardProps) {
+// Module icon mapping - same as used in sidebar
+const getModuleIcon = (moduleName: string) => {
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    'neura-flow': Workflow,
+    'neura-crm': Building2,
+    'neura-forms': FileText,
+    'neura-edu': GraduationCap,
+    'neura-core': Settings,
+  };
+  return iconMap[moduleName] || Settings;
+};
+
+export function ModuleCard({ module, onToggle, isLoading }: ModuleCardProps) {
   const { workspace, effectiveWorkspaceId } = useWorkspaceManagement();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingAction, setPendingAction] = useState<boolean | null>(null);
@@ -59,6 +72,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
 
   const isNeuraCoreModule = module.name === 'neura-core';
   const canToggle = !isNeuraCoreModule && !isLoading;
+  const ModuleIcon = getModuleIcon(module.name);
 
   const handleToggleClick = async (newState: boolean) => {
     if (!canToggle) {
@@ -131,7 +145,6 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
     <>
       <Card className={`
         transition-all duration-200 hover:shadow-lg
-        ${isSelected ? 'ring-2 ring-primary shadow-md' : 'hover:shadow-md'} 
         ${isLoading ? 'opacity-75' : ''} 
         ${isNeuraCoreModule ? 'border-blue-200 bg-gradient-to-br from-blue-50/50 to-blue-50/20' : 'bg-gradient-theme-primary'}
       `}>
@@ -139,6 +152,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
+                <ModuleIcon className="h-5 w-5 text-primary" />
                 <CardTitle className="text-xl font-semibold text-foreground">
                   {module.displayName}
                 </CardTitle>
@@ -148,12 +162,6 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
                 {getModuleDescription()}
               </p>
             </div>
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onSelect}
-              disabled={isLoading || isNeuraCoreModule}
-              className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
           </div>
         </CardHeader>
         
