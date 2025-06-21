@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useWorkspace } from '@/hooks/useWorkspace';
+import { useWorkspaceManagement } from '@/hooks/useWorkspaceManagement';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Module {
@@ -54,7 +55,7 @@ interface DependentModule {
 }
 
 export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }: ModuleCardProps) {
-  const { workspace } = useWorkspace();
+  const { workspace, effectiveWorkspaceId } = useWorkspaceManagement();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingAction, setPendingAction] = useState<boolean | null>(null);
   const [dependentModules, setDependentModules] = useState<DependentModule[]>([]);
@@ -68,12 +69,12 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
     setPendingAction(newState);
     
     // If deactivating, check for dependent modules
-    if (!newState && workspace?.id) {
+    if (!newState && effectiveWorkspaceId) {
       setLoadingDependencies(true);
       try {
         const { data, error } = await supabase
           .rpc('get_dependent_modules', {
-            p_workspace_id: workspace.id,
+            p_workspace_id: effectiveWorkspaceId,
             p_module_name: module.name
           });
         
@@ -213,8 +214,8 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
               <div className="space-y-3">
                 <p>
                   {pendingAction 
-                    ? `Are you sure you want to enable ${module.displayName}? This will make its features available to users with appropriate permissions.`
-                    : `Are you sure you want to disable ${module.displayName}? This will immediately restrict access to its features for all users.`
+                    ? `Are you sure you want to enable ${module.displayName} for ${workspace?.name || 'this workspace'}? This will make its features available to users with appropriate permissions.`
+                    : `Are you sure you want to disable ${module.displayName} for ${workspace?.name || 'this workspace'}? This will immediately restrict access to its features for all users in this workspace.`
                   }
                 </p>
                 
