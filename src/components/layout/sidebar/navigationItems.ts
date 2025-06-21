@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard,
   Users,
@@ -12,6 +11,7 @@ import {
   GraduationCap,
   Package,
   UserCog,
+  Building,
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -85,6 +85,14 @@ export const navigationItems: NavigationItem[] = [
     label: 'navigation.users',
     icon: Users,
     roles: ['admin', 'manager', 'root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'workspace-management',
+    label: 'Workspace Management',
+    icon: Building,
+    roles: ['root'],
     module: 'neura-core',
     group: 'admin'
   },
