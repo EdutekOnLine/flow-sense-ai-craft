@@ -23,7 +23,6 @@ import {
 import { ModuleCard } from './module-management/ModuleCard';
 import { ModuleSettings } from './module-management/ModuleSettings';
 import { ModuleMarketplace } from './module-management/ModuleMarketplace';
-import { BulkActions } from './module-management/BulkActions';
 import { WorkspaceSelector } from './module-management/WorkspaceSelector';
 
 export default function ModuleManagement() {
@@ -31,7 +30,6 @@ export default function ModuleManagement() {
   const { t } = useTranslation();
   const { canManageModules } = useModulePermissions();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
 
@@ -90,21 +88,6 @@ export default function ModuleManagement() {
     } catch (error) {
       console.error('Failed to toggle module:', error);
     }
-  };
-
-  const handleBulkToggle = async (moduleIds: string[], isActive: boolean) => {
-    for (const moduleId of moduleIds) {
-      try {
-        await toggleModule.mutateAsync({ 
-          moduleId, 
-          isActive, 
-          workspaceId: selectedWorkspaceId || undefined 
-        });
-      } catch (error) {
-        console.error(`Failed to toggle module ${moduleId}:`, error);
-      }
-    }
-    setSelectedModules([]);
   };
 
   return (
@@ -194,11 +177,6 @@ export default function ModuleManagement() {
                 className="pl-10"
               />
             </div>
-            <BulkActions
-              selectedModules={selectedModules}
-              onBulkToggle={handleBulkToggle}
-              isLoading={toggleModule.isPending}
-            />
           </div>
 
           {/* Module Management Tabs */}
@@ -235,14 +213,6 @@ export default function ModuleManagement() {
                     <ModuleCard
                       key={module.name}
                       module={module}
-                      isSelected={selectedModules.includes(module.name)}
-                      onSelect={(selected) => {
-                        if (selected) {
-                          setSelectedModules([...selectedModules, module.name]);
-                        } else {
-                          setSelectedModules(selectedModules.filter(id => id !== module.name));
-                        }
-                      }}
                       onToggle={handleModuleToggle}
                       isLoading={toggleModule.isPending}
                     />
