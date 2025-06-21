@@ -47,27 +47,52 @@ export default function WorkspaceManagement() {
     description: ''
   });
 
-  // Move all hooks before any conditional logic
-  const { data: workspaces = [], isLoading } = useQuery({
+  // Fetch workspaces
+  const { data: rawWorkspaces = [], isLoading: workspacesLoading } = useQuery({
     queryKey: ['workspaces'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workspaces')
-        .select(`
-          *,
-          profiles!profiles_workspace_id_fkey(count)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      
-      return data.map(workspace => ({
-        ...workspace,
-        user_count: workspace.profiles?.length || 0
-      })) as Workspace[];
+      return data;
     },
-    enabled: profile?.role === 'root', // Only run query for root users
+    enabled: profile?.role === 'root',
   });
+
+  // Fetch user counts per workspace
+  const { data: userCounts = [], isLoading: userCountsLoading } = useQuery({
+    queryKey: ['workspace-user-counts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('workspace_id')
+        .not('workspace_id', 'is', null);
+      
+      if (error) throw error;
+      
+      // Count users per workspace
+      const counts: Record<string, number> = {};
+      data.forEach(profile => {
+        if (profile.workspace_id) {
+          counts[profile.workspace_id] = (counts[profile.workspace_id] || 0) + 1;
+        }
+      });
+      
+      return counts;
+    },
+    enabled: profile?.role === 'root',
+  });
+
+  // Merge workspaces with user counts
+  const workspaces = rawWorkspaces.map(workspace => ({
+    ...workspace,
+    user_count: userCounts[workspace.id] || 0
+  }));
+
+  const isLoading = workspacesLoading || userCountsLoading;
 
   // Get users for workspace being deleted
   const { data: workspaceUsers = [] } = useQuery({
@@ -106,6 +131,7 @@ export default function WorkspaceManagement() {
         description: 'The workspace has been created successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-user-counts'] });
       setIsCreateDialogOpen(false);
       setNewWorkspace({ name: '', slug: '', description: '' });
     },
@@ -168,6 +194,7 @@ export default function WorkspaceManagement() {
         description: `${workspace.name} has been deleted successfully.`,
       });
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-user-counts'] });
       setDeletingWorkspace(null);
       setConfirmText('');
       setReassignmentAction('reassign');
