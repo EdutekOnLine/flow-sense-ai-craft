@@ -1,15 +1,13 @@
 
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Building, UserCog } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Building, UserCog } from 'lucide-react';
 
 interface UserWithWorkspace {
   id: string;
@@ -29,62 +27,20 @@ interface Workspace {
   slug: string;
   description?: string;
   owner_id: string;
+  created_at: string;
+  user_count?: number;
 }
 
-export default function WorkspaceAssignment() {
-  const { profile } = useAuth();
+interface UserAssignmentProps {
+  users: UserWithWorkspace[];
+  workspaces: Workspace[];
+}
+
+export function UserAssignment({ users, workspaces }: UserAssignmentProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('');
-
-  // Fetch all users with their workspace information
-  const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['all-users-with-workspaces'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          email,
-          first_name,
-          last_name,
-          role,
-          department,
-          workspace_id,
-          workspaces:workspace_id (
-            name,
-            slug
-          )
-        `)
-        .order('role', { ascending: false })
-        .order('email', { ascending: true });
-
-      if (error) throw error;
-      
-      return data.map(user => ({
-        ...user,
-        workspace_name: user.workspaces?.name,
-        workspace_slug: user.workspaces?.slug
-      })) as UserWithWorkspace[];
-    },
-    enabled: profile?.role === 'root',
-  });
-
-  // Fetch all workspaces
-  const { data: workspaces = [], isLoading: workspacesLoading } = useQuery({
-    queryKey: ['all-workspaces'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      return data as Workspace[];
-    },
-    enabled: profile?.role === 'root',
-  });
 
   // Mutation to update user workspace
   const updateUserWorkspace = useMutation({
@@ -102,6 +58,7 @@ export default function WorkspaceAssignment() {
         description: 'User workspace assignment has been updated successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['all-users-with-workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['workspace-user-counts'] });
       setSelectedUserId('');
       setSelectedWorkspaceId('');
     },
@@ -130,35 +87,14 @@ export default function WorkspaceAssignment() {
     });
   };
 
-  if (profile?.role !== 'root') {
-    return (
-      <div className="p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCog className="h-5 w-5" />
-              Access Denied
-            </CardTitle>
-            <CardDescription>
-              Only root users can manage workspace assignments.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  if (usersLoading || workspacesLoading) {
-    return (
-      <div className="p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Loading...</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'root': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'manager': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
   // Group users by workspace
   const groupedUsers = users.reduce((acc, user) => {
@@ -175,33 +111,15 @@ export default function WorkspaceAssignment() {
     return acc;
   }, {} as Record<string, { name: string; users: UserWithWorkspace[] }>);
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'root': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
-      case 'manager': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <UserCog className="h-6 w-6" />
-            Workspace Assignment
-          </h1>
-          <p className="text-muted-foreground">
-            Manage user workspace assignments across the platform
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Quick Assignment Tool */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Quick Assignment</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <UserCog className="h-5 w-5" />
+            Quick Assignment
+          </CardTitle>
           <CardDescription>
             Assign a user to a workspace quickly
           </CardDescription>
@@ -309,40 +227,6 @@ export default function WorkspaceAssignment() {
           </Card>
         ))}
       </div>
-
-      {/* Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Platform Statistics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{users.length}</div>
-              <div className="text-sm text-muted-foreground">Total Users</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{workspaces.length}</div>
-              <div className="text-sm text-muted-foreground">Workspaces</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">
-                {users.filter(u => u.workspace_id).length}
-              </div>
-              <div className="text-sm text-muted-foreground">Assigned Users</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">
-                {users.filter(u => !u.workspace_id && u.role !== 'root').length}
-              </div>
-              <div className="text-sm text-muted-foreground">Unassigned Users</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
