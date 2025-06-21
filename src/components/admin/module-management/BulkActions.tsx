@@ -2,19 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  CheckCircle, 
-  XCircle, 
-  ChevronDown,
-  Package
-} from 'lucide-react';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 interface BulkActionsProps {
   selectedModules: string[];
@@ -23,56 +11,58 @@ interface BulkActionsProps {
 }
 
 export function BulkActions({ selectedModules, onBulkToggle, isLoading }: BulkActionsProps) {
-  const selectedCount = selectedModules.length;
-  
-  if (selectedCount === 0) {
+  // Filter out NeuraCore from bulk actions since it cannot be disabled
+  const selectableModules = selectedModules.filter(moduleId => moduleId !== 'neura-core');
+  const hasSelectableModules = selectableModules.length > 0;
+
+  if (!hasSelectableModules) {
     return null;
   }
 
-  const handleBulkEnable = () => {
-    const modulesToEnable = selectedModules.filter(id => id !== 'neura-core');
-    if (modulesToEnable.length > 0) {
-      onBulkToggle(modulesToEnable, true);
-    }
+  const handleBulkEnable = async () => {
+    await onBulkToggle(selectableModules, true);
   };
 
-  const handleBulkDisable = () => {
-    const modulesToDisable = selectedModules.filter(id => id !== 'neura-core');
-    if (modulesToDisable.length > 0) {
-      onBulkToggle(modulesToDisable, false);
-    }
+  const handleBulkDisable = async () => {
+    await onBulkToggle(selectableModules, false);
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Badge variant="outline" className="bg-primary/10 text-primary">
-        <Package className="h-3 w-3 mr-1" />
-        {selectedCount} selected
+    <div className="flex items-center gap-3">
+      <Badge variant="outline" className="text-sm">
+        {selectableModules.length} selected
       </Badge>
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" disabled={isLoading}>
-            Bulk Actions
-            <ChevronDown className="h-4 w-4 ml-1" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={handleBulkEnable} disabled={isLoading}>
-            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-            Enable Selected
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleBulkDisable} disabled={isLoading}>
-            <XCircle className="h-4 w-4 mr-2 text-red-500" />
-            Disable Selected
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>
-            <Package className="h-4 w-4 mr-2 text-muted-foreground" />
-            Export Configuration
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex gap-2">
+        <Button
+          onClick={handleBulkEnable}
+          disabled={isLoading}
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <CheckCircle className="h-3 w-3" />
+          )}
+          Enable Selected
+        </Button>
+        
+        <Button
+          onClick={handleBulkDisable}
+          disabled={isLoading}
+          size="sm"
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <XCircle className="h-3 w-3" />
+          )}
+          Disable Selected
+        </Button>
+      </div>
     </div>
   );
 }

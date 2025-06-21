@@ -14,7 +14,8 @@ import {
   Info,
   Package,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -61,9 +62,12 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
   const [dependentModules, setDependentModules] = useState<DependentModule[]>([]);
   const [loadingDependencies, setLoadingDependencies] = useState(false);
 
+  const isNeuraCoreModule = module.name === 'neura-core';
+  const canToggle = !isNeuraCoreModule && !isLoading;
+
   const handleToggleClick = async (newState: boolean) => {
-    if (module.name === 'neura-core') {
-      return; // Core module cannot be toggled
+    if (!canToggle) {
+      return;
     }
     
     setPendingAction(newState);
@@ -109,15 +113,15 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
 
   const getStatusIcon = () => {
     if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
-    if (module.name === 'neura-core') return <Package className="h-4 w-4 text-blue-500" />;
+    if (isNeuraCoreModule) return <Lock className="h-4 w-4 text-blue-500" />;
     if (module.isActive) return <CheckCircle className="h-4 w-4 text-green-500" />;
     if (module.isRestricted) return <XCircle className="h-4 w-4 text-red-500" />;
     return <AlertCircle className="h-4 w-4 text-yellow-500" />;
   };
 
   const getStatusBadge = () => {
-    if (module.name === 'neura-core') {
-      return <Badge variant="default" className="bg-blue-100 text-blue-800">Core</Badge>;
+    if (isNeuraCoreModule) {
+      return <Badge variant="default" className="bg-blue-100 text-blue-800">Core System</Badge>;
     }
     if (module.isActive) {
       return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
@@ -130,7 +134,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
 
   const getModuleDescription = () => {
     const descriptions: Record<string, string> = {
-      'neura-core': 'Essential platform functionality including user management and core features',
+      'neura-core': 'Essential platform functionality including user management and core features. This module is required and cannot be disabled.',
       'neura-flow': 'Advanced workflow automation and process management capabilities',
       'neura-crm': 'Customer relationship management and sales tracking tools',
       'neura-forms': 'Dynamic form builder with data collection and validation',
@@ -141,7 +145,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
 
   return (
     <>
-      <Card className={`transition-all duration-200 hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''} ${isLoading ? 'opacity-75' : ''}`}>
+      <Card className={`transition-all duration-200 hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''} ${isLoading ? 'opacity-75' : ''} ${isNeuraCoreModule ? 'border-blue-200 bg-blue-50/30' : ''}`}>
         <CardHeader className="space-y-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
@@ -152,7 +156,7 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={onSelect}
-                disabled={isLoading}
+                disabled={isLoading || isNeuraCoreModule}
                 className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
               {getStatusBadge()}
@@ -173,12 +177,21 @@ export function ModuleCard({ module, isSelected, onSelect, onToggle, isLoading }
               <Switch
                 checked={module.isActive}
                 onCheckedChange={handleToggleClick}
-                disabled={module.name === 'neura-core' || isLoading}
+                disabled={!canToggle}
               />
             </div>
           </div>
+
+          {isNeuraCoreModule && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <Lock className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                This is a core system module that is required for platform functionality and cannot be disabled.
+              </AlertDescription>
+            </Alert>
+          )}
           
-          {module.statusMessage && (
+          {module.statusMessage && !isNeuraCoreModule && (
             <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
               <Info className="h-4 w-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">{module.statusMessage}</span>

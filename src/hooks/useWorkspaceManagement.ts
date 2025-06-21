@@ -84,6 +84,11 @@ export function useWorkspaceManagement(targetWorkspaceId?: string | null) {
       
       if (!targetWorkspace) throw new Error('No workspace specified');
       
+      // Prevent NeuraCore from being disabled
+      if (moduleId === 'neura-core' && !isActive) {
+        throw new Error('NeuraCore is a required system module and cannot be disabled');
+      }
+      
       // Only root users can manage modules for other workspaces
       if (workspaceId && workspaceId !== profile?.workspace_id && profile?.role !== 'root') {
         throw new Error('Insufficient permissions to manage modules for other workspaces');
@@ -172,8 +177,9 @@ export function useWorkspaceManagement(targetWorkspaceId?: string | null) {
         displayName: accessInfo.display_name,
         isActive: accessInfo.is_active,
         isAvailable: accessInfo.is_available,
-        isRestricted: !accessInfo.is_active,
-        statusMessage: accessInfo.is_active ? 'Active' : 
+        isRestricted: !accessInfo.is_active && accessInfo.module_name !== 'neura-core',
+        statusMessage: accessInfo.module_name === 'neura-core' ? 'Core System Module' :
+          accessInfo.is_active ? 'Active' : 
           accessInfo.missing_dependencies.length > 0 ? 
           `Missing: ${accessInfo.missing_dependencies.join(', ')}` :
           'Inactive',
@@ -189,10 +195,10 @@ export function useWorkspaceManagement(targetWorkspaceId?: string | null) {
     return modules.map(moduleName => ({
       name: moduleName,
       displayName: getModuleDisplayName(moduleName),
-      isActive: false,
+      isActive: moduleName === 'neura-core', // NeuraCore is always active
       isAvailable: true,
-      isRestricted: true,
-      statusMessage: 'Inactive',
+      isRestricted: moduleName !== 'neura-core',
+      statusMessage: moduleName === 'neura-core' ? 'Core System Module' : 'Inactive',
       hasDependencies: false,
       missingDependencies: [],
       version: '1.0.0',
