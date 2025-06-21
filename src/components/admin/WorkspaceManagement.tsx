@@ -34,25 +34,7 @@ export default function WorkspaceManagement() {
     description: ''
   });
 
-  // Only root users can access this
-  if (profile?.role !== 'root') {
-    return (
-      <div className="p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Access Denied
-            </CardTitle>
-            <CardDescription>
-              Only root users can manage workspaces.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
+  // Move all hooks before any conditional logic
   const { data: workspaces = [], isLoading } = useQuery({
     queryKey: ['workspaces'],
     queryFn: async () => {
@@ -71,6 +53,7 @@ export default function WorkspaceManagement() {
         user_count: workspace.profiles?.length || 0
       })) as Workspace[];
     },
+    enabled: profile?.role === 'root', // Only run query for root users
   });
 
   const createWorkspace = useMutation({
@@ -104,6 +87,25 @@ export default function WorkspaceManagement() {
       });
     },
   });
+
+  // Now check role after all hooks are declared
+  if (profile?.role !== 'root') {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Access Denied
+            </CardTitle>
+            <CardDescription>
+              Only root users can manage workspaces.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const handleCreateWorkspace = () => {
     if (!newWorkspace.name || !newWorkspace.slug) {
