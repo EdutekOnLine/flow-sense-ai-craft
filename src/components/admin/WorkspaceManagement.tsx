@@ -494,7 +494,7 @@ export default function WorkspaceManagement() {
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  </AlertDialogs>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>
