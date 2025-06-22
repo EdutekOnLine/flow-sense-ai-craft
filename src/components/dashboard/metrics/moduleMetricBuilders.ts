@@ -12,9 +12,14 @@ import {
   Target
 } from 'lucide-react';
 import { MetricCardData } from './types';
+import { RandomColorAssignment } from '@/utils/themeColorRandomizer';
 
-export function buildNeuraFlowMetrics(flowMetrics: any, t: (key: string) => string): MetricCardData[] {
-  return [
+export function buildNeuraFlowMetrics(
+  flowMetrics: any, 
+  t: (key: string) => string,
+  colorAssignment?: RandomColorAssignment
+): MetricCardData[] {
+  const cards = [
     {
       title: t('dashboard.pendingTasks'),
       value: flowMetrics.pendingTasks,
@@ -40,10 +45,23 @@ export function buildNeuraFlowMetrics(flowMetrics: any, t: (key: string) => stri
       borderColor: 'border-accent/20'
     }
   ];
+
+  // Apply random colors if provided
+  if (colorAssignment) {
+    return cards.map(card => ({
+      ...card,
+      ...colorAssignment[card.title] || card
+    }));
+  }
+
+  return cards;
 }
 
-export function buildNeuraCrmMetrics(crmMetrics: any): MetricCardData[] {
-  return [
+export function buildNeuraCrmMetrics(
+  crmMetrics: any,
+  colorAssignment?: RandomColorAssignment
+): MetricCardData[] {
+  const cards = [
     {
       title: 'Total Leads',
       value: crmMetrics.totalLeads,
@@ -69,10 +87,23 @@ export function buildNeuraCrmMetrics(crmMetrics: any): MetricCardData[] {
       borderColor: 'border-module-accent-1'
     }
   ];
+
+  // Apply random colors if provided
+  if (colorAssignment) {
+    return cards.map(card => ({
+      ...card,
+      ...colorAssignment[card.title] || card
+    }));
+  }
+
+  return cards;
 }
 
-export function buildNeuraFormsMetrics(formsMetrics: any): MetricCardData[] {
-  return [
+export function buildNeuraFormsMetrics(
+  formsMetrics: any,
+  colorAssignment?: RandomColorAssignment
+): MetricCardData[] {
+  const cards = [
     {
       title: 'Form Submissions',
       value: formsMetrics.submissions,
@@ -90,10 +121,23 @@ export function buildNeuraFormsMetrics(formsMetrics: any): MetricCardData[] {
       borderColor: 'border-module-accent-3'
     }
   ];
+
+  // Apply random colors if provided
+  if (colorAssignment) {
+    return cards.map(card => ({
+      ...card,
+      ...colorAssignment[card.title] || card
+    }));
+  }
+
+  return cards;
 }
 
-export function buildNeuraEduMetrics(eduMetrics: any): MetricCardData[] {
-  return [
+export function buildNeuraEduMetrics(
+  eduMetrics: any,
+  colorAssignment?: RandomColorAssignment
+): MetricCardData[] {
+  const cards = [
     {
       title: 'Active Students',
       value: eduMetrics.activeStudents,
@@ -111,10 +155,20 @@ export function buildNeuraEduMetrics(eduMetrics: any): MetricCardData[] {
       borderColor: 'border-module-accent-4'
     }
   ];
+
+  // Apply random colors if provided
+  if (colorAssignment) {
+    return cards.map(card => ({
+      ...card,
+      ...colorAssignment[card.title] || card
+    }));
+  }
+
+  return cards;
 }
 
-export function buildFallbackMetrics(): MetricCardData[] {
-  return [
+export function buildFallbackMetrics(colorAssignment?: RandomColorAssignment): MetricCardData[] {
+  const cards = [
     {
       title: 'System Status',
       value: 'Online',
@@ -132,4 +186,14 @@ export function buildFallbackMetrics(): MetricCardData[] {
       borderColor: 'border-primary/20'
     }
   ];
+
+  // Apply random colors if provided
+  if (colorAssignment) {
+    return cards.map(card => ({
+      ...card,
+      ...colorAssignment[card.title] || card
+    }));
+  }
+
+  return cards;
 }

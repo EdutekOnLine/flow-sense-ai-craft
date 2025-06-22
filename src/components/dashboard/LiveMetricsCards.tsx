@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedCounter } from './AnimatedCounter';
@@ -14,61 +13,65 @@ import {
   Loader2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { createRandomColorAssignment } from '@/utils/themeColorRandomizer';
 
 export function LiveMetricsCards() {
   const { metrics, isLoading } = useRealtimeDashboardMetrics();
   const { t } = useTranslation();
 
-  const metricCards = [
-    {
-      title: t('dashboard.pendingTasks'),
-      value: metrics.pendingTasks,
-      icon: Clock,
-      color: 'text-status-pending',
-      bgColor: 'bg-status-pending-bg',
-      borderColor: 'border-theme-primary'
-    },
-    {
-      title: t('dashboard.activeTasks'),
-      value: metrics.inProgressTasks,
-      icon: PlayCircle,
-      color: 'text-status-active',
-      bgColor: 'bg-status-active-bg',
-      borderColor: 'border-theme-secondary'
-    },
-    {
-      title: t('dashboard.completedToday'),
-      value: metrics.completedTasksToday,
-      icon: CheckCircle,
-      color: 'text-status-success',
-      bgColor: 'bg-status-success-bg',
-      borderColor: 'border-theme-accent'
-    },
-    {
-      title: t('dashboard.activeWorkflows'),
-      value: metrics.activeWorkflows,
-      icon: Activity,
-      color: 'text-primary',
-      bgColor: 'bg-primary/5',
-      borderColor: 'border-primary/20'
-    },
-    {
-      title: t('dashboard.reusableWorkflows'),
-      value: metrics.myReusableWorkflows,
-      icon: Repeat,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/5',
-      borderColor: 'border-secondary/20'
-    },
-    {
-      title: t('dashboard.totalWorkflows'),
-      value: metrics.totalSavedWorkflows,
-      icon: Workflow,
-      color: 'text-muted-foreground',
-      bgColor: 'bg-muted/5',
-      borderColor: 'border-muted/20'
-    }
-  ];
+  const metricCards = useMemo(() => {
+    const cardTitles = [
+      t('dashboard.pendingTasks'),
+      t('dashboard.activeTasks'),
+      t('dashboard.completedToday'),
+      t('dashboard.activeWorkflows'),
+      t('dashboard.reusableWorkflows'),
+      t('dashboard.totalWorkflows')
+    ];
+
+    // Generate random color assignment that changes every 5 minutes
+    const sessionKey = Math.floor(Date.now() / (1000 * 60 * 5));
+    const colorAssignment = createRandomColorAssignment(cardTitles);
+
+    return [
+      {
+        title: t('dashboard.pendingTasks'),
+        value: metrics.pendingTasks,
+        icon: Clock,
+        ...colorAssignment[t('dashboard.pendingTasks')]
+      },
+      {
+        title: t('dashboard.activeTasks'),
+        value: metrics.inProgressTasks,
+        icon: PlayCircle,
+        ...colorAssignment[t('dashboard.activeTasks')]
+      },
+      {
+        title: t('dashboard.completedToday'),
+        value: metrics.completedTasksToday,
+        icon: CheckCircle,
+        ...colorAssignment[t('dashboard.completedToday')]
+      },
+      {
+        title: t('dashboard.activeWorkflows'),
+        value: metrics.activeWorkflows,
+        icon: Activity,
+        ...colorAssignment[t('dashboard.activeWorkflows')]
+      },
+      {
+        title: t('dashboard.reusableWorkflows'),
+        value: metrics.myReusableWorkflows,
+        icon: Repeat,
+        ...colorAssignment[t('dashboard.reusableWorkflows')]
+      },
+      {
+        title: t('dashboard.totalWorkflows'),
+        value: metrics.totalSavedWorkflows,
+        icon: Workflow,
+        ...colorAssignment[t('dashboard.totalWorkflows')]
+      }
+    ];
+  }, [metrics, t]);
 
   if (isLoading) {
     return (
