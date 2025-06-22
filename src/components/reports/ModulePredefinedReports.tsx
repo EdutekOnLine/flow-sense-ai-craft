@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -215,10 +214,7 @@ export function ModulePredefinedReports() {
                       <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
                         {report.description}
                       </p>
-                      <div className={`flex justify-between items-center rtl:flex-row-reverse`}>
-                        <span className={`text-xs text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
-                          Source: {report.dataSource}
-                        </span>
+                      <div className={`flex justify-end rtl:justify-start`}>
                         <Button 
                           size="sm"
                           onClick={() => generateReport(report.id)}
