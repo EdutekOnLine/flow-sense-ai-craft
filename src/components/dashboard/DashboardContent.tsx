@@ -1,26 +1,16 @@
 
 import React from 'react';
-import { DashboardTasks } from './tasks/DashboardTasks';
-import { MyReusableWorkflows } from './MyReusableWorkflows';
-import { SavedWorkflows } from './SavedWorkflows';
 import { ModuleMetricsCards } from './ModuleMetricsCards';
 import { ModuleQuickActions } from './ModuleQuickActions';
 import { ModuleIntegrationOverview } from './ModuleIntegrationOverview';
-import { RealtimeActivityFeed } from './RealtimeActivityFeed';
-import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
-import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
 import { 
   Activity,
-  Sparkles,
-  Inbox,
-  Repeat,
-  Workflow
+  Sparkles
 } from 'lucide-react';
 
 interface DashboardContentProps {
@@ -30,28 +20,11 @@ interface DashboardContentProps {
 export default function DashboardContent({ onOpenWorkflow }: DashboardContentProps) {
   const { profile } = useAuth();
   const { t } = useTranslation();
-  const { startWorkflow } = useWorkflowInstances();
-  const { canEditWorkflows } = useWorkflowPermissions();
   const { canAccessModule, getAccessibleModules } = useModulePermissions();
 
   const accessibleModules = getAccessibleModules();
   const hasWorkflowAccess = canAccessModule('neura-flow');
   const hasMultipleModules = accessibleModules.length > 1;
-
-  const handleStartWorkflow = async (workflowId: string, startData: any) => {
-    try {
-      await startWorkflow(workflowId, startData);
-      toast.success(t('workflow.launchSuccess'));
-    } catch (error) {
-      console.error('Error launching workflow:', error);
-      toast.error(t('workflow.launchError'));
-    }
-  };
-
-  const handleViewAllTasks = () => {
-    window.location.hash = 'workflow-inbox';
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-  };
 
   return (
     <div className="space-y-8">
@@ -87,116 +60,33 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
       {/* Dynamic Module Metrics */}
       <ModuleMetricsCards />
 
-      {/* Two-column layout for main content and sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main content - 2/3 width */}
-        <div className="lg:col-span-2 space-y-8">
+      {/* Main content layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+        <div className="space-y-8">
           {/* Quick Actions */}
           <ModuleQuickActions />
 
           {/* Module Integration Overview */}
           <ModuleIntegrationOverview />
 
-          {/* Workflow-specific sections - only show if NeuraFlow is accessible */}
-          {hasWorkflowAccess && (
-            <>
-              {/* My Assigned Tasks Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-card">
-                    <Inbox className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myAssignedTasks')}</h2>
-                    <p className="text-muted-foreground">{t('dashboard.myAssignedTasksDescription')}</p>
-                  </div>
-                </div>
-                <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
-                  <DashboardTasks onViewAllTasks={handleViewAllTasks} />
-                </div>
-              </div>
-
-              {/* My Reusable Workflows Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl shadow-card">
-                    <Repeat className="h-6 w-6 text-secondary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myReusableWorkflows')}</h2>
-                    <p className="text-muted-foreground">{t('dashboard.myReusableWorkflowsDescription')}</p>
-                  </div>
-                </div>
-                <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
-                  <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
-                </div>
-              </div>
-
-              {/* Saved Workflows Section - Only show for users who can edit workflows */}
-              {canEditWorkflows && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 bg-gradient-to-br from-accent to-accent/70 rounded-xl shadow-card">
-                      <Workflow className="h-6 w-6 text-accent-foreground" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground">
-                        {profile?.role === 'admin' ? t('dashboard.allSavedWorkflows') : t('dashboard.mySavedWorkflows')}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {profile?.role === 'admin' ? t('dashboard.allSavedWorkflowsDescription') : t('dashboard.mySavedWorkflowsDescription')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-theme-accent p-6 rounded-xl border border-border">
-                    <SavedWorkflows 
-                      onOpenWorkflow={onOpenWorkflow}
-                      onStartWorkflow={handleStartWorkflow}
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Welcome message for users without workflow access */}
-          {!hasWorkflowAccess && (
-            <div className="space-y-6">
-              <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
-                <CardHeader className="text-center">
-                  <div className="mx-auto p-3 bg-gradient-to-br from-primary to-accent rounded-xl w-fit mb-4 shadow-card">
-                    <Sparkles className="h-8 w-8 text-primary-foreground" />
-                  </div>
-                  <CardTitle className="text-2xl text-foreground">Welcome to NeuraCore</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground text-lg">
-                    {hasMultipleModules 
-                      ? 'Access your business modules and manage your workspace from this central hub.'
-                      : 'Your business management platform. Contact your administrator to activate additional modules and unlock more features.'
-                    }
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </div>
-
-        {/* Activity feed sidebar - 1/3 width */}
-        <div className="lg:col-span-1">
+          {/* Welcome message */}
           <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-muted-foreground to-muted-foreground/70 rounded-xl shadow-card">
-                <Activity className="h-6 w-6 text-muted" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">{t('dashboard.recentActivity')}</h2>
-                <p className="text-muted-foreground">{t('dashboard.recentActivityDescription')}</p>
-              </div>
-            </div>
-            <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
-              <RealtimeActivityFeed />
-            </div>
+            <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
+              <CardHeader className="text-center">
+                <div className="mx-auto p-3 bg-gradient-to-br from-primary to-accent rounded-xl w-fit mb-4 shadow-card">
+                  <Sparkles className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <CardTitle className="text-2xl text-foreground">Welcome to NeuraCore</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground text-lg">
+                  {hasMultipleModules 
+                    ? 'Access your business modules and manage your workspace from this central hub.'
+                    : 'Your business management platform. Contact your administrator to activate additional modules and unlock more features.'
+                  }
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
