@@ -124,37 +124,46 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3" dir="ltr">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="ltr">
                 {exampleQueries.map((example) => (
-                  <Button
+                  <Card
                     key={example.id}
-                    variant="outline"
-                    size="sm"
+                    className="hover:shadow-md transition-shadow cursor-pointer relative flex flex-col h-full"
                     onClick={() => handleExampleClick(example)}
-                    className={`h-auto p-4 whitespace-normal text-start leading-relaxed ${getRTLAwareTextAlign('start')} relative`}
-                    disabled={isLoading}
-                    dir="auto"
                   >
-                    <div className="w-full space-y-2">
-                      <span className={`block w-full ${getRTLAwareTextAlign('start')} text-sm font-medium`}>
-                        {example.text}
-                      </span>
-                      <div className="flex flex-wrap gap-1 justify-start">
-                        {example.modules.map(moduleId => (
-                          <Badge 
-                            key={moduleId}
-                            variant="outline"
-                            className={`text-xs ${getModuleBadgeColor(moduleId)}`}
-                          >
-                            {ModuleExampleQueryGenerator.getModuleDisplayName(moduleId)}
-                          </Badge>
-                        ))}
+                    {isLoading && (
+                      <div className="absolute inset-0 bg-muted/50 rounded-lg z-10 flex items-center justify-center">
+                        <Badge variant="secondary">Loading...</Badge>
+                      </div>
+                    )}
+                    <CardContent className="p-4 flex flex-col h-full space-y-3">
+                      <div className="h-[3rem] flex items-start">
+                        <p className={`text-sm font-medium line-clamp-2 overflow-hidden ${getRTLAwareTextAlign('start')}`} dir="auto">
+                          {example.text}
+                        </p>
+                      </div>
+                      
+                      <div className="h-[2rem] flex items-start">
+                        <div className="flex flex-wrap gap-1">
+                          {example.modules.map(moduleId => (
+                            <Badge 
+                              key={moduleId}
+                              variant="outline"
+                              className={`text-xs ${getModuleBadgeColor(moduleId)}`}
+                            >
+                              {ModuleExampleQueryGenerator.getModuleDisplayName(moduleId)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="h-[1.5rem] flex items-start">
                         <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
                           {example.category}
                         </Badge>
                       </div>
-                    </div>
-                  </Button>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
