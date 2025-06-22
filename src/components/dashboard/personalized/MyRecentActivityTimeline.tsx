@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +10,7 @@ import {
   Users, 
   FileText, 
   BookOpen,
-  Clock,
-  Pulse
+  Clock
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -56,7 +56,7 @@ export function MyRecentActivityTimeline() {
             My Recent Activity
           </CardTitle>
           <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Pulse className="h-6 w-6 text-primary-foreground" />
+            <Activity className="h-6 w-6 text-primary-foreground" />
           </div>
         </CardHeader>
         <CardContent>
@@ -85,7 +85,7 @@ export function MyRecentActivityTimeline() {
             My Recent Activity
           </CardTitle>
           <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Pulse className="h-6 w-6 text-primary-foreground" />
+            <Activity className="h-6 w-6 text-primary-foreground" />
           </div>
         </CardHeader>
         <CardContent>
@@ -107,7 +107,7 @@ export function MyRecentActivityTimeline() {
           My Recent Activity
         </CardTitle>
         <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-          <Pulse className="h-6 w-6 text-primary-foreground" />
+          <Activity className="h-6 w-6 text-primary-foreground" />
         </div>
       </CardHeader>
       <CardContent>
