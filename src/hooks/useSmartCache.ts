@@ -29,9 +29,10 @@ export function useSmartModuleCache(workspaceId?: string, userId?: string) {
       return data as ModuleAccessInfo[];
     },
     enabled: !!workspaceId && !!userId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, // Increased to 5 minutes for better performance
+    gcTime: 10 * 60 * 1000, // Increased to 10 minutes
     refetchOnWindowFocus: false,
-    retry: 2,
+    refetchOnMount: false, // Prevent unnecessary refetches
+    retry: 1, // Reduced retry attempts for faster failure feedback
   });
 }

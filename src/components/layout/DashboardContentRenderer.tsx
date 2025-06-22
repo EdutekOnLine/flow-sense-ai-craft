@@ -18,6 +18,7 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
+        // Core feature - no ModuleGuard needed, always accessible
         return <DashboardContent />;
       
       case 'workflow-inbox':
@@ -75,18 +76,23 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
         );
       
       case 'users':
+        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <UserManagement />;
       
       case 'workspace-management':
+        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <WorkspaceManagement />;
       
       case 'reports':
+        // Core feature - no ModuleGuard needed, always accessible
         return <ReportsPage />;
       
       case 'module-management':
+        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <ModuleManagement />;
       
       case 'settings':
+        // Core feature - no ModuleGuard needed, always accessible
         return (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Settings</h1>
