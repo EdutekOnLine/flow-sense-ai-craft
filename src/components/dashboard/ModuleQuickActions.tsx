@@ -11,7 +11,8 @@ import {
   BookOpen, 
   BarChart3,
   Settings,
-  Users
+  Users,
+  Zap
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,11 +59,14 @@ export function ModuleQuickActions() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-primary" />
           {t('dashboard.quickActions')}
         </CardTitle>
+        <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+          <Zap className="h-6 w-6 text-primary-foreground" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,8 @@ import {
   Users, 
   FileText, 
   BookOpen,
-  Clock
+  Clock,
+  Pulse
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -50,11 +50,14 @@ export function MyRecentActivityTimeline() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
             My Recent Activity
           </CardTitle>
+          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+            <Pulse className="h-6 w-6 text-primary-foreground" />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -76,11 +79,14 @@ export function MyRecentActivityTimeline() {
   if (!recentActivity.length) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
             My Recent Activity
           </CardTitle>
+          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+            <Pulse className="h-6 w-6 text-primary-foreground" />
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6 text-muted-foreground">
@@ -95,11 +101,14 @@ export function MyRecentActivityTimeline() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-primary" />
           My Recent Activity
         </CardTitle>
+        <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+          <Pulse className="h-6 w-6 text-primary-foreground" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
