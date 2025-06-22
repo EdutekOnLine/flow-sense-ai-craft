@@ -1,0 +1,116 @@
+
+@layer base {
+  /* Enhanced RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+  }
+
+  /* RTL-specific styles for better Arabic text rendering */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  [dir="rtl"] .rtl-space-reverse {
+    flex-direction: row-reverse;
+  }
+
+  /* Better RTL support for forms and inputs */
+  [dir="rtl"] input[type="text"],
+  [dir="rtl"] input[type="email"],
+  [dir="rtl"] input[type="password"],
+  [dir="rtl"] textarea {
+    text-align: right;
+  }
+
+  [dir="rtl"] .rtl-text-right {
+    text-align: right;
+  }
+
+  [dir="ltr"] .ltr-text-left {
+    text-align: left;
+  }
+
+  /* Logical properties for spacing that work with RTL */
+  .ms-auto {
+    margin-inline-start: auto;
+  }
+
+  .me-auto {
+    margin-inline-end: auto;
+  }
+
+  .ps-1 { padding-inline-start: 0.25rem; }
+  .ps-2 { padding-inline-start: 0.5rem; }
+  .ps-3 { padding-inline-start: 0.75rem; }
+  .ps-4 { padding-inline-start: 1rem; }
+  .ps-6 { padding-inline-start: 1.5rem; }
+
+  .pe-1 { padding-inline-end: 0.25rem; }
+  .pe-2 { padding-inline-end: 0.5rem; }
+  .pe-3 { padding-inline-end: 0.75rem; }
+  .pe-4 { padding-inline-end: 1rem; }
+  .pe-6 { padding-inline-end: 1.5rem; }
+
+  .ms-1 { margin-inline-start: 0.25rem; }
+  .ms-2 { margin-inline-start: 0.5rem; }
+  .ms-3 { margin-inline-start: 0.75rem; }
+  .ms-4 { margin-inline-start: 1rem; }
+
+  .me-1 { margin-inline-end: 0.25rem; }
+  .me-2 { margin-inline-end: 0.5rem; }
+  .me-3 { margin-inline-end: 0.75rem; }
+  .me-4 { margin-inline-end: 1rem; }
+
+  /* RTL-aware flexbox utilities */
+  .flex-row-rtl {
+    flex-direction: row;
+  }
+
+  [dir="rtl"] .flex-row-rtl {
+    flex-direction: row-reverse;
+  }
+
+  /* Button and badge RTL adjustments */
+  [dir="rtl"] .rtl-button-reverse {
+    flex-direction: row-reverse;
+  }
+
+  [dir="rtl"] .rtl-gap-reverse > * + * {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+
+  /* Dropdown and menu RTL support */
+  [dir="rtl"] .rtl-dropdown {
+    text-align: right;
+  }
+
+  [dir="rtl"] .rtl-dropdown .dropdown-item {
+    text-align: right;
+    padding-right: 1rem;
+    padding-left: 0.5rem;
+  }
+}
+
+@layer utilities {
+  /* RTL-aware utilities */
+  .rtl-aware-flex {
+    @apply flex;
+  }
+
+  [dir="rtl"] .rtl-aware-flex {
+    @apply flex-row-reverse;
+  }
+
+  .rtl-aware-text {
+    @apply text-left;
+  }
+
+  [dir="rtl"] .rtl-aware-text {
+    @apply text-right;
+  }
+}
