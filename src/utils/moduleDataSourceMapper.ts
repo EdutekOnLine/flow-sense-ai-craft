@@ -113,6 +113,8 @@ export const DATA_SOURCE_INFO: Record<string, DataSourceInfo> = {
 };
 
 export class ModuleDataSourceMapper {
+  static DATA_SOURCE_INFO = DATA_SOURCE_INFO;
+
   /**
    * Get available data sources based on active modules
    */
@@ -188,7 +190,7 @@ export class ModuleDataSourceMapper {
       if (activeModules.includes(moduleConfig.moduleId)) {
         groupedDataSources[moduleConfig.moduleId] = moduleConfig.dataSources
           .map(dsId => DATA_SOURCE_INFO[dsId])
-          .filter(Boolean);
+          .filter((ds): ds is DataSourceInfo => Boolean(ds));
       }
     });
     

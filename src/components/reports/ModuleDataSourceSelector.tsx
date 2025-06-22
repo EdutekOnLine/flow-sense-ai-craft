@@ -25,13 +25,13 @@ export function ModuleDataSourceSelector({ value, onChange }: ModuleDataSourceSe
   // Get available data sources based on active modules
   const availableDataSources = ModuleDataSourceMapper.getAvailableDataSources(activeModules, isRootUser);
   const allDataSources = Object.values(ModuleDataSourceMapper.DATA_SOURCE_INFO);
-  const unavailableDataSources = allDataSources.filter(ds => 
+  const unavailableDataSources = allDataSources.filter((ds: DataSourceInfo) => 
     !availableDataSources.find(ads => ads.id === ds.id)
   );
 
   // Get suggested modules for unavailable data sources
   const suggestedModules = ModuleDataSourceMapper.getSuggestedModules(
-    unavailableDataSources.map(ds => ds.id),
+    unavailableDataSources.map((ds: DataSourceInfo) => ds.id),
     activeModules
   );
 
