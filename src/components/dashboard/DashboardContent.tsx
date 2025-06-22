@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { DashboardTasks } from './tasks/DashboardTasks';
-import { MyReusableWorkflows } from './MyReusableWorkflows';
+import { ModularTasksPanel } from './ModularTasksPanel';
+import { ModularAssetsPanel } from './ModularAssetsPanel'; 
 import { SavedWorkflows } from './SavedWorkflows';
 import { ModuleMetricsCards } from './ModuleMetricsCards';
 import { ModuleQuickActions } from './ModuleQuickActions';
 import { ModuleIntegrationOverview } from './ModuleIntegrationOverview';
-import { RealtimeActivityFeed } from './RealtimeActivityFeed';
+import { ModularActivityFeed } from './ModularActivityFeed';
 import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
@@ -49,7 +49,18 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   };
 
   const handleViewAllTasks = () => {
-    window.location.hash = 'workflow-inbox';
+    if (hasWorkflowAccess) {
+      window.location.hash = 'workflow-inbox';
+    } else {
+      // Navigate to appropriate module's task view
+      if (canAccessModule('neura-crm')) {
+        window.location.hash = 'crm';
+      } else if (canAccessModule('neura-forms')) {
+        window.location.hash = 'forms';
+      } else if (canAccessModule('neura-edu')) {
+        window.location.hash = 'education';
+      }
+    }
     window.dispatchEvent(new HashChangeEvent('hashchange'));
   };
 
@@ -97,70 +108,73 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* Module Integration Overview */}
           <ModuleIntegrationOverview />
 
-          {/* Workflow-specific sections - only show if NeuraFlow is accessible */}
-          {hasWorkflowAccess && (
-            <>
-              {/* My Assigned Tasks Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-card">
-                    <Inbox className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myAssignedTasks')}</h2>
-                    <p className="text-muted-foreground">{t('dashboard.myAssignedTasksDescription')}</p>
-                  </div>
+          {/* My Tasks Section - Now modular */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-card">
+                <Inbox className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {hasWorkflowAccess ? t('dashboard.myAssignedTasks') : 'My Tasks'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {hasWorkflowAccess ? t('dashboard.myAssignedTasksDescription') : 'Tasks and activities from your active modules'}
+                </p>
+              </div>
+            </div>
+            <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
+              <ModularTasksPanel onViewAllTasks={handleViewAllTasks} />
+            </div>
+          </div>
+
+          {/* My Assets Section - Now modular */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl shadow-card">
+                <Repeat className="h-6 w-6 text-secondary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {hasWorkflowAccess ? t('dashboard.myReusableWorkflows') : 'My Assets & Templates'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {hasWorkflowAccess ? t('dashboard.myReusableWorkflowsDescription') : 'Reusable templates and assets from your active modules'}
+                </p>
+              </div>
+            </div>
+            <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
+              <ModularAssetsPanel onStartWorkflow={handleStartWorkflow} />
+            </div>
+          </div>
+
+          {/* Saved Workflows Section - Only show for workflow users who can edit */}
+          {hasWorkflowAccess && canEditWorkflows && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-accent to-accent/70 rounded-xl shadow-card">
+                  <Workflow className="h-6 w-6 text-accent-foreground" />
                 </div>
-                <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
-                  <DashboardTasks onViewAllTasks={handleViewAllTasks} />
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {profile?.role === 'admin' ? t('dashboard.allSavedWorkflows') : t('dashboard.mySavedWorkflows')}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {profile?.role === 'admin' ? t('dashboard.allSavedWorkflowsDescription') : t('dashboard.mySavedWorkflowsDescription')}
+                  </p>
                 </div>
               </div>
-
-              {/* My Reusable Workflows Section */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-secondary to-secondary/70 rounded-xl shadow-card">
-                    <Repeat className="h-6 w-6 text-secondary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground">{t('dashboard.myReusableWorkflows')}</h2>
-                    <p className="text-muted-foreground">{t('dashboard.myReusableWorkflowsDescription')}</p>
-                  </div>
-                </div>
-                <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
-                  <MyReusableWorkflows onStartWorkflow={handleStartWorkflow} />
-                </div>
+              <div className="bg-gradient-theme-accent p-6 rounded-xl border border-border">
+                <SavedWorkflows 
+                  onOpenWorkflow={onOpenWorkflow}
+                  onStartWorkflow={handleStartWorkflow}
+                />
               </div>
-
-              {/* Saved Workflows Section - Only show for users who can edit workflows */}
-              {canEditWorkflows && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 bg-gradient-to-br from-accent to-accent/70 rounded-xl shadow-card">
-                      <Workflow className="h-6 w-6 text-accent-foreground" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground">
-                        {profile?.role === 'admin' ? t('dashboard.allSavedWorkflows') : t('dashboard.mySavedWorkflows')}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {profile?.role === 'admin' ? t('dashboard.allSavedWorkflowsDescription') : t('dashboard.mySavedWorkflowsDescription')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-theme-accent p-6 rounded-xl border border-border">
-                    <SavedWorkflows 
-                      onOpenWorkflow={onOpenWorkflow}
-                      onStartWorkflow={handleStartWorkflow}
-                    />
-                  </div>
-                </div>
-              )}
-            </>
+            </div>
           )}
 
-          {/* Welcome message for users without workflow access */}
-          {!hasWorkflowAccess && (
+          {/* Welcome message for users without any active modules */}
+          {accessibleModules.length <= 1 && (
             <div className="space-y-6">
               <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
                 <CardHeader className="text-center">
@@ -171,10 +185,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-muted-foreground text-lg">
-                    {hasMultipleModules 
-                      ? 'Access your business modules and manage your workspace from this central hub.'
-                      : 'Your business management platform. Contact your administrator to activate additional modules and unlock more features.'
-                    }
+                    Your business management platform. Contact your administrator to activate additional modules and unlock more features.
                   </p>
                 </CardContent>
               </Card>
@@ -182,7 +193,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           )}
         </div>
 
-        {/* Activity feed sidebar - 1/3 width */}
+        {/* Activity feed sidebar - 1/3 width - Now modular */}
         <div className="lg:col-span-1">
           <div className="space-y-6">
             <div className="flex items-center gap-3 mb-6">
@@ -195,7 +206,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
               </div>
             </div>
             <div className="bg-gradient-theme-secondary p-6 rounded-xl border border-border">
-              <RealtimeActivityFeed />
+              <ModularActivityFeed />
             </div>
           </div>
         </div>
