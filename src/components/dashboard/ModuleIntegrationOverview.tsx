@@ -59,23 +59,18 @@ export function ModuleIntegrationOverview() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center justify-between w-full">
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
-            Active Modules
-          </CardTitle>
-          <div className="flex items-center gap-3">
-            {canManageModules() && (
-              <Button variant="outline" size="sm" onClick={handleManageModules}>
-                <Settings className="h-4 w-4 mr-2" />
-                Manage
-              </Button>
-            )}
-            <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-              <Grid3X3 className="h-6 w-6 text-primary-foreground" />
-            </div>
+        <CardTitle className="flex items-center gap-2">
+          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+            <Grid3X3 className="h-6 w-6 text-primary-foreground" />
           </div>
-        </div>
+          Active Modules
+        </CardTitle>
+        {canManageModules() && (
+          <Button variant="outline" size="sm" onClick={handleManageModules}>
+            <Settings className="h-4 w-4 mr-2" />
+            Manage
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -50,14 +50,13 @@ export function MyRecentActivityTimeline() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
+            <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+              <Activity className="h-6 w-6 text-primary-foreground" />
+            </div>
             My Recent Activity
           </CardTitle>
-          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -79,14 +78,13 @@ export function MyRecentActivityTimeline() {
   if (!recentActivity.length) {
     return (
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
+            <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+              <Activity className="h-6 w-6 text-primary-foreground" />
+            </div>
             My Recent Activity
           </CardTitle>
-          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Activity className="h-6 w-6 text-primary-foreground" />
-          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-6 text-muted-foreground">
@@ -101,14 +99,13 @@ export function MyRecentActivityTimeline() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
+          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+            <Activity className="h-6 w-6 text-primary-foreground" />
+          </div>
           My Recent Activity
         </CardTitle>
-        <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-          <Activity className="h-6 w-6 text-primary-foreground" />
-        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

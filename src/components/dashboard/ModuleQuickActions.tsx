@@ -59,14 +59,13 @@ export function ModuleQuickActions() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5 text-primary" />
+          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
+            <Zap className="h-6 w-6 text-primary-foreground" />
+          </div>
           {t('dashboard.quickActions')}
         </CardTitle>
-        <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-          <Zap className="h-6 w-6 text-primary-foreground" />
-        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
