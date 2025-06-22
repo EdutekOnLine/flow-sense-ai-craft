@@ -56,17 +56,17 @@ export function buildNeuraCrmMetrics(crmMetrics: any): MetricCardData[] {
       title: 'Active Deals',
       value: crmMetrics.activeDeals,
       icon: Target,
-      color: 'text-status-success',
-      bgColor: 'bg-status-success-bg',
-      borderColor: 'border-theme-accent'
+      color: 'text-module-accent-1',
+      bgColor: 'bg-module-accent-1',
+      borderColor: 'border-module-accent-1'
     },
     {
       title: 'Monthly Revenue',
       value: crmMetrics.monthlyRevenue,
       icon: DollarSign,
-      color: 'text-status-success',
-      bgColor: 'bg-status-success-bg',
-      borderColor: 'border-theme-accent'
+      color: 'text-module-accent-1',
+      bgColor: 'bg-module-accent-1',
+      borderColor: 'border-module-accent-1'
     }
   ];
 }
@@ -106,9 +106,9 @@ export function buildNeuraEduMetrics(eduMetrics: any): MetricCardData[] {
       title: 'Course Completion',
       value: `${eduMetrics.completionRate}%`,
       icon: BookOpen,
-      color: 'text-status-success',
-      bgColor: 'bg-status-success-bg',
-      borderColor: 'border-theme-primary'
+      color: 'text-module-accent-4',
+      bgColor: 'bg-module-accent-4',
+      borderColor: 'border-module-accent-4'
     }
   ];
 }
