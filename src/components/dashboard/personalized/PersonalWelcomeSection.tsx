@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,8 +7,7 @@ import { useUserActivity } from '@/hooks/useUserActivity';
 import { 
   User, 
   Clock, 
-  Building2,
-  Sparkles
+  Building2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -50,31 +48,26 @@ export function PersonalWelcomeSection() {
   return (
     <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-12 w-12 border-2 border-primary/20">
-              <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold border border-border shadow-card">
-                {getInitials(profile.first_name, profile.last_name)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-xl text-foreground mb-1">
-                {getGreeting()}, {fullName}!
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Badge className={getRoleBadgeColor(profile.role)}>
-                  {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 border-2 border-primary/20">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold border border-border shadow-card">
+              {getInitials(profile.first_name, profile.last_name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <CardTitle className="text-xl text-foreground mb-1">
+              {getGreeting()}, {fullName}!
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge className={getRoleBadgeColor(profile.role)}>
+                {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
+              </Badge>
+              {presenceInfo?.is_online && (
+                <Badge className="bg-green-500 text-white">
+                  Online
                 </Badge>
-                {presenceInfo?.is_online && (
-                  <Badge className="bg-green-500 text-white">
-                    Online
-                  </Badge>
-                )}
-              </div>
+              )}
             </div>
-          </div>
-          <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Sparkles className="h-6 w-6 text-primary-foreground" />
           </div>
         </div>
       </CardHeader>
