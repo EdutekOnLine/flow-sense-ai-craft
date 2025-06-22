@@ -1,6 +1,6 @@
 
 import { ReactNode, useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useInstantUserCache } from '@/hooks/useInstantUserCache';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -23,36 +23,38 @@ export function ModuleGuard({
   showDetailedStatus = true,
   redirectPath = '/'
 }: ModuleGuardProps) {
-  const { profile } = useAuth();
+  const { userData } = useInstantUserCache();
   const { canAccessModule, canManageModules } = useModulePermissions();
-  const [hasAccess, setHasAccess] = useState(true); // Start optimistically
+  const [showContent, setShowContent] = useState(true); // Start optimistically
 
   useEffect(() => {
-    // Quick access check - don't block rendering
-    if (!profile) {
-      setHasAccess(false);
+    // Phase 6: Background access check - don't block initial render
+    if (!userData) {
+      setShowContent(false);
       return;
     }
 
     // Root users always have access
-    if (profile.role === 'root') {
-      setHasAccess(true);
+    if (userData.role === 'root') {
+      setShowContent(true);
       return;
     }
 
     // Core modules are always accessible
     if (moduleName === 'neura-core') {
-      setHasAccess(true);
+      setShowContent(true);
       return;
     }
 
-    // Check module access without blocking
-    const access = canAccessModule(moduleName);
-    setHasAccess(access);
-  }, [moduleName, canAccessModule, profile]);
+    // Background check for module access without blocking
+    setTimeout(() => {
+      const hasAccess = canAccessModule(moduleName);
+      setShowContent(hasAccess);
+    }, 0);
+  }, [moduleName, canAccessModule, userData]);
 
-  // Optimistic rendering - show content unless explicitly denied
-  if (!profile) {
+  // Show loading only if no user data at all
+  if (!userData) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="text-muted-foreground">Please sign in to continue</div>
@@ -60,7 +62,8 @@ export function ModuleGuard({
     );
   }
 
-  if (hasAccess) {
+  // Optimistic rendering - show content by default
+  if (showContent) {
     return <>{children}</>;
   }
 

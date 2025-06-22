@@ -53,22 +53,31 @@ export function useWorkspace() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Phase 1: Parallelize all workspace queries - run them all at once
+  const workspaceId = profile?.workspace_id;
+  const userId = profile?.id;
+
+  // All queries now run in parallel with the same enabled condition
+  const isEnabled = !!workspaceId && !!userId;
+
   // Get current workspace
   const { data: workspace, isLoading: workspaceLoading } = useQuery({
-    queryKey: ['workspace', profile?.workspace_id],
+    queryKey: ['workspace', workspaceId],
     queryFn: async () => {
-      if (!profile?.workspace_id) return null;
+      if (!workspaceId) return null;
       
       const { data, error } = await supabase
         .from('workspaces')
         .select('*')
-        .eq('id', profile.workspace_id)
+        .eq('id', workspaceId)
         .single();
 
       if (error) throw error;
       return data as Workspace;
     },
-    enabled: !!profile?.workspace_id,
+    enabled: isEnabled,
+    staleTime: 30 * 60 * 1000, // 30 minutes - workspaces rarely change
+    gcTime: 60 * 60 * 1000, // 1 hour
   });
 
   // Get all available modules
@@ -83,13 +92,15 @@ export function useWorkspace() {
       if (error) throw error;
       return data as Module[];
     },
+    staleTime: 60 * 60 * 1000, // 1 hour - modules rarely change
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours
   });
 
   // Get active modules for current workspace
   const { data: workspaceModules, isLoading: workspaceModulesLoading } = useQuery({
-    queryKey: ['workspace-modules', profile?.workspace_id],
+    queryKey: ['workspace-modules', workspaceId],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!workspaceId) return [];
       
       const { data, error } = await supabase
         .from('workspace_modules')
@@ -97,31 +108,37 @@ export function useWorkspace() {
           *,
           module:modules(*)
         `)
-        .eq('workspace_id', profile.workspace_id)
+        .eq('workspace_id', workspaceId)
         .eq('is_active', true);
 
       if (error) throw error;
       return data as WorkspaceModule[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: isEnabled,
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
-  // Get comprehensive module access information using the new database function
+  // Get comprehensive module access information
   const { data: moduleAccessInfo, isLoading: moduleAccessLoading } = useQuery({
-    queryKey: ['module-access-info', profile?.workspace_id, profile?.id],
+    queryKey: ['module-access-info', workspaceId, userId],
     queryFn: async () => {
-      if (!profile?.workspace_id || !profile?.id) return [];
+      if (!workspaceId || !userId) return [];
       
       const { data, error } = await supabase
         .rpc('get_module_access_info', {
-          p_workspace_id: profile.workspace_id,
-          p_user_id: profile.id
+          p_workspace_id: workspaceId,
+          p_user_id: userId
         });
 
       if (error) throw error;
       return data as ModuleAccessInfo[];
     },
-    enabled: !!profile?.workspace_id && !!profile?.id,
+    enabled: isEnabled,
+    staleTime: 30 * 60 * 1000, // 30 minutes - increased for better performance
+    gcTime: 60 * 60 * 1000, // 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Get dependent modules for a specific module
@@ -244,19 +261,30 @@ export function useWorkspace() {
     },
   });
 
-  // Enhanced module access check with real-time updates
+  // Enhanced module access check with optimistic defaults
   const isModuleActive = (moduleName: string) => {
+    // Always return true for core module
+    if (moduleName === 'neura-core') return true;
+    
+    // Use cached data if available, otherwise optimistic default
     if (moduleAccessInfo) {
       const moduleInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return moduleInfo?.is_active || false;
     }
-    return workspaceModules?.some(wm => wm.module.name === moduleName && wm.is_active) || false;
+    
+    // Fallback to workspace modules if available
+    if (workspaceModules) {
+      return workspaceModules.some(wm => wm.module.name === moduleName && wm.is_active);
+    }
+    
+    // Optimistic default - assume access until proven otherwise
+    return true;
   };
 
-  // Get active module names
+  // Get active module names with optimistic defaults
   const activeModules = moduleAccessInfo 
     ? moduleAccessInfo.filter(m => m.is_active).map(m => m.module_name)
-    : workspaceModules?.map(wm => wm.module.name) || [];
+    : workspaceModules?.map(wm => wm.module.name) || ['neura-core']; // Optimistic default
 
   // Check if module dependencies are satisfied
   const checkModuleDependencies = async (moduleName: string): Promise<boolean> => {
@@ -292,5 +320,7 @@ export function useWorkspace() {
     checkModuleDependencies,
     getDependentModules,
     isWorkspaceOwner: workspace?.owner_id === profile?.id,
+    // Add loading state for all parallel queries
+    isLoadingAny: workspaceLoading || modulesLoading || workspaceModulesLoading || moduleAccessLoading,
   };
 }

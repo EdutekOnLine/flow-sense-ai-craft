@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/hooks/useAuth';
-import { useModulePermissions } from '@/hooks/useModulePermissions';
-import { useOptimisticPermissions } from '@/hooks/useOptimisticPermissions';
+import { useInstantUserCache } from '@/hooks/useInstantUserCache';
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Crown } from 'lucide-react';
@@ -17,46 +15,17 @@ interface SidebarNavigationItemProps {
 
 export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNavigationItemProps) {
   const { t } = useTranslation();
-  const { profile } = useAuth();
-  const { canAccessModule } = useModulePermissions();
-  const optimisticPermissions = useOptimisticPermissions();
+  const { userData } = useInstantUserCache();
   
   const Icon = item.icon;
-  const isRootUser = profile?.role === 'root';
+  const isRootUser = userData?.role === 'root';
   
-  // Determine if this is a core feature vs module feature
-  const isCoreFeature = ['dashboard', 'users', 'reports', 'settings', 'module-management', 'workspace-management'].includes(item.id);
-  
-  // For core features, use optimistic permissions (instant access)
-  const getCoreFeatureAccess = () => {
-    if (isRootUser) return true;
-    
-    switch (item.id) {
-      case 'dashboard':
-      case 'reports':
-      case 'settings':
-        return true; // Always accessible
-      case 'users':
-        return optimisticPermissions.canAccessUsers;
-      case 'module-management':
-        return optimisticPermissions.canManageModules;
-      case 'workspace-management':
-        return optimisticPermissions.canManageWorkspace;
-      default:
-        return true;
-    }
-  };
-
-  // For modules, use optimistic module access
-  const hasAccess = isCoreFeature ? getCoreFeatureAccess() : (isRootUser || canAccessModule(item.module));
+  // Phase 5: Optimistic rendering - always show items as clickable for better UX
+  // Access control happens at the content level, not navigation level
+  const hasAccess = isRootUser || userData?.role ? item.roles.includes(userData.role) : true;
   
   const getModuleBadge = (moduleName: string) => {
-    // For core features, no badges needed for loading
-    if (isCoreFeature) {
-      return null;
-    }
-    
-    // For modules, show root badge if applicable
+    // For core features, no badges needed
     if (moduleName === 'neura-core') return null;
     
     // Root users get a special badge for modules
@@ -69,39 +38,33 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
       );
     }
     
-    // For regular users, no loading badges - just show clean UI
+    // For regular users, show clean UI without loading indicators
     return null;
   };
 
   const handleClick = () => {
-    // Optimistic navigation - allow access unless explicitly denied
-    if (isRootUser || hasAccess) {
+    // Optimistic navigation - allow access for role-appropriate items
+    if (hasAccess) {
       onTabChange(item.id);
     } else {
-      console.log(`Access denied to ${item.label}: Insufficient permissions`);
+      console.log(`Access denied to ${item.label}: Role mismatch`);
     }
   };
 
   const moduleBadge = getModuleBadge(item.module);
   const label = item.label.startsWith('navigation.') ? t(item.label) : item.label;
 
-  // Optimistic rendering - always show items as clickable unless explicitly restricted
-  const shouldDisable = () => {
-    // Only disable if we're certain the user doesn't have access
-    return !isRootUser && !hasAccess && !isCoreFeature;
-  };
-
-  const getItemOpacity = () => {
-    return shouldDisable() ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
-  };
+  // Optimistic rendering - show items unless role explicitly doesn't match
+  const shouldDisable = !hasAccess;
+  const itemOpacity = shouldDisable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
 
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
         onClick={handleClick}
-        isActive={isActive && !shouldDisable()}
-        className={`w-full justify-start transition-all duration-200 ${getItemOpacity()}`}
-        disabled={shouldDisable()}
+        isActive={isActive && !shouldDisable}
+        className={`w-full justify-start transition-all duration-200 ${itemOpacity}`}
+        disabled={shouldDisable}
       >
         <Icon className="h-4 w-4" />
         <span className="flex-1">{label}</span>
