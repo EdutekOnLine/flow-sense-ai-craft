@@ -4,11 +4,9 @@ import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { RealtimeActivityFeed } from './RealtimeActivityFeed';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Users, FileText, BookOpen, Sparkles } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 export function ModularActivityPanel() {
   const { getAccessibleModules, canAccessModule } = useModulePermissions();
-  const { t } = useTranslation();
   
   const accessibleModules = getAccessibleModules();
   const hasMultipleModules = accessibleModules.length > 1;
@@ -17,14 +15,14 @@ export function ModularActivityPanel() {
     if (hasMultipleModules) {
       return 'Recent Activity';
     }
-    return t('dashboard.recentActivity');
+    return 'Recent Activity';
   };
 
   const getActivityPanelDescription = () => {
     if (hasMultipleModules) {
       return 'Latest updates and activities from all your active modules';
     }
-    if (canAccessModule('neura-flow')) return t('dashboard.recentActivityDescription');
+    if (canAccessModule('neura-flow')) return 'Track the latest workflow actions and updates';
     if (canAccessModule('neura-crm')) return 'Recent customer interactions and deal updates';
     if (canAccessModule('neura-forms')) return 'Recent form submissions and response analytics';
     if (canAccessModule('neura-edu')) return 'Recent student activities and course progress';

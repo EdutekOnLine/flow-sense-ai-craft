@@ -4,7 +4,6 @@ import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { MyReusableWorkflows } from './MyReusableWorkflows';
 import { Badge } from '@/components/ui/badge';
 import { Repeat, Users, FileText, BookOpen, Sparkles } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 interface ModularAssetsPanelProps {
   onStartWorkflow?: (workflowId: string, startData: any) => Promise<void>;
@@ -12,7 +11,6 @@ interface ModularAssetsPanelProps {
 
 export function ModularAssetsPanel({ onStartWorkflow }: ModularAssetsPanelProps) {
   const { getAccessibleModules, canAccessModule } = useModulePermissions();
-  const { t } = useTranslation();
   
   const accessibleModules = getAccessibleModules();
   const hasMultipleModules = accessibleModules.length > 1;
@@ -21,7 +19,7 @@ export function ModularAssetsPanel({ onStartWorkflow }: ModularAssetsPanelProps)
     if (hasMultipleModules) {
       return 'My Templates & Assets';
     }
-    if (canAccessModule('neura-flow')) return t('dashboard.myReusableWorkflows');
+    if (canAccessModule('neura-flow')) return 'My Reusable Workflows';
     if (canAccessModule('neura-crm')) return 'My CRM Templates';
     if (canAccessModule('neura-forms')) return 'My Form Templates';
     if (canAccessModule('neura-edu')) return 'My Course Templates';
@@ -32,7 +30,7 @@ export function ModularAssetsPanel({ onStartWorkflow }: ModularAssetsPanelProps)
     if (hasMultipleModules) {
       return 'Reusable templates and assets from all your modules';
     }
-    if (canAccessModule('neura-flow')) return t('dashboard.myReusableWorkflowsDescription');
+    if (canAccessModule('neura-flow')) return 'Workflows you can use multiple times';
     if (canAccessModule('neura-crm')) return 'Email templates, sales sequences, and pipeline templates';
     if (canAccessModule('neura-forms')) return 'Reusable form templates and survey designs';
     if (canAccessModule('neura-edu')) return 'Course templates, lesson plans, and assignment templates';

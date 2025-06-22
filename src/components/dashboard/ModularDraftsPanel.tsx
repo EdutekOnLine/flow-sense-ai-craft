@@ -5,7 +5,6 @@ import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
 import { SavedWorkflows } from './SavedWorkflows';
 import { Badge } from '@/components/ui/badge';
 import { Workflow, Users, FileText, BookOpen, Edit } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ModularDraftsPanelProps {
@@ -17,7 +16,6 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
   const { getAccessibleModules, canAccessModule } = useModulePermissions();
   const { canEditWorkflows } = useWorkflowPermissions();
   const { profile } = useAuth();
-  const { t } = useTranslation();
   
   const accessibleModules = getAccessibleModules();
   const hasMultipleModules = accessibleModules.length > 1;
@@ -32,7 +30,7 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
       return 'My Drafts & Projects';
     }
     if (canAccessModule('neura-flow')) {
-      return profile?.role === 'admin' ? t('dashboard.allSavedWorkflows') : t('dashboard.mySavedWorkflows');
+      return profile?.role === 'admin' ? 'All Saved Workflows' : 'My Saved Workflows';
     }
     if (canAccessModule('neura-crm')) return 'My CRM Drafts';
     if (canAccessModule('neura-forms')) return 'My Form Drafts';
@@ -45,7 +43,7 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
       return 'Draft content and works in progress from all your modules';
     }
     if (canAccessModule('neura-flow')) {
-      return profile?.role === 'admin' ? t('dashboard.allSavedWorkflowsDescription') : t('dashboard.mySavedWorkflowsDescription');
+      return profile?.role === 'admin' ? 'Manage all workflow templates in the system and start new workflow instances' : 'Workflows you have saved';
     }
     if (canAccessModule('neura-crm')) return 'Draft campaigns, incomplete deals, and proposal drafts';
     if (canAccessModule('neura-forms')) return 'Draft forms, incomplete surveys, and form designs';

@@ -35,10 +35,10 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   const handleStartWorkflow = async (workflowId: string, startData: any) => {
     try {
       await startWorkflow(workflowId, startData);
-      toast.success(t('workflow.launchSuccess'));
+      toast.success('Workflow launched successfully!');
     } catch (error) {
       console.error('Error launching workflow:', error);
-      toast.error(t('workflow.launchError'));
+      toast.error('Failed to launch workflow. Please try again.');
     }
   };
 

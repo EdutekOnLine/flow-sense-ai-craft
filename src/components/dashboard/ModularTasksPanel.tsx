@@ -4,7 +4,6 @@ import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { DashboardTasks } from './tasks/DashboardTasks';
 import { Badge } from '@/components/ui/badge';
 import { Inbox, CheckSquare, Users, FileText, BookOpen } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 interface ModularTasksPanelProps {
   onViewAllTasks: () => void;
@@ -12,7 +11,6 @@ interface ModularTasksPanelProps {
 
 export function ModularTasksPanel({ onViewAllTasks }: ModularTasksPanelProps) {
   const { getAccessibleModules, canAccessModule } = useModulePermissions();
-  const { t } = useTranslation();
   
   const accessibleModules = getAccessibleModules();
   const hasMultipleModules = accessibleModules.length > 1;
@@ -21,7 +19,7 @@ export function ModularTasksPanel({ onViewAllTasks }: ModularTasksPanelProps) {
     if (hasMultipleModules) {
       return 'My Tasks & Assignments';
     }
-    if (canAccessModule('neura-flow')) return t('dashboard.myAssignedTasks');
+    if (canAccessModule('neura-flow')) return 'My Assigned Tasks';
     if (canAccessModule('neura-crm')) return 'My CRM Tasks';
     if (canAccessModule('neura-forms')) return 'My Form Reviews';
     if (canAccessModule('neura-edu')) return 'My Teaching Tasks';
@@ -32,7 +30,7 @@ export function ModularTasksPanel({ onViewAllTasks }: ModularTasksPanelProps) {
     if (hasMultipleModules) {
       return 'Tasks and assignments from all your active modules';
     }
-    if (canAccessModule('neura-flow')) return t('dashboard.myAssignedTasksDescription');
+    if (canAccessModule('neura-flow')) return 'Tasks assigned specifically to you';
     if (canAccessModule('neura-crm')) return 'Follow-ups, meetings, and customer tasks';
     if (canAccessModule('neura-forms')) return 'Form submissions requiring your review';
     if (canAccessModule('neura-edu')) return 'Assignments to grade and course updates';
