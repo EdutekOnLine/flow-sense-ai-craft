@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,27 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Optimized profile fetching function
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+      
+      return profileData;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+  };
 
   // Presence tracking for all users
   useEffect(() => {
@@ -104,17 +126,10 @@ export function useAuth() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile with workspace info
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            setProfile(profileData);
-            setLoading(false);
-          }, 0);
+          // Fetch profile immediately without setTimeout
+          const profileData = await fetchUserProfile(session.user.id);
+          setProfile(profileData);
+          setLoading(false);
         } else {
           setProfile(null);
           setLoading(false);
@@ -123,24 +138,19 @@ export function useAuth() {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profileData }) => {
-            setProfile(profileData);
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
+        const profileData = await fetchUserProfile(session.user.id);
+        setProfile(profileData);
       }
-    });
+      setLoading(false);
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

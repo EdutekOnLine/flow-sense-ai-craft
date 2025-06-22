@@ -5,6 +5,7 @@ import { DynamicSidebar } from './DynamicSidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardContentRenderer } from './DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
+import { useOptimizedWorkspace } from '@/hooks/useOptimizedWorkspace';
 import { useNavigate } from 'react-router-dom';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
 
@@ -12,12 +13,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  
+  // Preload workspace data to improve sidebar responsiveness
+  const { loading: workspaceLoading } = useOptimizedWorkspace();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
   };
 
   const handleSignOut = async () => {
+    // Clear module cache on sign out
+    localStorage.removeItem('module_access_cache');
     await signOut();
     navigate('/auth');
   };

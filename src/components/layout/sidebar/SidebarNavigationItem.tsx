@@ -5,7 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Crown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Lock, Crown, Loader2 } from 'lucide-react';
 import { NavigationItem } from './navigationItems';
 
 interface SidebarNavigationItemProps {
@@ -17,7 +18,7 @@ interface SidebarNavigationItemProps {
 export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNavigationItemProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
-  const { getModuleStatus, canAccessModule } = useModulePermissions();
+  const { getModuleStatus, canAccessModule, loading } = useModulePermissions();
   
   const Icon = item.icon;
   const moduleStatus = getModuleStatus(item.module);
@@ -26,6 +27,16 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
   
   const getModuleBadge = (moduleName: string) => {
     if (moduleName === 'neura-core') return null;
+    
+    // Show loading state while data is being fetched
+    if (loading && !isRootUser) {
+      return (
+        <div className="flex items-center gap-1">
+          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          <Badge variant="secondary" className="text-xs">Loading...</Badge>
+        </div>
+      );
+    }
     
     // Root users get a special badge
     if (isRootUser) {
@@ -46,7 +57,7 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
       );
     }
 
-    if (!moduleStatus.isActive) {
+    if (!moduleStatus?.isActive) {
       return <Badge variant="outline" className="text-xs">Inactive</Badge>;
     }
     
@@ -65,6 +76,18 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
 
   const moduleBadge = getModuleBadge(item.module);
   const label = item.label.startsWith('navigation.') ? t(item.label) : item.label;
+
+  // Show skeleton while loading profile data
+  if (!profile && loading) {
+    return (
+      <SidebarMenuItem>
+        <div className="flex items-center space-x-2 p-2">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 flex-1" />
+        </div>
+      </SidebarMenuItem>
+    );
+  }
 
   return (
     <SidebarMenuItem>
