@@ -53,7 +53,7 @@ export function PersonalWelcomeSection() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12 border-2 border-primary/20">
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold border border-border shadow-card">
                 {getInitials(profile.first_name, profile.last_name)}
               </AvatarFallback>
             </Avatar>
