@@ -24,12 +24,7 @@ export function ModularAssetsPanel({ onStartWorkflow }: ModularAssetsPanelProps)
   const { canAccessModule } = useModulePermissions();
   const { t } = useTranslation();
 
-  // If user has NeuraFlow access, show workflow assets
-  if (canAccessModule('neura-flow')) {
-    return <MyReusableWorkflows onStartWorkflow={onStartWorkflow} />;
-  }
-
-  // For other modules, show module-specific assets
+  // Get module assets function
   const getModuleAssets = () => {
     const assets = [];
 
@@ -93,6 +88,13 @@ export function ModularAssetsPanel({ onStartWorkflow }: ModularAssetsPanelProps)
 
   const moduleAssets = getModuleAssets();
 
+  // Now that all hooks are called, we can do conditional rendering
+  // If user has NeuraFlow access, show workflow assets
+  if (canAccessModule('neura-flow')) {
+    return <MyReusableWorkflows onStartWorkflow={onStartWorkflow} />;
+  }
+
+  // For other modules, show module-specific assets
   if (moduleAssets.length === 0) {
     return (
       <div className="text-center py-8">

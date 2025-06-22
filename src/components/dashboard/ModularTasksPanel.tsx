@@ -22,12 +22,7 @@ export function ModularTasksPanel({ onViewAllTasks }: ModularTasksPanelProps) {
   const { t } = useTranslation();
   const accessibleModules = getAccessibleModules();
 
-  // If user has NeuraFlow access, show workflow tasks
-  if (canAccessModule('neura-flow')) {
-    return <DashboardTasks onViewAllTasks={onViewAllTasks} />;
-  }
-
-  // For other modules, show placeholder tasks
+  // Get module tasks function
   const getModuleTasks = () => {
     const tasks = [];
 
@@ -69,6 +64,13 @@ export function ModularTasksPanel({ onViewAllTasks }: ModularTasksPanelProps) {
 
   const moduleTasks = getModuleTasks();
 
+  // Now that all hooks are called, we can do conditional rendering
+  // If user has NeuraFlow access, show workflow tasks
+  if (canAccessModule('neura-flow')) {
+    return <DashboardTasks onViewAllTasks={onViewAllTasks} />;
+  }
+
+  // For other modules, show placeholder tasks
   if (moduleTasks.length === 0) {
     return (
       <div className="text-center py-6">
