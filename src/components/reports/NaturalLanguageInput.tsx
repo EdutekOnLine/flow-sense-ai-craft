@@ -1,4 +1,3 @@
-
 import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -137,8 +136,8 @@ export const NaturalLanguageInput = forwardRef<NaturalLanguageInputRef, NaturalL
                       </div>
                     )}
                     <CardContent className="p-4 flex flex-col h-full space-y-3">
-                      <div className="h-[3rem] flex items-start">
-                        <p className={`text-sm font-medium line-clamp-2 overflow-hidden ${getRTLAwareTextAlign('start')}`} dir="auto">
+                      <div className="h-[5rem] flex items-start">
+                        <p className={`text-sm font-medium line-clamp-3 overflow-hidden ${getRTLAwareTextAlign('start')}`} dir="auto">
                           {example.text}
                         </p>
                       </div>

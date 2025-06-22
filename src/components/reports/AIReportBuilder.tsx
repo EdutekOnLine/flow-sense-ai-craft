@@ -1,4 +1,3 @@
-
 import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -147,47 +146,46 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
         getModuleDisplayName={getModuleDisplayName}
       />
 
-      {/* Main Content Card */}
+      {/* Input Section - Full Width */}
       <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.naturalLanguageQuery')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <NaturalLanguageInput 
-                  ref={naturalLanguageInputRef}
-                  onQuerySubmit={handleQuerySubmit}
-                  isLoading={isGenerating || isLoadingData}
-                  activeModules={activeModules}
-                  isRootUser={isRootUser}
-                />
-              </CardContent>
-            </Card>
-
-            {reportConfig && (
-              <ReportConfigurationDisplay
-                reportConfig={reportConfig}
-                aiExplanation={aiExplanation}
-                isLoadingData={isLoadingData}
-                onRefresh={handleRefresh}
-                getModuleDisplayName={getModuleDisplayName}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className={getRTLAwareTextAlign('start')}>{t('reports.naturalLanguageQuery')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <NaturalLanguageInput 
+                ref={naturalLanguageInputRef}
+                onQuerySubmit={handleQuerySubmit}
+                isLoading={isGenerating || isLoadingData}
+                activeModules={activeModules}
+                isRootUser={isRootUser}
               />
-            )}
-          </div>
+            </CardContent>
+          </Card>
 
-          <div>
-            <ReportPreviewPanel
+          {reportConfig && (
+            <ReportConfigurationDisplay
               reportConfig={reportConfig}
-              reportData={reportData}
-              error={error}
+              aiExplanation={aiExplanation}
               isLoadingData={isLoadingData}
-              availableDataSources={availableDataSources}
-              isRootUser={isRootUser}
+              onRefresh={handleRefresh}
+              getModuleDisplayName={getModuleDisplayName}
             />
-          </div>
+          )}
         </div>
+      </div>
+
+      {/* Report Preview Section - Full Width Below */}
+      <div className="bg-gradient-theme-primary p-6 rounded-xl border border-border">
+        <ReportPreviewPanel
+          reportConfig={reportConfig}
+          reportData={reportData}
+          error={error}
+          isLoadingData={isLoadingData}
+          availableDataSources={availableDataSources}
+          isRootUser={isRootUser}
+        />
       </div>
     </div>
   );
