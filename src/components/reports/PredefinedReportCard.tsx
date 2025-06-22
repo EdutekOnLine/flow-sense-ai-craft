@@ -35,14 +35,14 @@ export function PredefinedReportCard({
           <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
             <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
               <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              <div className="min-h-[3rem] flex items-start">
-                <CardTitle className={`text-lg text-muted-foreground line-clamp-2 ${getRTLAwareTextAlign('start')}`}>
+              <div className="h-[3rem] flex items-start">
+                <CardTitle className={`text-lg text-muted-foreground line-clamp-2 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
                   {report.name}
                 </CardTitle>
               </div>
             </div>
           </div>
-          <div className="min-h-[2rem] flex items-start mt-2">
+          <div className="h-[2rem] flex items-start mt-2">
             <div className="flex flex-wrap gap-1">
               {report.requiredModules.map(moduleId => (
                 <Badge 
@@ -57,7 +57,7 @@ export function PredefinedReportCard({
           </div>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="min-h-[4rem] flex items-start">
+          <div className="h-[4rem] flex items-start">
             <p className={`text-sm text-muted-foreground line-clamp-3 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
               {report.description}
             </p>
@@ -78,14 +78,14 @@ export function PredefinedReportCard({
         <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
           <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
             <Icon className="h-5 w-5 text-primary flex-shrink-0" />
-            <div className="min-h-[3rem] flex items-start">
+            <div className="h-[3rem] flex items-start">
               <CardTitle className={`text-lg line-clamp-2 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
                 {report.name}
               </CardTitle>
             </div>
           </div>
         </div>
-        <div className="min-h-[2rem] flex items-start mt-2">
+        <div className="h-[2rem] flex items-start mt-2">
           <div className="flex flex-wrap gap-1">
             {report.requiredModules.map(moduleId => (
               <Badge 
@@ -100,7 +100,7 @@ export function PredefinedReportCard({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 space-y-4">
-        <div className="min-h-[4rem] flex items-start flex-1">
+        <div className="h-[4rem] flex items-start flex-1">
           <p className={`text-sm text-muted-foreground line-clamp-3 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
             {report.description}
           </p>
