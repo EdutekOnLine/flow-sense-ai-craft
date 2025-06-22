@@ -77,7 +77,7 @@ export function ModuleMetricsCards() {
     );
   }
 
-  // NeuraCRM metrics
+  // NeuraCRM metrics - using theme-aware module colors
   if (canAccessModule('neura-crm') && data.moduleMetrics['neura-crm']) {
     const crmMetrics = data.moduleMetrics['neura-crm'];
     metricCards.push(
@@ -85,30 +85,30 @@ export function ModuleMetricsCards() {
         title: 'Total Leads',
         value: crmMetrics.totalLeads,
         icon: Users,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50',
-        borderColor: 'border-blue-200'
+        color: 'text-module-accent-1',
+        bgColor: 'bg-module-accent-1',
+        borderColor: 'border-module-accent-1'
       },
       {
         title: 'Active Deals',
         value: crmMetrics.activeDeals,
         icon: Target,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200'
+        color: 'text-status-success',
+        bgColor: 'bg-status-success-bg',
+        borderColor: 'border-theme-accent'
       },
       {
         title: 'Monthly Revenue',
         value: crmMetrics.monthlyRevenue,
         icon: DollarSign,
-        color: 'text-emerald-600',
-        bgColor: 'bg-emerald-50',
-        borderColor: 'border-emerald-200'
+        color: 'text-status-success',
+        bgColor: 'bg-status-success-bg',
+        borderColor: 'border-theme-accent'
       }
     );
   }
 
-  // NeuraForms metrics
+  // NeuraForms metrics - using theme-aware module colors
   if (canAccessModule('neura-forms') && data.moduleMetrics['neura-forms']) {
     const formsMetrics = data.moduleMetrics['neura-forms'];
     metricCards.push(
@@ -116,22 +116,22 @@ export function ModuleMetricsCards() {
         title: 'Form Submissions',
         value: formsMetrics.submissions,
         icon: FileText,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50',
-        borderColor: 'border-purple-200'
+        color: 'text-module-accent-2',
+        bgColor: 'bg-module-accent-2',
+        borderColor: 'border-module-accent-2'
       },
       {
         title: 'Active Forms',
         value: formsMetrics.activeForms,
         icon: Activity,
-        color: 'text-indigo-600',
-        bgColor: 'bg-indigo-50',
-        borderColor: 'border-indigo-200'
+        color: 'text-module-accent-3',
+        bgColor: 'bg-module-accent-3',
+        borderColor: 'border-module-accent-3'
       }
     );
   }
 
-  // NeuraEdu metrics
+  // NeuraEdu metrics - using theme-aware module colors
   if (canAccessModule('neura-edu') && data.moduleMetrics['neura-edu']) {
     const eduMetrics = data.moduleMetrics['neura-edu'];
     metricCards.push(
@@ -139,17 +139,17 @@ export function ModuleMetricsCards() {
         title: 'Active Students',
         value: eduMetrics.activeStudents,
         icon: Users,
-        color: 'text-orange-600',
-        bgColor: 'bg-orange-50',
-        borderColor: 'border-orange-200'
+        color: 'text-module-accent-4',
+        bgColor: 'bg-module-accent-4',
+        borderColor: 'border-module-accent-4'
       },
       {
         title: 'Course Completion',
         value: `${eduMetrics.completionRate}%`,
         icon: BookOpen,
-        color: 'text-teal-600',
-        bgColor: 'bg-teal-50',
-        borderColor: 'border-teal-200'
+        color: 'text-status-success',
+        bgColor: 'bg-status-success-bg',
+        borderColor: 'border-theme-primary'
       }
     );
   }
@@ -161,9 +161,9 @@ export function ModuleMetricsCards() {
         title: 'System Status',
         value: 'Online',
         icon: Activity,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200'
+        color: 'text-status-success',
+        bgColor: 'bg-status-success-bg',
+        borderColor: 'border-theme-accent'
       },
       {
         title: 'Performance',

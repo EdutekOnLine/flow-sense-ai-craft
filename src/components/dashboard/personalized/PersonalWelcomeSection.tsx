@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +24,12 @@ export function PersonalWelcomeSection() {
     return (first + last).toUpperCase() || profile.email.charAt(0).toUpperCase();
   };
 
-  const getRoleBadgeColor = (role: string) => {
+  const getRoleBadgeClasses = (role: string) => {
     switch (role) {
-      case 'root': return 'bg-purple-500 text-white';
-      case 'admin': return 'bg-red-500 text-white';
-      case 'manager': return 'bg-blue-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'root': return 'bg-role-root text-role-root-foreground';
+      case 'admin': return 'bg-role-admin text-role-admin-foreground';
+      case 'manager': return 'bg-role-manager text-role-manager-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -59,11 +60,11 @@ export function PersonalWelcomeSection() {
               {getGreeting()}, {fullName}!
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Badge className={getRoleBadgeColor(profile.role)}>
+              <Badge className={getRoleBadgeClasses(profile.role)}>
                 {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
               </Badge>
               {presenceInfo?.is_online && (
-                <Badge className="bg-green-500 text-white">
+                <Badge className="bg-status-online text-white">
                   Online
                 </Badge>
               )}

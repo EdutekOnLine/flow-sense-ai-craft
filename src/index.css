@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -44,8 +43,10 @@
     --status-active-bg: 210 70% 95%;
     --status-success: 130 70% 40%;
     --status-success-bg: 130 70% 95%;
+    --status-online: 142 76% 36%;
+    --status-online-bg: 142 76% 95%;
 
-    /* Role colors */
+    /* Role colors - theme-aware variations of primary/secondary/accent */
     --role-root: 270 70% 50%;
     --role-root-foreground: 270 70% 10%;
     --role-root-bg: 270 70% 95%;
@@ -55,6 +56,20 @@
     --role-manager: 210 70% 50%;
     --role-manager-foreground: 210 70% 10%;
     --role-manager-bg: 210 70% 95%;
+
+    /* Module accent colors - theme-aware variations */
+    --module-accent-1: var(--primary);
+    --module-accent-1-bg: var(--primary);
+    --module-accent-1-border: var(--primary);
+    --module-accent-2: var(--secondary);
+    --module-accent-2-bg: var(--secondary);
+    --module-accent-2-border: var(--secondary);
+    --module-accent-3: var(--accent);
+    --module-accent-3-bg: var(--accent);
+    --module-accent-3-border: var(--accent);
+    --module-accent-4: var(--muted-foreground);
+    --module-accent-4-bg: var(--muted);
+    --module-accent-4-border: var(--border);
   }
 
   .dark {
@@ -93,6 +108,8 @@
     --status-active-bg: 210 70% 15%;
     --status-success: 130 70% 60%;
     --status-success-bg: 130 70% 15%;
+    --status-online: 142 76% 46%;
+    --status-online-bg: 142 76% 15%;
 
     /* Role colors for dark mode */
     --role-root: 270 70% 60%;
@@ -104,6 +121,20 @@
     --role-manager: 210 70% 60%;
     --role-manager-foreground: 210 70% 90%;
     --role-manager-bg: 210 70% 15%;
+
+    /* Module accent colors for dark mode - use theme variations */
+    --module-accent-1: var(--primary);
+    --module-accent-1-bg: var(--primary);
+    --module-accent-1-border: var(--primary);
+    --module-accent-2: var(--secondary);
+    --module-accent-2-bg: var(--secondary);
+    --module-accent-2-border: var(--secondary);
+    --module-accent-3: var(--accent);
+    --module-accent-3-bg: var(--accent);
+    --module-accent-3-border: var(--accent);
+    --module-accent-4: var(--muted-foreground);
+    --module-accent-4-bg: var(--muted);
+    --module-accent-4-border: var(--border);
   }
 
   * {
@@ -463,6 +494,18 @@
     background-color: hsl(var(--status-success-bg)) !important;
   }
 
+  .text-status-online {
+    color: hsl(var(--status-online)) !important;
+  }
+
+  .bg-status-online {
+    background-color: hsl(var(--status-online)) !important;
+  }
+
+  .bg-status-online-bg {
+    background-color: hsl(var(--status-online-bg)) !important;
+  }
+
   /* Role color utilities */
   .text-role-root {
     color: hsl(var(--role-root)) !important;
@@ -498,5 +541,54 @@
 
   .text-role-manager-foreground {
     color: hsl(var(--role-manager-foreground)) !important;
+  }
+
+  /* Module accent color utilities */
+  .text-module-accent-1 {
+    color: hsl(var(--module-accent-1)) !important;
+  }
+
+  .bg-module-accent-1 {
+    background-color: hsl(var(--module-accent-1-bg) / 0.1) !important;
+  }
+
+  .border-module-accent-1 {
+    border-color: hsl(var(--module-accent-1-border) / 0.2) !important;
+  }
+
+  .text-module-accent-2 {
+    color: hsl(var(--module-accent-2)) !important;
+  }
+
+  .bg-module-accent-2 {
+    background-color: hsl(var(--module-accent-2-bg) / 0.1) !important;
+  }
+
+  .border-module-accent-2 {
+    border-color: hsl(var(--module-accent-2-border) / 0.2) !important;
+  }
+
+  .text-module-accent-3 {
+    color: hsl(var(--module-accent-3)) !important;
+  }
+
+  .bg-module-accent-3 {
+    background-color: hsl(var(--module-accent-3-bg) / 0.1) !important;
+  }
+
+  .border-module-accent-3 {
+    border-color: hsl(var(--module-accent-3-border) / 0.2) !important;
+  }
+
+  .text-module-accent-4 {
+    color: hsl(var(--module-accent-4)) !important;
+  }
+
+  .bg-module-accent-4 {
+    background-color: hsl(var(--module-accent-4-bg) / 0.1) !important;
+  }
+
+  .border-module-accent-4 {
+    border-color: hsl(var(--module-accent-4-border) / 0.2) !important;
   }
 }
