@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Lock, Crown, Loader2 } from 'lucide-react';
 import { NavigationItem } from './navigationItems';
 
@@ -83,7 +82,7 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
   const moduleBadge = getModuleBadge(item.module);
   const label = item.label.startsWith('navigation.') ? t(item.label) : item.label;
 
-  // Progressive disclosure: Always show the item, but with appropriate states
+  // Progressive disclosure: Always show the item with the actual label, but with appropriate states
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -95,14 +94,8 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
         }`}
         disabled={isLoading || (!isRootUser && !hasAccess)}
       >
-        <Icon className="h-4 w-4" />
-        {isLoading ? (
-          <div className="flex-1 flex items-center gap-2">
-            <Skeleton className="h-4 w-20" />
-          </div>
-        ) : (
-          <span className="flex-1">{label}</span>
-        )}
+        <Icon className={`h-4 w-4 ${isLoading ? 'opacity-50' : ''}`} />
+        <span className={`flex-1 ${isLoading ? 'opacity-70' : ''}`}>{label}</span>
         {moduleBadge}
       </SidebarMenuButton>
     </SidebarMenuItem>
