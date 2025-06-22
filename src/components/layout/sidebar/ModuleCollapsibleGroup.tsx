@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, Workflow, Building2, FileText, GraduationCap } from 'lucide-react';
+import { ChevronDown, Workflow, Building2, FileText, GraduationCap, Loader2 } from 'lucide-react';
 import { 
   Collapsible, 
   CollapsibleContent, 
@@ -11,8 +11,10 @@ import {
   SidebarMenuButton, 
   SidebarMenuItem 
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarNavigationItem } from './SidebarNavigationItem';
 import { NavigationItem } from './navigationItems';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface ModuleCollapsibleGroupProps {
   moduleName: string;
@@ -41,6 +43,7 @@ export function ModuleCollapsibleGroup({
   onTabChange 
 }: ModuleCollapsibleGroupProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { isLoading } = useModulePermissions();
   const ModuleIcon = getModuleIcon(moduleName);
 
   return (
@@ -49,8 +52,16 @@ export function ModuleCollapsibleGroup({
         <SidebarMenuItem className="list-none before:hidden after:hidden">
           <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent list-none before:hidden after:hidden">
             <div className="flex items-center gap-2">
-              <ModuleIcon className="h-4 w-4" />
-              <span className="font-medium text-sidebar-foreground/90">{moduleDisplayName}</span>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ModuleIcon className="h-4 w-4" />
+              )}
+              {isLoading ? (
+                <Skeleton className="h-4 w-24" />
+              ) : (
+                <span className="font-medium text-sidebar-foreground/90">{moduleDisplayName}</span>
+              )}
             </div>
             <ChevronDown 
               className={`h-4 w-4 transition-transform duration-200 ${
