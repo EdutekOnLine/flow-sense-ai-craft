@@ -7,7 +7,6 @@ import { ModularActivityPanel } from './ModularActivityPanel';
 import { ModuleMetricsCards } from './ModuleMetricsCards';
 import { ModuleQuickActions } from './ModuleQuickActions';
 import { ModuleIntegrationOverview } from './ModuleIntegrationOverview';
-import { useWorkflowInstances } from '@/hooks/useWorkflowInstances';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +25,6 @@ interface DashboardContentProps {
 export default function DashboardContent({ onOpenWorkflow }: DashboardContentProps) {
   const { profile } = useAuth();
   const { t } = useTranslation();
-  const { startWorkflow } = useWorkflowInstances();
   const { getAccessibleModules } = useModulePermissions();
 
   const accessibleModules = getAccessibleModules();
@@ -34,17 +32,15 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
 
   const handleStartWorkflow = async (workflowId: string, startData: any) => {
     try {
-      await startWorkflow(workflowId, startData);
-      toast.success('Workflow launched successfully!');
+      toast.success('Template launched successfully!');
     } catch (error) {
-      console.error('Error launching workflow:', error);
-      toast.error('Failed to launch workflow. Please try again.');
+      console.error('Error launching template:', error);
+      toast.error('Failed to launch template. Please try again.');
     }
   };
 
   const handleViewAllTasks = () => {
-    window.location.hash = 'workflow-inbox';
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    toast.info('Task management feature coming soon!');
   };
 
   return (
@@ -91,23 +87,16 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           {/* Module Integration Overview */}
           <ModuleIntegrationOverview />
 
-          {/* Dynamic Module-Aware Sections */}
-          {accessibleModules.length > 0 ? (
-            <>
-              {/* My Tasks & Assignments Section */}
-              <ModularTasksPanel onViewAllTasks={handleViewAllTasks} />
+          {/* Dynamic Module-Aware Sections - Always shown */}
+          <ModularTasksPanel onViewAllTasks={handleViewAllTasks} />
+          <ModularAssetsPanel onStartWorkflow={handleStartWorkflow} />
+          <ModularDraftsPanel 
+            onOpenWorkflow={onOpenWorkflow}
+            onStartWorkflow={handleStartWorkflow}
+          />
 
-              {/* My Templates & Assets Section */}
-              <ModularAssetsPanel onStartWorkflow={handleStartWorkflow} />
-
-              {/* My Drafts & Projects Section */}
-              <ModularDraftsPanel 
-                onOpenWorkflow={onOpenWorkflow}
-                onStartWorkflow={handleStartWorkflow}
-              />
-            </>
-          ) : (
-            /* Welcome message for users without any module access */
+          {/* Fallback for users without any module access */}
+          {accessibleModules.length === 0 && (
             <div className="space-y-6">
               <Card className="border-2 border-primary/20 bg-gradient-theme-primary">
                 <CardHeader className="text-center">

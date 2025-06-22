@@ -2,9 +2,9 @@
 import React from 'react';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useWorkflowPermissions } from '@/hooks/useWorkflowPermissions';
-import { SavedWorkflows } from './SavedWorkflows';
 import { Badge } from '@/components/ui/badge';
-import { Workflow, Users, FileText, BookOpen, Edit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Workflow, Users, FileText, BookOpen, Edit, Calendar, User, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ModularDraftsPanelProps {
@@ -19,11 +19,6 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
   
   const accessibleModules = getAccessibleModules();
   const hasMultipleModules = accessibleModules.length > 1;
-
-  // Don't show if user can't edit workflows and only has workflow access
-  if (!canEditWorkflows && accessibleModules.length === 1 && canAccessModule('neura-flow')) {
-    return null;
-  }
 
   const getDraftsPanelTitle = () => {
     if (hasMultipleModules) {
@@ -60,7 +55,43 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
     return Workflow;
   };
 
+  const getPlaceholderDrafts = () => {
+    if (hasMultipleModules) {
+      return [
+        { id: 1, name: 'Customer Onboarding Campaign', type: 'CRM Draft', description: 'Email sequence for new customers', nodes: 8, isReusable: true },
+        { id: 2, name: 'Product Survey Draft', type: 'Form Draft', description: 'Feedback collection form', nodes: 12, isReusable: false },
+        { id: 3, name: 'Advanced Math Course', type: 'Education Draft', description: 'Course structure and materials', nodes: 25, isReusable: true }
+      ];
+    }
+    
+    if (canAccessModule('neura-crm')) {
+      return [
+        { id: 1, name: 'Lead Nurturing Sequence', type: 'Email Campaign', description: 'Automated lead nurturing emails', nodes: 6, isReusable: true },
+        { id: 2, name: 'Sales Proposal Template', type: 'Document Draft', description: 'Standard sales proposal format', nodes: 4, isReusable: true },
+        { id: 3, name: 'Customer Follow-up Process', type: 'Workflow Draft', description: 'Post-sale customer follow-up', nodes: 10, isReusable: false }
+      ];
+    }
+    
+    if (canAccessModule('neura-forms')) {
+      return [
+        { id: 1, name: 'Employee Feedback Form', type: 'Survey Draft', description: 'Annual employee satisfaction survey', nodes: 15, isReusable: true },
+        { id: 2, name: 'Event Registration', type: 'Form Draft', description: 'Multi-step event registration form', nodes: 8, isReusable: false }
+      ];
+    }
+    
+    if (canAccessModule('neura-edu')) {
+      return [
+        { id: 1, name: 'JavaScript Fundamentals', type: 'Course Draft', description: 'Beginner JavaScript programming course', nodes: 20, isReusable: true },
+        { id: 2, name: 'Final Exam Template', type: 'Assessment Draft', description: 'Comprehensive final examination', nodes: 12, isReusable: true },
+        { id: 3, name: 'Study Group Guidelines', type: 'Resource Draft', description: 'Guidelines for student study groups', nodes: 6, isReusable: false }
+      ];
+    }
+    
+    return [];
+  };
+
   const DraftsIcon = getDraftsIcon();
+  const placeholderDrafts = getPlaceholderDrafts();
 
   return (
     <div className="space-y-6">
@@ -81,8 +112,86 @@ export function ModularDraftsPanel({ onOpenWorkflow, onStartWorkflow }: ModularD
         </div>
       </div>
       <div className="bg-gradient-theme-accent p-6 rounded-xl border border-border">
-        {canAccessModule('neura-flow') && canEditWorkflows ? (
-          <SavedWorkflows onOpenWorkflow={onOpenWorkflow} onStartWorkflow={onStartWorkflow} />
+        {accessibleModules.length > 0 ? (
+          <div className="space-y-4">
+            {placeholderDrafts.length > 0 ? (
+              <>
+                {placeholderDrafts.slice(0, 5).map((draft) => (
+                  <div
+                    key={draft.id}
+                    className="border border-border rounded-lg p-4 bg-card hover:bg-accent/5 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-sm text-foreground">{draft.name}</h4>
+                          <Badge 
+                            variant={draft.isReusable ? "default" : "secondary"}
+                            className={draft.isReusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
+                          >
+                            {draft.isReusable ? (
+                              <>
+                                <Edit className="h-3 w-3 mr-1" />
+                                Reusable
+                              </>
+                            ) : (
+                              'One-Time'
+                            )}
+                          </Badge>
+                        </div>
+                        {draft.description && (
+                          <p className="text-xs text-muted-foreground mb-2">{draft.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Updated 1 day ago
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            Type: {draft.type}
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {draft.nodes} components
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {placeholderDrafts.length > 5 && (
+                  <div className="text-center pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground">
+                      {placeholderDrafts.length - 5} more drafts available
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <DraftsIcon className="h-12 w-12 text-accent/40 mx-auto mb-4" />
+                <p className="text-accent mb-2">No drafts found</p>
+                <p className="text-sm text-muted-foreground">Start creating content to see your drafts here</p>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="text-center py-6">
             <DraftsIcon className="h-12 w-12 text-accent/40 mx-auto mb-4" />
