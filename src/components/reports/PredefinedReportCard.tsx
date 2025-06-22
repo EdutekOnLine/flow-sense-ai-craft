@@ -35,26 +35,30 @@ export function PredefinedReportCard({
           <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
             <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
               <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-              <CardTitle className={`text-lg text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
-                {report.name}
-              </CardTitle>
+              <div className="min-h-[3rem] flex items-start">
+                <CardTitle className={`text-lg text-muted-foreground line-clamp-2 ${getRTLAwareTextAlign('start')}`}>
+                  {report.name}
+                </CardTitle>
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {report.requiredModules.map(moduleId => (
-              <Badge 
-                key={moduleId}
-                variant="outline" 
-                className="text-xs bg-muted text-muted-foreground"
-              >
-                {getModuleDisplayName(moduleId)}
-              </Badge>
-            ))}
+          <div className="min-h-[2rem] flex items-start mt-2">
+            <div className="flex flex-wrap gap-1">
+              {report.requiredModules.map(moduleId => (
+                <Badge 
+                  key={moduleId}
+                  variant="outline" 
+                  className="text-xs bg-muted text-muted-foreground"
+                >
+                  {getModuleDisplayName(moduleId)}
+                </Badge>
+              ))}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="flex-1">
-            <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
+          <div className="min-h-[4rem] flex items-start">
+            <p className={`text-sm text-muted-foreground line-clamp-3 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
               {report.description}
             </p>
           </div>
@@ -74,24 +78,30 @@ export function PredefinedReportCard({
         <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
           <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
             <Icon className="h-5 w-5 text-primary flex-shrink-0" />
-            <CardTitle className={`text-lg ${getRTLAwareTextAlign('start')}`}>{report.name}</CardTitle>
+            <div className="min-h-[3rem] flex items-start">
+              <CardTitle className={`text-lg line-clamp-2 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
+                {report.name}
+              </CardTitle>
+            </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1 mt-2">
-          {report.requiredModules.map(moduleId => (
-            <Badge 
-              key={moduleId}
-              variant="outline" 
-              className={`text-xs ${getModuleBadgeColor(moduleId)}`}
-            >
-              {getModuleDisplayName(moduleId)}
-            </Badge>
-          ))}
+        <div className="min-h-[2rem] flex items-start mt-2">
+          <div className="flex flex-wrap gap-1">
+            {report.requiredModules.map(moduleId => (
+              <Badge 
+                key={moduleId}
+                variant="outline" 
+                className={`text-xs ${getModuleBadgeColor(moduleId)}`}
+              >
+                {getModuleDisplayName(moduleId)}
+              </Badge>
+            ))}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 space-y-4">
-        <div className="flex-1">
-          <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
+        <div className="min-h-[4rem] flex items-start flex-1">
+          <p className={`text-sm text-muted-foreground line-clamp-3 overflow-hidden ${getRTLAwareTextAlign('start')}`}>
             {report.description}
           </p>
         </div>
