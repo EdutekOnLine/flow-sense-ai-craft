@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +42,7 @@ export function useOptimizedWorkspace() {
         parsedCache.workspace_id === workspaceId &&
         (now - parsedCache.timestamp) < CACHE_DURATION
       ) {
+        console.log('Using cached module data for workspace:', workspaceId);
         return parsedCache.data;
       }
     } catch (error) {
@@ -60,6 +60,7 @@ export function useOptimizedWorkspace() {
         workspace_id: workspaceId
       };
       localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      console.log('Cached module data for workspace:', workspaceId);
     } catch (error) {
       console.error('Error caching data:', error);
     }
@@ -67,11 +68,12 @@ export function useOptimizedWorkspace() {
 
   // Fetch module access info
   const fetchModuleAccessInfo = async (workspaceId: string, userId: string, useCache = true) => {
+    console.log('fetchModuleAccessInfo called with:', { workspaceId, userId, useCache });
+    
     // Try cache first if requested
     if (useCache) {
       const cachedData = getCachedData(workspaceId);
       if (cachedData) {
-        console.log('Using cached module data');
         setModuleAccessInfo(cachedData);
         setActiveModules(cachedData.filter(m => m.is_active).map(m => m.module_name));
         setLoading(false);
@@ -94,6 +96,19 @@ export function useOptimizedWorkspace() {
 
       if (error) {
         console.error('Error fetching module access info:', error);
+        // Provide fallback data for core module
+        const fallbackData: ModuleAccessInfo[] = [{
+          module_name: 'neura-core',
+          display_name: 'NeuraCore',
+          is_active: true,
+          is_available: true,
+          has_dependencies: false,
+          missing_dependencies: [],
+          version: '1.0.0',
+          settings: {}
+        }];
+        setModuleAccessInfo(fallbackData);
+        setActiveModules(['neura-core']);
         setLoading(false);
         return;
       }
@@ -110,20 +125,61 @@ export function useOptimizedWorkspace() {
       setLoading(false);
     } catch (error) {
       console.error('Error in fetchModuleAccessInfo:', error);
+      // Provide fallback data in case of any error
+      const fallbackData: ModuleAccessInfo[] = [{
+        module_name: 'neura-core',
+        display_name: 'NeuraCore',
+        is_active: true,
+        is_available: true,
+        has_dependencies: false,
+        missing_dependencies: [],
+        version: '1.0.0',
+        settings: {}
+      }];
+      setModuleAccessInfo(fallbackData);
+      setActiveModules(['neura-core']);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (authLoading || !profile) {
-      setLoading(authLoading);
+    console.log('useOptimizedWorkspace effect triggered:', { authLoading, profile });
+    
+    // Keep loading while auth is loading
+    if (authLoading) {
+      console.log('Auth still loading, keeping loading state true');
+      setLoading(true);
       return;
     }
 
+    // If auth is done but no profile, stop loading (user not authenticated)
+    if (!profile) {
+      console.log('No profile found, stopping loading');
+      setLoading(false);
+      setModuleAccessInfo(null);
+      setActiveModules([]);
+      return;
+    }
+
+    // If profile exists, fetch module data
     if (profile.workspace_id) {
+      console.log('Profile found with workspace, fetching module data');
       fetchModuleAccessInfo(profile.workspace_id, profile.id);
     } else {
       // Root users or users without workspace get default access
+      console.log('Profile found without workspace (likely root user)');
+      const defaultData: ModuleAccessInfo[] = [{
+        module_name: 'neura-core',
+        display_name: 'NeuraCore',
+        is_active: true,
+        is_available: true,
+        has_dependencies: false,
+        missing_dependencies: [],
+        version: '1.0.0',
+        settings: {}
+      }];
+      setModuleAccessInfo(defaultData);
+      setActiveModules(['neura-core']);
       setLoading(false);
     }
   }, [profile, authLoading]);

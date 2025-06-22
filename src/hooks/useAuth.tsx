@@ -23,6 +23,7 @@ export function useAuth() {
   // Optimized profile fetching function
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching user profile for:', userId);
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
@@ -34,6 +35,7 @@ export function useAuth() {
         return null;
       }
       
+      console.log('Profile fetched successfully:', profileData);
       return profileData;
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -118,28 +120,32 @@ export function useAuth() {
   }, [user?.id, profile?.role]);
 
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile immediately without setTimeout
+          // Fetch profile immediately
           const profileData = await fetchUserProfile(session.user.id);
           setProfile(profileData);
-          setLoading(false);
         } else {
           setProfile(null);
-          setLoading(false);
         }
+        setLoading(false);
       }
     );
 
     // Check for existing session
     const initializeAuth = async () => {
+      console.log('Initializing auth...');
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initial session:', session?.user?.id);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
