@@ -1,6 +1,6 @@
 
 import { useAuth } from './useAuth';
-import { useOptimizedWorkspace } from './useOptimizedWorkspace';
+import { useWorkspace } from './useWorkspace';
 
 export interface ModuleStatus {
   isActive: boolean;
@@ -17,10 +17,11 @@ export function useModulePermissions() {
   const { 
     isModuleActive, 
     activeModules, 
+    allModules, 
+    workspaceModules, 
     moduleAccessInfo,
-    loading: workspaceLoading,
-    getModuleStatus: getWorkspaceModuleStatus
-  } = useOptimizedWorkspace();
+    checkModuleDependencies 
+  } = useWorkspace();
 
   // Check if user can access a specific module
   const canAccessModule = (moduleName: string) => {
@@ -36,7 +37,7 @@ export function useModulePermissions() {
     return isModuleActive(moduleName);
   };
 
-  // Get detailed module status using the optimized workspace data
+  // Get detailed module status using the new database function results
   const getModuleStatus = (moduleName: string): ModuleStatus => {
     if (!profile) {
       return {
@@ -73,29 +74,43 @@ export function useModulePermissions() {
       };
     }
 
-    // Use optimized workspace module status
-    const workspaceStatus = getWorkspaceModuleStatus(moduleName);
-    if (workspaceStatus) {
+    // Use moduleAccessInfo if available (from database function)
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
+      if (accessInfo) {
+        return {
+          isActive: accessInfo.is_active,
+          isAvailable: accessInfo.is_available,
+          isRestricted: !accessInfo.is_active,
+          statusMessage: accessInfo.is_active ? 'Active' : 
+            accessInfo.missing_dependencies.length > 0 ? 
+            `Missing dependencies: ${accessInfo.missing_dependencies.join(', ')}` :
+            'Inactive - Contact admin to enable',
+          hasDependencies: accessInfo.has_dependencies,
+          missingDependencies: accessInfo.missing_dependencies,
+          version: accessInfo.version
+        };
+      }
+    }
+
+    // Fallback to basic check
+    const isActive = isModuleActive(moduleName);
+    const moduleExists = allModules?.some(m => m.name === moduleName) || false;
+    
+    if (!moduleExists) {
       return {
-        isActive: workspaceStatus.is_active,
-        isAvailable: workspaceStatus.is_available,
-        isRestricted: !workspaceStatus.is_active,
-        statusMessage: workspaceStatus.is_active ? 'Active' : 
-          workspaceStatus.missing_dependencies.length > 0 ? 
-          `Missing dependencies: ${workspaceStatus.missing_dependencies.join(', ')}` :
-          'Inactive - Contact admin to enable',
-        hasDependencies: workspaceStatus.has_dependencies,
-        missingDependencies: workspaceStatus.missing_dependencies,
-        version: workspaceStatus.version
+        isActive: false,
+        isAvailable: false,
+        isRestricted: true,
+        statusMessage: 'Module not found'
       };
     }
 
-    // Fallback for unknown modules
     return {
-      isActive: false,
-      isAvailable: false,
-      isRestricted: true,
-      statusMessage: 'Module not found'
+      isActive,
+      isAvailable: moduleExists,
+      isRestricted: !isActive,
+      statusMessage: isActive ? 'Active' : 'Inactive - Contact admin to enable'
     };
   };
 
@@ -189,16 +204,22 @@ export function useModulePermissions() {
   const canActivateModule = (moduleName: string) => {
     if (profile?.role === 'root') return true;
     
-    const workspaceStatus = getWorkspaceModuleStatus(moduleName);
-    return workspaceStatus ? workspaceStatus.has_dependencies : false;
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
+      return accessInfo ? accessInfo.has_dependencies : false;
+    }
+    return true; // Fallback to allowing activation
   };
 
   // Get missing dependencies for a module
   const getMissingDependencies = (moduleName: string): string[] => {
     if (profile?.role === 'root') return []; // Root users don't have missing dependencies
     
-    const workspaceStatus = getWorkspaceModuleStatus(moduleName);
-    return workspaceStatus ? workspaceStatus.missing_dependencies : [];
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
+      return accessInfo ? accessInfo.missing_dependencies : [];
+    }
+    return [];
   };
 
   // Check specific module access
@@ -217,11 +238,11 @@ export function useModulePermissions() {
     getModuleDisplayName,
     canActivateModule,
     getMissingDependencies,
+    checkModuleDependencies,
     canAccessNeuraFlow,
     canAccessNeuraCRM,
     canAccessNeuraForms,
     canAccessNeuraEdu,
     activeModules,
-    loading: workspaceLoading,
   };
 }
