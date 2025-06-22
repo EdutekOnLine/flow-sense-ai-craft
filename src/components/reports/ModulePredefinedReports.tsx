@@ -185,13 +185,13 @@ export function ModulePredefinedReports() {
               {reports.map((report) => {
                 const Icon = report.icon;
                 return (
-                  <Card key={report.id} className="hover:shadow-md transition-shadow relative">
+                  <Card key={report.id} className="hover:shadow-md transition-shadow relative flex flex-col h-full">
                     {report.isPopular && (
                       <Badge className="absolute -top-2 -right-2 bg-yellow-500 text-yellow-900">
                         Popular
                       </Badge>
                     )}
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-3 flex-shrink-0">
                       <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
                         <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
                           <Icon className="h-5 w-5 text-primary flex-shrink-0" />
@@ -210,11 +210,13 @@ export function ModulePredefinedReports() {
                         ))}
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
-                        {report.description}
-                      </p>
-                      <div className={`flex justify-end rtl:justify-start`}>
+                    <CardContent className="flex flex-col flex-1 space-y-4">
+                      <div className="flex-1">
+                        <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
+                          {report.description}
+                        </p>
+                      </div>
+                      <div className={`flex justify-end rtl:justify-start flex-shrink-0 pt-2`}>
                         <Button 
                           size="sm"
                           onClick={() => generateReport(report.id)}
@@ -266,11 +268,11 @@ export function ModulePredefinedReports() {
               {unavailableReports.map((report) => {
                 const Icon = report.icon;
                 return (
-                  <Card key={report.id} className="relative">
+                  <Card key={report.id} className="relative flex flex-col h-full">
                     <div className="absolute inset-0 bg-muted/50 rounded-lg z-10 flex items-center justify-center">
                       <Badge variant="secondary">Module Required</Badge>
                     </div>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-3 flex-shrink-0">
                       <div className={`flex items-start justify-between rtl:flex-row-reverse`}>
                         <div className={`flex items-center space-x-2 rtl:space-x-reverse rtl:flex-row-reverse flex-1`}>
                           <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -291,10 +293,12 @@ export function ModulePredefinedReports() {
                         ))}
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
-                        {report.description}
-                      </p>
+                    <CardContent className="flex flex-col flex-1">
+                      <div className="flex-1">
+                        <p className={`text-sm text-muted-foreground ${getRTLAwareTextAlign('start')}`}>
+                          {report.description}
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 );
