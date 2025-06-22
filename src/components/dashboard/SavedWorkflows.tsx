@@ -126,7 +126,10 @@ export function SavedWorkflows({ onOpenWorkflow, onStartWorkflow }: SavedWorkflo
                     <h4 className="font-medium text-sm text-foreground">{workflow.name}</h4>
                     <Badge 
                       variant={workflow.is_reusable ? "default" : "secondary"}
-                      className={workflow.is_reusable ? "bg-green-100 text-green-800 border-green-300" : "bg-orange-100 text-orange-800 border-orange-300"}
+                      className={workflow.is_reusable ? 
+                        "bg-status-success-bg text-status-success border-theme-accent" : 
+                        "bg-status-pending-bg text-status-pending border-theme-secondary"
+                      }
                     >
                       {workflow.is_reusable ? (
                         <>

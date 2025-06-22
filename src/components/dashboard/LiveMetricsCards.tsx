@@ -24,49 +24,49 @@ export function LiveMetricsCards() {
       title: t('dashboard.pendingTasks'),
       value: metrics.pendingTasks,
       icon: Clock,
-      color: 'text-primary',
-      bgColor: 'bg-primary/5',
-      borderColor: 'border-primary/20'
+      color: 'text-status-pending',
+      bgColor: 'bg-status-pending-bg',
+      borderColor: 'border-theme-primary'
     },
     {
       title: t('dashboard.activeTasks'),
       value: metrics.inProgressTasks,
       icon: PlayCircle,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary/5',
-      borderColor: 'border-secondary/20'
+      color: 'text-status-active',
+      bgColor: 'bg-status-active-bg',
+      borderColor: 'border-theme-secondary'
     },
     {
       title: t('dashboard.completedToday'),
       value: metrics.completedTasksToday,
       icon: CheckCircle,
-      color: 'text-accent',
-      bgColor: 'bg-accent/5',
-      borderColor: 'border-accent/20'
+      color: 'text-status-success',
+      bgColor: 'bg-status-success-bg',
+      borderColor: 'border-theme-accent'
     },
     {
       title: t('dashboard.activeWorkflows'),
       value: metrics.activeWorkflows,
       icon: Activity,
       color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      borderColor: 'border-primary/30'
+      bgColor: 'bg-primary/5',
+      borderColor: 'border-primary/20'
     },
     {
       title: t('dashboard.reusableWorkflows'),
       value: metrics.myReusableWorkflows,
       icon: Repeat,
       color: 'text-secondary',
-      bgColor: 'bg-secondary/10',
-      borderColor: 'border-secondary/30'
+      bgColor: 'bg-secondary/5',
+      borderColor: 'border-secondary/20'
     },
     {
       title: t('dashboard.totalWorkflows'),
       value: metrics.totalSavedWorkflows,
       icon: Workflow,
       color: 'text-muted-foreground',
-      bgColor: 'bg-muted/10',
-      borderColor: 'border-muted/30'
+      bgColor: 'bg-muted/5',
+      borderColor: 'border-muted/20'
     }
   ];
 

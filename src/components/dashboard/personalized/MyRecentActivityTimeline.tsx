@@ -41,9 +41,9 @@ export function MyRecentActivityTimeline() {
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'activated': return 'bg-green-500 text-white';
-      case 'deactivated': return 'bg-red-500 text-white';
-      default: return 'bg-blue-500 text-white';
+      case 'activated': return 'bg-status-success text-foreground';
+      case 'deactivated': return 'bg-destructive text-destructive-foreground';
+      default: return 'bg-primary text-primary-foreground';
     }
   };
 
