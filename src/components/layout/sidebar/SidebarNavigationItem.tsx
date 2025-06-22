@@ -6,7 +6,7 @@ import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useOptimisticPermissions } from '@/hooks/useOptimisticPermissions';
 import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Crown, Loader2 } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import { NavigationItem } from './navigationItems';
 
 interface SidebarNavigationItemProps {
@@ -18,17 +18,16 @@ interface SidebarNavigationItemProps {
 export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNavigationItemProps) {
   const { t } = useTranslation();
   const { profile } = useAuth();
-  const { getModuleStatus, canAccessModule } = useModulePermissions();
+  const { canAccessModule } = useModulePermissions();
   const optimisticPermissions = useOptimisticPermissions();
   
   const Icon = item.icon;
   const isRootUser = profile?.role === 'root';
-  const isProfileLoading = !profile;
   
   // Determine if this is a core feature vs module feature
   const isCoreFeature = ['dashboard', 'users', 'reports', 'settings', 'module-management', 'workspace-management'].includes(item.id);
   
-  // For core features, use optimistic permissions
+  // For core features, use optimistic permissions (instant access)
   const getCoreFeatureAccess = () => {
     if (isRootUser) return true;
     
@@ -48,35 +47,17 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
     }
   };
 
-  // For modules, use the existing module permission system
-  const hasAccess = isCoreFeature ? getCoreFeatureAccess() : canAccessModule(item.module);
-  const isLoading = isCoreFeature ? (isProfileLoading || optimisticPermissions.isLoading) : (isProfileLoading || !profile);
+  // For modules, use optimistic module access
+  const hasAccess = isCoreFeature ? getCoreFeatureAccess() : (isRootUser || canAccessModule(item.module));
   
   const getModuleBadge = (moduleName: string) => {
+    // For core features, no badges needed for loading
     if (isCoreFeature) {
-      // For core features, only show loading if we're actually loading
-      if (isLoading && !profile) {
-        return (
-          <div className="flex items-center gap-1">
-            <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-          </div>
-        );
-      }
       return null;
     }
     
-    // For modules, use the existing badge system
+    // For modules, show root badge if applicable
     if (moduleName === 'neura-core') return null;
-    
-    // Show loading state for modules
-    if (isLoading) {
-      return (
-        <div className="flex items-center gap-1">
-          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-          <Badge variant="outline" className="text-xs">Loading...</Badge>
-        </div>
-      );
-    }
     
     // Root users get a special badge for modules
     if (isRootUser) {
@@ -88,75 +69,30 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
       );
     }
     
-    if (!hasAccess) {
-      const moduleStatus = getModuleStatus(moduleName);
-      return (
-        <div className="flex items-center gap-1">
-          <Lock className="h-3 w-3 text-muted-foreground" />
-          <Badge variant="secondary" className="text-xs">
-            {moduleStatus.statusMessage === 'Checking permissions...' ? 'Loading...' : 'Locked'}
-          </Badge>
-        </div>
-      );
-    }
-
-    const moduleStatus = getModuleStatus(moduleName);
-    if (!moduleStatus.isActive) {
-      return <Badge variant="outline" className="text-xs">Inactive</Badge>;
-    }
-    
+    // For regular users, no loading badges - just show clean UI
     return null;
   };
 
   const handleClick = () => {
-    // For core features, allow navigation even while loading (optimistic)
-    if (isCoreFeature) {
-      // Root users always have access
-      if (isRootUser || hasAccess) {
-        onTabChange(item.id);
-      } else if (!isLoading) {
-        console.log(`Access denied to ${item.label}: Insufficient permissions`);
-      }
-      return;
-    }
-    
-    // For modules, show loading state but don't prevent navigation for better UX
-    if (isLoading) {
-      console.log('Still loading permissions...');
-      return;
-    }
-    
-    // Root users always have access to modules
+    // Optimistic navigation - allow access unless explicitly denied
     if (isRootUser || hasAccess) {
       onTabChange(item.id);
     } else {
-      console.log(`Access denied to ${item.label}: Module not active`);
+      console.log(`Access denied to ${item.label}: Insufficient permissions`);
     }
   };
 
   const moduleBadge = getModuleBadge(item.module);
   const label = item.label.startsWith('navigation.') ? t(item.label) : item.label;
 
-  // For core features, be more optimistic about loading states
-  const getItemOpacity = () => {
-    if (isCoreFeature) {
-      // Core features are always visible, just slightly dimmed while loading
-      return isLoading ? 'opacity-80' : '';
-    }
-    
-    // Modules use the existing logic
-    return isLoading ? 'opacity-70' : 
-           !isRootUser && !hasAccess ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
+  // Optimistic rendering - always show items as clickable unless explicitly restricted
+  const shouldDisable = () => {
+    // Only disable if we're certain the user doesn't have access
+    return !isRootUser && !hasAccess && !isCoreFeature;
   };
 
-  const shouldDisable = () => {
-    if (isCoreFeature) {
-      // Core features are rarely disabled, only if explicitly no access and not loading
-      return !isLoading && !isRootUser && !hasAccess;
-    }
-    
-    // Modules use existing logic
-    return isLoading || (!isRootUser && !hasAccess);
+  const getItemOpacity = () => {
+    return shouldDisable() ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer';
   };
 
   return (
@@ -167,7 +103,7 @@ export function SidebarNavigationItem({ item, isActive, onTabChange }: SidebarNa
         className={`w-full justify-start transition-all duration-200 ${getItemOpacity()}`}
         disabled={shouldDisable()}
       >
-        <Icon className={`h-4 w-4 ${isLoading ? 'opacity-70' : ''}`} />
+        <Icon className="h-4 w-4" />
         <span className="flex-1">{label}</span>
         {moduleBadge}
       </SidebarMenuButton>

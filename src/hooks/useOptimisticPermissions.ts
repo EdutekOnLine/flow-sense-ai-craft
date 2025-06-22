@@ -15,27 +15,28 @@ interface PermissionCache {
   };
 }
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 const CACHE_KEY = 'neura_permissions_cache';
 
 export function useOptimisticPermissions() {
   const { profile } = useAuth();
   const [permissions, setPermissions] = useState({
     canAccessUsers: false,
-    canAccessReports: true, // Reports are generally accessible
-    canAccessSettings: true, // Settings are generally accessible
+    canAccessReports: true, // Always accessible
+    canAccessSettings: true, // Always accessible
     canManageModules: false,
     canManageWorkspace: false,
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start as false for optimistic loading
 
   useEffect(() => {
+    // If no profile, use optimistic defaults
     if (!profile) {
-      setIsLoading(true);
+      setIsLoading(false);
       return;
     }
 
-    // Check cache first
+    // Check localStorage cache first for instant loading
     const checkCache = () => {
       try {
         const cached = localStorage.getItem(CACHE_KEY);
@@ -45,7 +46,6 @@ export function useOptimisticPermissions() {
           
           if (!isExpired && parsedCache.userId === profile.id && parsedCache.role === profile.role) {
             setPermissions(parsedCache.permissions);
-            setIsLoading(false);
             return true;
           }
         }
@@ -55,21 +55,18 @@ export function useOptimisticPermissions() {
       return false;
     };
 
-    // Try to use cache first
-    if (checkCache()) {
-      return;
-    }
-
-    // Calculate permissions based on role (optimistic approach)
-    const calculatePermissions = () => {
+    // Try cache first for instant loading
+    const hasCachedData = checkCache();
+    
+    // Calculate optimistic permissions based on role immediately
+    const calculateOptimisticPermissions = () => {
       const isRoot = profile.role === 'root';
       const isAdmin = profile.role === 'admin';
-      const isManager = profile.role === 'manager';
 
       const newPermissions = {
         canAccessUsers: isRoot || isAdmin,
-        canAccessReports: true, // All users can access reports
-        canAccessSettings: true, // All users can access settings
+        canAccessReports: true, // Always accessible
+        canAccessSettings: true, // Always accessible
         canManageModules: isRoot,
         canManageWorkspace: isRoot || isAdmin,
       };
@@ -77,7 +74,7 @@ export function useOptimisticPermissions() {
       setPermissions(newPermissions);
       setIsLoading(false);
 
-      // Cache the results
+      // Cache the results for next time
       try {
         const cacheData: PermissionCache = {
           userId: profile.id,
@@ -91,7 +88,10 @@ export function useOptimisticPermissions() {
       }
     };
 
-    calculatePermissions();
+    // If no cached data, calculate immediately for optimistic loading
+    if (!hasCachedData) {
+      calculateOptimisticPermissions();
+    }
   }, [profile]);
 
   // Clear cache when user changes

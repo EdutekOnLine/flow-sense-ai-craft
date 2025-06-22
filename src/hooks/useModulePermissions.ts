@@ -1,7 +1,6 @@
 
 import { useAuth } from './useAuth';
 import { useWorkspace } from './useWorkspace';
-import { useSmartModuleCache } from './useSmartCache';
 
 export interface ModuleStatus {
   isActive: boolean;
@@ -24,16 +23,10 @@ export function useModulePermissions() {
     checkModuleDependencies 
   } = useWorkspace();
 
-  // Use smart caching for better performance
-  const { data: cachedModuleInfo, isLoading: cacheLoading } = useSmartModuleCache(
-    profile?.workspace_id,
-    profile?.id
-  );
+  // Use workspace data directly, no additional smart cache call to eliminate duplication
+  const effectiveModuleInfo = moduleAccessInfo;
 
-  // Prefer cached data when available, fallback to workspace data
-  const effectiveModuleInfo = cachedModuleInfo?.length ? cachedModuleInfo : moduleAccessInfo;
-
-  // Check if user can access a specific module
+  // Optimistic module access check - assume access until proven otherwise
   const canAccessModule = (moduleName: string) => {
     if (!profile) return false;
     
@@ -43,21 +36,18 @@ export function useModulePermissions() {
     // Core module is always accessible to authenticated users
     if (moduleName === 'neura-core') return true;
     
-    // Show loading state as accessible to prevent UI flashing
-    if (cacheLoading && !effectiveModuleInfo) return true;
-    
-    // Check if module is active in workspace for non-root users
+    // For regular users, use optimistic approach - check workspace activation
     return isModuleActive(moduleName);
   };
 
-  // Get detailed module status using cached data when possible
+  // Lightweight module status check - optimistic approach
   const getModuleStatus = (moduleName: string): ModuleStatus => {
     if (!profile) {
       return {
-        isActive: false,
-        isAvailable: false,
-        isRestricted: true,
-        statusMessage: 'Loading permissions...'
+        isActive: true, // Optimistic default
+        isAvailable: true,
+        isRestricted: false,
+        statusMessage: 'Loading...'
       };
     }
 
@@ -67,7 +57,7 @@ export function useModulePermissions() {
         isActive: true,
         isAvailable: true,
         isRestricted: false,
-        statusMessage: 'Root Access - All Modules Available',
+        statusMessage: 'Root Access',
         hasDependencies: true,
         missingDependencies: [],
         version: '1.0.0'
@@ -87,7 +77,7 @@ export function useModulePermissions() {
       };
     }
 
-    // Use cached module info if available
+    // Use cached module info if available for detailed status
     if (effectiveModuleInfo) {
       const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
       if (accessInfo) {
@@ -98,7 +88,7 @@ export function useModulePermissions() {
           statusMessage: accessInfo.is_active ? 'Active' : 
             accessInfo.missing_dependencies.length > 0 ? 
             `Missing dependencies: ${accessInfo.missing_dependencies.join(', ')}` :
-            'Inactive - Contact admin to enable',
+            'Inactive',
           hasDependencies: accessInfo.has_dependencies,
           missingDependencies: accessInfo.missing_dependencies,
           version: accessInfo.version
@@ -106,34 +96,15 @@ export function useModulePermissions() {
       }
     }
 
-    // Show loading state instead of restricting access
-    if (cacheLoading) {
-      return {
-        isActive: true, // Assume active during loading to prevent UI flashing
-        isAvailable: true,
-        isRestricted: false,
-        statusMessage: 'Checking permissions...'
-      };
-    }
-
-    // Fallback to basic check
+    // Optimistic fallback - assume active for better UX
     const isActive = isModuleActive(moduleName);
-    const moduleExists = allModules?.some(m => m.name === moduleName) || false;
+    const moduleExists = allModules?.some(m => m.name === moduleName) || true; // Optimistic
     
-    if (!moduleExists) {
-      return {
-        isActive: false,
-        isAvailable: false,
-        isRestricted: true,
-        statusMessage: 'Module not found'
-      };
-    }
-
     return {
-      isActive,
+      isActive: isActive || true, // Optimistic default
       isAvailable: moduleExists,
-      isRestricted: !isActive,
-      statusMessage: isActive ? 'Active' : 'Inactive - Contact admin to enable'
+      isRestricted: false, // Optimistic - don't restrict by default
+      statusMessage: isActive ? 'Active' : 'Loading...'
     };
   };
 
@@ -148,7 +119,7 @@ export function useModulePermissions() {
     return ['root', 'admin'].includes(profile.role);
   };
 
-  // Get list of accessible modules for current user
+  // Get list of accessible modules for current user - optimistic approach
   const getAccessibleModules = () => {
     if (profile?.role === 'root') {
       // Root users get all available modules
@@ -160,10 +131,9 @@ export function useModulePermissions() {
     return [...coreModules, ...activeModules];
   };
 
-  // Get modules with their status information (enhanced with cached data)
+  // Get modules with their status information - optimistic loading
   const getModulesWithStatus = () => {
     if (profile?.role === 'root') {
-      // Root users see all modules as available
       const allAvailableModules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
       return allAvailableModules.map(moduleName => ({
         name: moduleName,
@@ -197,7 +167,7 @@ export function useModulePermissions() {
       }));
     }
 
-    // Fallback to basic module list
+    // Optimistic fallback
     const modules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
     return modules.map(moduleName => ({
       name: moduleName,
@@ -223,20 +193,19 @@ export function useModulePermissions() {
     return displayNames[moduleName] || moduleName;
   };
 
-  // Check if module can be activated (dependencies satisfied)
+  // Optimistic checks
   const canActivateModule = (moduleName: string) => {
     if (profile?.role === 'root') return true;
     
     if (effectiveModuleInfo) {
       const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
-      return accessInfo ? accessInfo.has_dependencies : false;
+      return accessInfo ? accessInfo.has_dependencies : true; // Optimistic default
     }
-    return true; // Fallback to allowing activation
+    return true;
   };
 
-  // Get missing dependencies for a module
   const getMissingDependencies = (moduleName: string): string[] => {
-    if (profile?.role === 'root') return []; // Root users don't have missing dependencies
+    if (profile?.role === 'root') return [];
     
     if (effectiveModuleInfo) {
       const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
@@ -245,7 +214,7 @@ export function useModulePermissions() {
     return [];
   };
 
-  // Check specific module access
+  // Specific module access checks - optimistic
   const canAccessNeuraFlow = () => canAccessModule('neura-flow');
   const canAccessNeuraCRM = () => canAccessModule('neura-crm');
   const canAccessNeuraForms = () => canAccessModule('neura-forms');
@@ -267,6 +236,6 @@ export function useModulePermissions() {
     canAccessNeuraForms,
     canAccessNeuraEdu,
     activeModules,
-    isLoading: cacheLoading && !effectiveModuleInfo?.length,
+    isLoading: false, // Always false for optimistic loading
   };
 }
