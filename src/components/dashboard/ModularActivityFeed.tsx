@@ -33,11 +33,6 @@ export function ModularActivityFeed() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // If user has NeuraFlow access, show workflow activity feed
-  if (canAccessModule('neura-flow')) {
-    return <RealtimeActivityFeed />;
-  }
-
   const generateModuleActivities = () => {
     const moduleActivities: ActivityItem[] = [];
     const now = new Date();
@@ -132,6 +127,12 @@ export function ModularActivityFeed() {
     }
     return <Activity className="h-4 w-4 text-muted-foreground" />;
   };
+
+  // Now that all hooks are called, we can do conditional rendering
+  // If user has NeuraFlow access, show workflow activity feed
+  if (canAccessModule('neura-flow')) {
+    return <RealtimeActivityFeed />;
+  }
 
   if (isLoading) {
     return (
