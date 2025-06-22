@@ -1,4 +1,3 @@
-
 import React, { useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -195,6 +194,8 @@ export const AIReportBuilder = forwardRef<AIReportBuilderRef>((props, ref) => {
                   ref={naturalLanguageInputRef}
                   onQuerySubmit={handleQuerySubmit}
                   isLoading={isGenerating || isLoadingData}
+                  activeModules={activeModules}
+                  isRootUser={isRootUser}
                 />
               </CardContent>
             </Card>
