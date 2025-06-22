@@ -12,7 +12,7 @@
     "aiSubtitle": "Generate reports using natural language queries",
     "naturalLanguageQuery": "Natural Language Query",
     "aiQuery": "Describe the report you want to generate",
-    "aiQueryPlaceholder": "Example: Show me all completed workflows by department this month, or List users with completion rates above 80%",
+    "aiQueryPlaceholder": "Example: Show me performance metrics by department this quarter, or List users with completion rates above 80%, or Display recent activity trends by region",
     "generateAIReport": "Generate Report with AI",
     "generatingReport": "Generating Report...",
     "exampleQueriesTitle": "Example Queries",
