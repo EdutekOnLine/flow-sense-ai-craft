@@ -11,19 +11,38 @@ const corsHeaders = {
 
 interface AIReportRequest {
   query: string;
+  activeModules?: string[];
+  isRootUser?: boolean;
 }
 
-const dataSources = [
-  { id: 'workflow_performance', name: 'Workflow Performance', description: 'Data about workflow completion, progress, and timing' },
-  { id: 'user_performance', name: 'User Performance', description: 'User productivity, completion rates, and task metrics' },
-  { id: 'workflow_steps', name: 'Workflow Steps', description: 'Individual workflow steps and their details' },
-  { id: 'workflow_step_assignments', name: 'Task Assignments', description: 'Task assignments and completion status' },
-  { id: 'department_analytics', name: 'Department Analytics', description: 'Department-level performance and metrics' },
-  { id: 'workflow_trends', name: 'Workflow Trends', description: 'Historical workflow trends and patterns' },
-  { id: 'notifications', name: 'Notifications', description: 'System notifications and alerts' },
-  { id: 'workflows', name: 'Workflows', description: 'Workflow definitions and metadata' },
-  { id: 'profiles', name: 'Users', description: 'User profiles and information' }
-];
+// Module-aware data sources mapping
+const MODULE_DATA_SOURCES = {
+  'neura-core': {
+    name: 'NeuraCore',
+    dataSources: ['profiles', 'notifications'],
+    description: 'Core system data including users and notifications'
+  },
+  'neura-flow': {
+    name: 'NeuraFlow', 
+    dataSources: ['workflow_performance', 'workflow_steps', 'workflow_step_assignments', 'workflow_trends', 'workflows'],
+    description: 'Workflow and process management data'
+  },
+  'neura-crm': {
+    name: 'NeuraCRM',
+    dataSources: ['profiles', 'department_analytics'], 
+    description: 'Customer relationship and sales data'
+  },
+  'neura-forms': {
+    name: 'NeuraForms',
+    dataSources: ['workflow_steps', 'notifications'],
+    description: 'Form submissions and response data'
+  },
+  'neura-edu': {
+    name: 'NeuraEdu',
+    dataSources: ['profiles', 'workflow_performance', 'user_performance_analytics'],
+    description: 'Educational content and learning progress data'
+  }
+};
 
 const columnMappings: Record<string, string[]> = {
   'workflow_performance': [
@@ -69,6 +88,11 @@ const columnMappings: Record<string, string[]> = {
   'profiles': [
     'id', 'email', 'first_name', 'last_name', 'role', 'department',
     'created_at', 'updated_at'
+  ],
+  'user_performance_analytics': [
+    'id', 'full_name', 'role', 'department', 'completion_rate',
+    'total_estimated_hours', 'total_actual_hours', 'avg_time_variance',
+    'workflows_created', 'workflows_assigned', 'steps_assigned', 'steps_completed'
   ]
 };
 
@@ -79,31 +103,67 @@ serve(async (req) => {
   }
 
   try {
-    const { query }: AIReportRequest = await req.json();
+    const { query, activeModules = [], isRootUser = false }: AIReportRequest = await req.json();
 
     console.log('Processing AI report query:', query);
+    console.log('Active modules:', activeModules);
+    console.log('Is root user:', isRootUser);
 
     // Get current date for context
     const currentDate = new Date();
-    const currentDateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const currentDateString = currentDate.toISOString().split('T')[0];
+    const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
     
-    // Calculate common date ranges
     const firstDayOfMonth = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`;
     const firstDayOfYear = `${currentYear}-01-01`;
     const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const sevenDaysAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    const systemPrompt = `You are an AI assistant that converts natural language queries into structured report configurations.
+    // Build available data sources based on active modules
+    const availableDataSources: string[] = [];
+    const moduleContext: string[] = [];
+    
+    if (isRootUser) {
+      // Root users can access all data sources
+      availableDataSources.push(...Object.keys(columnMappings));
+      moduleContext.push('You have ROOT ACCESS - all data sources are available regardless of module activation.');
+    } else {
+      // Build available sources based on active modules
+      activeModules.forEach(moduleId => {
+        const moduleConfig = MODULE_DATA_SOURCES[moduleId as keyof typeof MODULE_DATA_SOURCES];
+        if (moduleConfig) {
+          availableDataSources.push(...moduleConfig.dataSources);
+          moduleContext.push(`${moduleConfig.name}: ${moduleConfig.description} (Data sources: ${moduleConfig.dataSources.join(', ')})`);
+        }
+      });
+    }
+
+    // Remove duplicates
+    const uniqueDataSources = [...new Set(availableDataSources)];
+
+    // Build data sources info for prompt
+    const dataSourcesInfo = uniqueDataSources.map(dsId => {
+      const columns = columnMappings[dsId] || [];
+      return `${dsId}: ${columns.join(', ')}`;
+    }).join('\n');
+
+    const systemPrompt = `You are an AI assistant that converts natural language queries into structured report configurations for a modular business platform.
 
 CURRENT DATE CONTEXT:
 - Today's date: ${currentDateString}
 - Current month: ${currentMonth}/${currentYear}
 - Current year: ${currentYear}
 
-Available data sources and their columns:
-${dataSources.map(ds => `${ds.name} (${ds.id}): ${ds.description}\nColumns: ${columnMappings[ds.id]?.join(', ')}`).join('\n\n')}
+MODULE CONTEXT:
+${moduleContext.join('\n')}
+
+AVAILABLE DATA SOURCES AND COLUMNS:
+${dataSourcesInfo}
+
+${!isRootUser && uniqueDataSources.length === 0 ? 
+  'WARNING: No data sources are available. The user needs to activate modules to access data.' : 
+  ''}
 
 Available filter operators:
 - equals, not_equals
@@ -136,22 +196,23 @@ You must return a JSON object with this exact structure:
     }
   ],
   "name": "Generated Report Name",
-  "explanation": "Brief explanation of what this report shows"
+  "explanation": "Brief explanation of what this report shows and which modules provide the data"
 }
 
 Important rules:
-1. Only use data sources and columns that exist in the provided lists
-2. Select relevant columns that answer the user's question
-3. Add appropriate filters based on the query
-4. Use proper data types for filters
-5. Generate a descriptive report name
-6. For date-related queries, always use the current date context provided above
-7. If the query is unclear, make reasonable assumptions but explain them
+1. ONLY use data sources and columns that exist in the available list above
+2. If no data sources are available, return an error explaining that modules need to be activated
+3. Select relevant columns that answer the user's question
+4. Add appropriate filters based on the query
+5. Use proper data types for filters
+6. Generate a descriptive report name
+7. For date-related queries, always use the current date context provided above
+8. In the explanation, mention which modules provide access to the data
+9. If the query is unclear, make reasonable assumptions but explain them
 
-Example queries and responses:
-- "Show me completed workflows this month" → Use workflow_performance, filter created_at >= ${firstDayOfMonth} AND status = completed
-- "List users with high completion rates" → Use user_performance, filter completion_rate > 80
-- "Workflows created in the last 30 days" → Use workflows, filter created_at >= ${thirtyDaysAgo}`;
+${!isRootUser && uniqueDataSources.length === 0 ? 
+  'Since no data sources are available, return an error message explaining that the user needs to activate modules first.' : 
+  ''}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -180,9 +241,14 @@ Example queries and responses:
     
     console.log('AI response:', aiResponse);
 
-    // Validate the response structure
+    // Validate the response structure and available data sources
     if (!aiResponse.dataSource || !aiResponse.selectedColumns || !Array.isArray(aiResponse.selectedColumns)) {
       throw new Error('Invalid AI response structure');
+    }
+
+    // Check if requested data source is available
+    if (!isRootUser && !uniqueDataSources.includes(aiResponse.dataSource)) {
+      throw new Error(`Data source "${aiResponse.dataSource}" is not available with your current module configuration. Please activate the required modules first.`);
     }
 
     // Ensure filters have proper IDs
