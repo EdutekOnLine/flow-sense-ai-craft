@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,13 @@ export function LiveMetricsCards() {
   const { metrics, isLoading } = useRealtimeDashboardMetrics();
   const { t } = useTranslation();
 
-  const metricCards = useMemo(() => {
+  // Generate session key that changes every 5 minutes
+  const sessionKey = useMemo(() => {
+    return Math.floor(Date.now() / (1000 * 60 * 5));
+  }, []);
+
+  // Create stable color assignment for the session
+  const colorAssignment = useMemo(() => {
     const cardTitles = [
       t('dashboard.pendingTasks'),
       t('dashboard.activeTasks'),
@@ -29,10 +36,11 @@ export function LiveMetricsCards() {
       t('dashboard.totalWorkflows')
     ];
 
-    // Generate random color assignment that changes every 5 minutes
-    const sessionKey = Math.floor(Date.now() / (1000 * 60 * 5));
-    const colorAssignment = createRandomColorAssignment(cardTitles);
+    return createRandomColorAssignment(cardTitles, sessionKey);
+  }, [t, sessionKey]);
 
+  // Build metric cards with stable colors but dynamic data
+  const metricCards = useMemo(() => {
     return [
       {
         title: t('dashboard.pendingTasks'),
@@ -71,7 +79,7 @@ export function LiveMetricsCards() {
         ...colorAssignment[t('dashboard.totalWorkflows')]
       }
     ];
-  }, [metrics, t]);
+  }, [metrics, t, colorAssignment]);
 
   if (isLoading) {
     return (

@@ -16,12 +16,16 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
   const { canAccessModule } = useModulePermissions();
   const { t } = useTranslation();
 
-  const metricCards = useMemo(() => {
-    const cards: MetricCardData[] = [];
+  // Generate session key that changes every 5 minutes
+  const sessionKey = useMemo(() => {
+    return Math.floor(Date.now() / (1000 * 60 * 5));
+  }, []);
+
+  // Collect card titles and create color assignment (stable for the session)
+  const colorAssignment = useMemo(() => {
     const cardTitles: string[] = [];
 
-    // Collect all card titles first to create consistent color assignment
-    if (canAccessModule('neura-flow') && moduleMetrics['neura-flow']) {
+    if (canAccessModule('neura-flow')) {
       cardTitles.push(
         t('dashboard.pendingTasks'),
         t('dashboard.activeTasks'),
@@ -29,15 +33,15 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
       );
     }
 
-    if (canAccessModule('neura-crm') && moduleMetrics['neura-crm']) {
+    if (canAccessModule('neura-crm')) {
       cardTitles.push('Total Leads', 'Active Deals', 'Monthly Revenue');
     }
 
-    if (canAccessModule('neura-forms') && moduleMetrics['neura-forms']) {
+    if (canAccessModule('neura-forms')) {
       cardTitles.push('Form Submissions', 'Active Forms');
     }
 
-    if (canAccessModule('neura-edu') && moduleMetrics['neura-edu']) {
+    if (canAccessModule('neura-edu')) {
       cardTitles.push('Active Students', 'Course Completion');
     }
 
@@ -45,11 +49,13 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
       cardTitles.push('System Status', 'Performance');
     }
 
-    // Generate random color assignment based on current timestamp to refresh on each dashboard load
-    const sessionKey = Math.floor(Date.now() / (1000 * 60 * 5)); // Changes every 5 minutes
-    const colorAssignment = createRandomColorAssignment(cardTitles);
+    return createRandomColorAssignment(cardTitles, sessionKey);
+  }, [canAccessModule, t, sessionKey]);
 
-    // Build cards with random colors
+  // Build metric cards with the stable color assignment
+  const metricCards = useMemo(() => {
+    const cards: MetricCardData[] = [];
+
     if (canAccessModule('neura-flow') && moduleMetrics['neura-flow']) {
       cards.push(...buildNeuraFlowMetrics(moduleMetrics['neura-flow'], t, colorAssignment));
     }
@@ -71,7 +77,7 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
     }
 
     return cards;
-  }, [moduleMetrics, canAccessModule, t]);
+  }, [moduleMetrics, canAccessModule, t, colorAssignment]);
 
   return metricCards;
 }

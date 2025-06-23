@@ -9,7 +9,16 @@ export interface RandomColorAssignment {
   [key: string]: ThemeColorSet;
 }
 
-export function generateRandomThemeColors(count: number): ThemeColorSet[] {
+// Simple seeded random number generator
+function seededRandom(seed: number): () => number {
+  let state = seed;
+  return function() {
+    state = (state * 9301 + 49297) % 233280;
+    return state / 233280;
+  };
+}
+
+export function generateRandomThemeColors(count: number, seed?: number): ThemeColorSet[] {
   // Define available theme color combinations
   const themeColorSets: ThemeColorSet[] = [
     {
@@ -64,8 +73,15 @@ export function generateRandomThemeColors(count: number): ThemeColorSet[] {
     }
   ];
 
-  // Shuffle the array to randomize order
-  const shuffled = [...themeColorSets].sort(() => Math.random() - 0.5);
+  // Use seeded random if seed is provided, otherwise use Math.random
+  const random = seed ? seededRandom(seed) : Math.random;
+  
+  // Shuffle the array using seeded randomization
+  const shuffled = [...themeColorSets];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
   
   // Return the requested number of colors, cycling through if needed
   const result: ThemeColorSet[] = [];
@@ -76,8 +92,8 @@ export function generateRandomThemeColors(count: number): ThemeColorSet[] {
   return result;
 }
 
-export function createRandomColorAssignment(cardTitles: string[]): RandomColorAssignment {
-  const colors = generateRandomThemeColors(cardTitles.length);
+export function createRandomColorAssignment(cardTitles: string[], seed?: number): RandomColorAssignment {
+  const colors = generateRandomThemeColors(cardTitles.length, seed);
   const assignment: RandomColorAssignment = {};
   
   cardTitles.forEach((title, index) => {
