@@ -76,17 +76,20 @@ export function generateRandomThemeColors(count: number, seed?: number): ThemeCo
   // Use seeded random if seed is provided, otherwise use Math.random
   const random = seed ? seededRandom(seed) : Math.random;
   
+  // Create a deep copy to avoid circular references
+  const availableColors = themeColorSets.map(color => ({ ...color }));
+  
   // Shuffle the array using seeded randomization
-  const shuffled = [...themeColorSets];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+  for (let i = availableColors.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [availableColors[i], availableColors[j]] = [availableColors[j], availableColors[i]];
   }
   
   // Return the requested number of colors, cycling through if needed
   const result: ThemeColorSet[] = [];
   for (let i = 0; i < count; i++) {
-    result.push(shuffled[i % shuffled.length]);
+    const colorIndex = i % availableColors.length;
+    result.push({ ...availableColors[colorIndex] });
   }
   
   console.log('🎨 [generateRandomThemeColors] Generated', count, 'colors with seed:', seed);
@@ -103,8 +106,8 @@ export function createRandomColorAssignment(cardTitles: string[], seed?: number)
   const assignment: RandomColorAssignment = {};
   
   cardTitles.forEach((title, index) => {
-    assignment[title] = colors[index];
-    console.log('🎨 [createRandomColorAssignment] Assigned to', title, ':', colors[index]);
+    assignment[title] = { ...colors[index] };
+    console.log('🎨 [createRandomColorAssignment] Assigned to', title, ':', assignment[title]);
   });
   
   console.log('🎨 [createRandomColorAssignment] Final assignment:', assignment);

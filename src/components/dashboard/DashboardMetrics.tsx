@@ -147,11 +147,42 @@ export function DashboardMetrics() {
     const cardTitles = cardData.map(card => card.title);
     const colorAssignment = createRandomColorAssignment(cardTitles, sessionKey);
 
+    // Default fallback colors
+    const defaultColors = {
+      color: 'text-primary',
+      bgColor: 'bg-primary/5',
+      borderColor: 'border-primary/20'
+    };
+
     // Apply colors to cards to create complete MetricCard objects
-    return cardData.map(card => ({
-      ...card,
-      ...colorAssignment[card.title]
-    }));
+    return cardData.map((card, index) => {
+      const assignedColors = colorAssignment[card.title];
+      
+      // Debug logging for each card
+      console.log('🎨 [DashboardMetrics] Processing card:', card.title);
+      console.log('🎨 [DashboardMetrics] Assigned colors:', assignedColors);
+      
+      // Ensure we always have valid colors - use fallback if assignment failed
+      const finalColors = assignedColors && 
+        assignedColors.color && 
+        assignedColors.bgColor && 
+        assignedColors.borderColor
+        ? assignedColors
+        : {
+            ...defaultColors,
+            // Add some variety to fallback colors
+            color: index % 2 === 0 ? 'text-primary' : 'text-secondary',
+            bgColor: index % 2 === 0 ? 'bg-primary/5' : 'bg-secondary/5',
+            borderColor: index % 2 === 0 ? 'border-primary/20' : 'border-secondary/20'
+          };
+
+      console.log('🎨 [DashboardMetrics] Final colors for', card.title, ':', finalColors);
+
+      return {
+        ...card,
+        ...finalColors
+      };
+    });
   }, [workflowMetrics, moduleData, canAccessModule, t, sessionKey]);
 
   const isLoading = workflowLoading || moduleLoading;
@@ -203,6 +234,13 @@ export function DashboardMetrics() {
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
       {metricCards.map((card, index) => {
         const Icon = card.icon;
+        
+        console.log('🎨 [DashboardMetrics] Rendering card:', card.title, 'with colors:', {
+          color: card.color,
+          bgColor: card.bgColor,
+          borderColor: card.borderColor
+        });
+
         return (
           <Card 
             key={index} 
