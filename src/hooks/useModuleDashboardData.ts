@@ -36,70 +36,6 @@ export function useModuleDashboardData() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchCRMMetrics = async () => {
-    try {
-      // For now, we'll return simulated realistic data since we don't have CRM tables yet
-      // In a real implementation, these would be actual Supabase queries
-      const simulatedCRMData = {
-        totalLeads: Math.floor(Math.random() * 150) + 50, // 50-200 leads
-        activeDeals: Math.floor(Math.random() * 25) + 10, // 10-35 active deals
-        monthlyRevenue: Math.floor(Math.random() * 50000) + 10000, // $10k-60k revenue
-        conversionRate: Math.floor(Math.random() * 30) + 15 // 15-45% conversion rate
-      };
-      return simulatedCRMData;
-    } catch (error) {
-      console.error('Error fetching CRM metrics:', error);
-      return {
-        totalLeads: 0,
-        activeDeals: 0,
-        monthlyRevenue: 0,
-        conversionRate: 0
-      };
-    }
-  };
-
-  const fetchFormsMetrics = async () => {
-    try {
-      // Simulated realistic forms data
-      const simulatedFormsData = {
-        totalForms: Math.floor(Math.random() * 20) + 5, // 5-25 forms
-        submissions: Math.floor(Math.random() * 500) + 100, // 100-600 submissions
-        responseRate: Math.floor(Math.random() * 40) + 60, // 60-100% response rate
-        activeForms: Math.floor(Math.random() * 15) + 3 // 3-18 active forms
-      };
-      return simulatedFormsData;
-    } catch (error) {
-      console.error('Error fetching Forms metrics:', error);
-      return {
-        totalForms: 0,
-        submissions: 0,
-        responseRate: 0,
-        activeForms: 0
-      };
-    }
-  };
-
-  const fetchEduMetrics = async () => {
-    try {
-      // Simulated realistic education data
-      const simulatedEduData = {
-        totalCourses: Math.floor(Math.random() * 12) + 3, // 3-15 courses
-        activeStudents: Math.floor(Math.random() * 200) + 50, // 50-250 students
-        completionRate: Math.floor(Math.random() * 30) + 70, // 70-100% completion rate
-        assignmentsDue: Math.floor(Math.random() * 20) + 5 // 5-25 assignments due
-      };
-      return simulatedEduData;
-    } catch (error) {
-      console.error('Error fetching Education metrics:', error);
-      return {
-        totalCourses: 0,
-        activeStudents: 0,
-        completionRate: 0,
-        assignmentsDue: 0
-      };
-    }
-  };
-
   const fetchModuleData = async () => {
     if (!profile) return;
 
@@ -131,10 +67,14 @@ export function useModuleDashboardData() {
       );
     }
 
-    // Add NeuraCRM data if accessible - fetch real data
+    // Add NeuraCRM data if accessible
     if (canAccessModule('neura-crm')) {
-      const crmMetrics = await fetchCRMMetrics();
-      newData.moduleMetrics['neura-crm'] = crmMetrics;
+      newData.moduleMetrics['neura-crm'] = {
+        totalLeads: 0,
+        activeDeals: 0,
+        monthlyRevenue: 0,
+        conversionRate: 0
+      };
       newData.quickActions.push({
         id: 'add-lead',
         module: 'neura-crm',
@@ -144,10 +84,14 @@ export function useModuleDashboardData() {
       });
     }
 
-    // Add NeuraForms data if accessible - fetch real data
+    // Add NeuraForms data if accessible
     if (canAccessModule('neura-forms')) {
-      const formsMetrics = await fetchFormsMetrics();
-      newData.moduleMetrics['neura-forms'] = formsMetrics;
+      newData.moduleMetrics['neura-forms'] = {
+        totalForms: 0,
+        submissions: 0,
+        responseRate: 0,
+        activeForms: 0
+      };
       newData.quickActions.push({
         id: 'create-form',
         module: 'neura-forms',
@@ -157,10 +101,14 @@ export function useModuleDashboardData() {
       });
     }
 
-    // Add NeuraEdu data if accessible - fetch real data
+    // Add NeuraEdu data if accessible
     if (canAccessModule('neura-edu')) {
-      const eduMetrics = await fetchEduMetrics();
-      newData.moduleMetrics['neura-edu'] = eduMetrics;
+      newData.moduleMetrics['neura-edu'] = {
+        totalCourses: 0,
+        activeStudents: 0,
+        completionRate: 0,
+        assignmentsDue: 0
+      };
       newData.quickActions.push({
         id: 'create-course',
         module: 'neura-edu',
