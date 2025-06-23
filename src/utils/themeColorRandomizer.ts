@@ -89,18 +89,25 @@ export function generateRandomThemeColors(count: number, seed?: number): ThemeCo
     result.push(shuffled[i % shuffled.length]);
   }
   
+  console.log('🎨 [generateRandomThemeColors] Generated', count, 'colors with seed:', seed);
+  console.log('🎨 [generateRandomThemeColors] Result:', result);
+  
   return result;
 }
 
 export function createRandomColorAssignment(cardTitles: string[], seed?: number): RandomColorAssignment {
+  console.log('🎨 [createRandomColorAssignment] Creating assignment for titles:', cardTitles);
+  console.log('🎨 [createRandomColorAssignment] Using seed:', seed);
+  
   const colors = generateRandomThemeColors(cardTitles.length, seed);
   const assignment: RandomColorAssignment = {};
   
   cardTitles.forEach((title, index) => {
     assignment[title] = colors[index];
+    console.log('🎨 [createRandomColorAssignment] Assigned to', title, ':', colors[index]);
   });
   
-  console.log('🎨 Color assignment created:', assignment);
+  console.log('🎨 [createRandomColorAssignment] Final assignment:', assignment);
   
   return assignment;
 }

@@ -12,7 +12,13 @@ import {
   Target
 } from 'lucide-react';
 import { MetricCardData } from './types';
-import { RandomColorAssignment } from '@/utils/themeColorRandomizer';
+import { RandomColorAssignment, generateRandomThemeColors } from '@/utils/themeColorRandomizer';
+
+// Function to get a random color set as fallback
+const getRandomFallbackColors = () => {
+  const [randomColor] = generateRandomThemeColors(1);
+  return randomColor;
+};
 
 // Default theme-aware colors that will be overridden by random assignment
 const getDefaultColors = () => ({
@@ -47,11 +53,18 @@ export function buildNeuraFlowMetrics(
     }
   ];
 
-  // Apply random colors with fallback
-  return cards.map(card => ({
-    ...card,
-    ...(colorAssignment?.[card.title] || getDefaultColors())
-  }));
+  // Apply random colors with proper fallback
+  return cards.map(card => {
+    const assignedColors = colorAssignment?.[card.title];
+    const finalColors = assignedColors || getRandomFallbackColors();
+    
+    console.log('🎨 [buildNeuraFlowMetrics] Card:', card.title, 'Colors:', finalColors);
+    
+    return {
+      ...card,
+      ...finalColors
+    };
+  });
 }
 
 export function buildNeuraCrmMetrics(
@@ -79,11 +92,18 @@ export function buildNeuraCrmMetrics(
     }
   ];
 
-  // Apply random colors with fallback
-  return cards.map(card => ({
-    ...card,
-    ...(colorAssignment?.[card.title] || getDefaultColors())
-  }));
+  // Apply random colors with proper fallback
+  return cards.map(card => {
+    const assignedColors = colorAssignment?.[card.title];
+    const finalColors = assignedColors || getRandomFallbackColors();
+    
+    console.log('🎨 [buildNeuraCrmMetrics] Card:', card.title, 'Colors:', finalColors);
+    
+    return {
+      ...card,
+      ...finalColors
+    };
+  });
 }
 
 export function buildNeuraFormsMetrics(
@@ -105,11 +125,18 @@ export function buildNeuraFormsMetrics(
     }
   ];
 
-  // Apply random colors with fallback
-  return cards.map(card => ({
-    ...card,
-    ...(colorAssignment?.[card.title] || getDefaultColors())
-  }));
+  // Apply random colors with proper fallback
+  return cards.map(card => {
+    const assignedColors = colorAssignment?.[card.title];
+    const finalColors = assignedColors || getRandomFallbackColors();
+    
+    console.log('🎨 [buildNeuraFormsMetrics] Card:', card.title, 'Colors:', finalColors);
+    
+    return {
+      ...card,
+      ...finalColors
+    };
+  });
 }
 
 export function buildNeuraEduMetrics(
@@ -131,11 +158,18 @@ export function buildNeuraEduMetrics(
     }
   ];
 
-  // Apply random colors with fallback
-  return cards.map(card => ({
-    ...card,
-    ...(colorAssignment?.[card.title] || getDefaultColors())
-  }));
+  // Apply random colors with proper fallback
+  return cards.map(card => {
+    const assignedColors = colorAssignment?.[card.title];
+    const finalColors = assignedColors || getRandomFallbackColors();
+    
+    console.log('🎨 [buildNeuraEduMetrics] Card:', card.title, 'Colors:', finalColors);
+    
+    return {
+      ...card,
+      ...finalColors
+    };
+  });
 }
 
 export function buildFallbackMetrics(colorAssignment?: RandomColorAssignment): MetricCardData[] {
@@ -154,9 +188,16 @@ export function buildFallbackMetrics(colorAssignment?: RandomColorAssignment): M
     }
   ];
 
-  // Apply random colors with fallback
-  return cards.map(card => ({
-    ...card,
-    ...(colorAssignment?.[card.title] || getDefaultColors())
-  }));
+  // Apply random colors with proper fallback
+  return cards.map(card => {
+    const assignedColors = colorAssignment?.[card.title];
+    const finalColors = assignedColors || getRandomFallbackColors();
+    
+    console.log('🎨 [buildFallbackMetrics] Card:', card.title, 'Colors:', finalColors);
+    
+    return {
+      ...card,
+      ...finalColors
+    };
+  });
 }
