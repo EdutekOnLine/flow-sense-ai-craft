@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,43 +52,43 @@ export function DashboardMetrics() {
   const metricCards = useMemo(() => {
     const cardData: MetricCardData[] = [];
 
-    // Core workflow metrics (always visible if NeuraFlow is accessible)
+    // Core workflow metrics (always visible if NeuraFlow is accessible) - use hardcoded titles for consistency
     if (canAccessModule('neura-flow')) {
       cardData.push(
         {
-          title: t('dashboard.pendingTasks'),
+          title: 'Pending Tasks',
           value: workflowMetrics.pendingTasks,
           icon: Clock
         },
         {
-          title: t('dashboard.activeTasks'),
+          title: 'Active Tasks',
           value: workflowMetrics.inProgressTasks,
           icon: PlayCircle
         },
         {
-          title: t('dashboard.completedToday'),
+          title: 'Completed Today',
           value: workflowMetrics.completedTasksToday,
           icon: CheckCircle
         },
         {
-          title: t('dashboard.activeWorkflows'),
+          title: 'Active Workflows',
           value: workflowMetrics.activeWorkflows,
           icon: Activity
         },
         {
-          title: t('dashboard.reusableWorkflows'),
+          title: 'Reusable Workflows',
           value: workflowMetrics.myReusableWorkflows,
           icon: Repeat
         },
         {
-          title: t('dashboard.totalWorkflows'),
+          title: 'Total Workflows',
           value: workflowMetrics.totalSavedWorkflows,
           icon: Workflow
         }
       );
     }
 
-    // Module-specific metrics
+    // Module-specific metrics - use consistent hardcoded titles
     if (canAccessModule('neura-crm') && moduleData.moduleMetrics['neura-crm']) {
       const crmMetrics = moduleData.moduleMetrics['neura-crm'];
       cardData.push(
@@ -105,7 +104,7 @@ export function DashboardMetrics() {
         },
         {
           title: 'Monthly Revenue',
-          value: crmMetrics.monthlyRevenue,
+          value: `$${crmMetrics.monthlyRevenue.toLocaleString()}`,
           icon: DollarSign
         }
       );
@@ -147,43 +146,27 @@ export function DashboardMetrics() {
     const cardTitles = cardData.map(card => card.title);
     const colorAssignment = createRandomColorAssignment(cardTitles, sessionKey);
 
-    // Default fallback colors
-    const defaultColors = {
-      color: 'text-primary',
-      bgColor: 'bg-primary/5',
-      borderColor: 'border-primary/20'
-    };
+    console.log('🎨 [DashboardMetrics] Card titles:', cardTitles);
+    console.log('🎨 [DashboardMetrics] Color assignment:', colorAssignment);
 
-    // Apply colors to cards to create complete MetricCard objects
+    // Apply colors to cards ensuring every card gets a proper color
     return cardData.map((card, index) => {
       const assignedColors = colorAssignment[card.title];
       
-      // Debug logging for each card
       console.log('🎨 [DashboardMetrics] Processing card:', card.title);
       console.log('🎨 [DashboardMetrics] Assigned colors:', assignedColors);
       
-      // Ensure we always have valid colors - use fallback if assignment failed
-      const finalColors = assignedColors && 
-        assignedColors.color && 
-        assignedColors.bgColor && 
-        assignedColors.borderColor
-        ? assignedColors
-        : {
-            ...defaultColors,
-            // Add some variety to fallback colors
-            color: index % 2 === 0 ? 'text-primary' : 'text-secondary',
-            bgColor: index % 2 === 0 ? 'bg-primary/5' : 'bg-secondary/5',
-            borderColor: index % 2 === 0 ? 'border-primary/20' : 'border-secondary/20'
-          };
-
-      console.log('🎨 [DashboardMetrics] Final colors for', card.title, ':', finalColors);
+      // Every card should have colors assigned - no fallback needed if colorAssignment works correctly
+      if (!assignedColors) {
+        console.error('🎨 [DashboardMetrics] No colors assigned for:', card.title);
+      }
 
       return {
         ...card,
-        ...finalColors
+        ...assignedColors
       };
     });
-  }, [workflowMetrics, moduleData, canAccessModule, t, sessionKey]);
+  }, [workflowMetrics, moduleData, canAccessModule, sessionKey]);
 
   const isLoading = workflowLoading || moduleLoading;
 
