@@ -21,10 +21,11 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
     return Math.floor(Date.now() / (1000 * 60 * 5));
   }, []);
 
-  // Collect card titles and create color assignment (stable for the session)
+  // Collect ALL possible card titles and create comprehensive color assignment
   const colorAssignment = useMemo(() => {
     const cardTitles: string[] = [];
 
+    // Always include all possible card titles to ensure comprehensive coverage
     if (canAccessModule('neura-flow')) {
       cardTitles.push(
         t('dashboard.pendingTasks'),
@@ -45,11 +46,16 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
       cardTitles.push('Active Students', 'Course Completion');
     }
 
+    // Add fallback titles if no modules are accessible
     if (cardTitles.length === 0) {
       cardTitles.push('System Status', 'Performance');
     }
 
-    return createRandomColorAssignment(cardTitles, sessionKey);
+    const assignment = createRandomColorAssignment(cardTitles, sessionKey);
+    console.log('🎨 Generated color assignment for titles:', cardTitles);
+    console.log('🎨 Color assignment result:', assignment);
+    
+    return assignment;
   }, [canAccessModule, t, sessionKey]);
 
   // Build metric cards with the stable color assignment
@@ -57,25 +63,36 @@ export function useMetricCards(moduleMetrics: Record<string, any>) {
     const cards: MetricCardData[] = [];
 
     if (canAccessModule('neura-flow') && moduleMetrics['neura-flow']) {
-      cards.push(...buildNeuraFlowMetrics(moduleMetrics['neura-flow'], t, colorAssignment));
+      const flowCards = buildNeuraFlowMetrics(moduleMetrics['neura-flow'], t, colorAssignment);
+      console.log('🎨 NeuraFlow cards with colors:', flowCards);
+      cards.push(...flowCards);
     }
 
     if (canAccessModule('neura-crm') && moduleMetrics['neura-crm']) {
-      cards.push(...buildNeuraCrmMetrics(moduleMetrics['neura-crm'], colorAssignment));
+      const crmCards = buildNeuraCrmMetrics(moduleMetrics['neura-crm'], colorAssignment);
+      console.log('🎨 NeuraCRM cards with colors:', crmCards);
+      cards.push(...crmCards);
     }
 
     if (canAccessModule('neura-forms') && moduleMetrics['neura-forms']) {
-      cards.push(...buildNeuraFormsMetrics(moduleMetrics['neura-forms'], colorAssignment));
+      const formsCards = buildNeuraFormsMetrics(moduleMetrics['neura-forms'], colorAssignment);
+      console.log('🎨 NeuraForms cards with colors:', formsCards);
+      cards.push(...formsCards);
     }
 
     if (canAccessModule('neura-edu') && moduleMetrics['neura-edu']) {
-      cards.push(...buildNeuraEduMetrics(moduleMetrics['neura-edu'], colorAssignment));
+      const eduCards = buildNeuraEduMetrics(moduleMetrics['neura-edu'], colorAssignment);
+      console.log('🎨 NeuraEdu cards with colors:', eduCards);
+      cards.push(...eduCards);
     }
 
     if (cards.length === 0) {
-      cards.push(...buildFallbackMetrics(colorAssignment));
+      const fallbackCards = buildFallbackMetrics(colorAssignment);
+      console.log('🎨 Fallback cards with colors:', fallbackCards);
+      cards.push(...fallbackCards);
     }
 
+    console.log('🎨 Final metric cards:', cards);
     return cards;
   }, [moduleMetrics, canAccessModule, t, colorAssignment]);
 

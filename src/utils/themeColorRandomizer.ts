@@ -100,5 +100,7 @@ export function createRandomColorAssignment(cardTitles: string[], seed?: number)
     assignment[title] = colors[index];
   });
   
+  console.log('🎨 Color assignment created:', assignment);
+  
   return assignment;
 }
