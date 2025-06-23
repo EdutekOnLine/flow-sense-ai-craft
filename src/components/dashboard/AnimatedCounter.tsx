@@ -1,42 +1,49 @@
 
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface AnimatedCounterProps {
-  value: number | string;
-  className?: string;
+  value: number;
   duration?: number;
+  className?: string;
 }
 
-export function AnimatedCounter({ value, className = '', duration = 1000 }: AnimatedCounterProps) {
-  const [displayValue, setDisplayValue] = useState<number | string>(0);
+export function AnimatedCounter({ value, duration = 500, className = '' }: AnimatedCounterProps) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (typeof value === 'string') {
-      setDisplayValue(value);
-      return;
-    }
+    if (displayValue === value) return;
 
-    if (typeof value === 'number') {
-      let startTime: number;
-      const startValue = typeof displayValue === 'number' ? displayValue : 0;
-      
-      const animate = (currentTime: number) => {
-        if (!startTime) startTime = currentTime;
-        const progress = Math.min((currentTime - startTime) / duration, 1);
-        
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const currentValue = Math.floor(startValue + (value - startValue) * easeOutQuart);
-        
-        setDisplayValue(currentValue);
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-      
-      requestAnimationFrame(animate);
-    }
-  }, [value, duration]);
+    setIsAnimating(true);
+    const startValue = displayValue;
+    const difference = value - startValue;
+    const startTime = Date.now();
 
-  return <span className={className}>{displayValue}</span>;
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const currentValue = Math.round(startValue + (difference * easeOut));
+      
+      setDisplayValue(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setIsAnimating(false);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [value, duration, displayValue]);
+
+  return (
+    <span 
+      className={`${className} ${isAnimating ? 'text-primary font-bold' : ''} transition-colors duration-200`}
+    >
+      {displayValue}
+    </span>
+  );
 }

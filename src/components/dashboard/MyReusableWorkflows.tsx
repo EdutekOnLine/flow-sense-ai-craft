@@ -92,7 +92,7 @@ export function MyReusableWorkflows({ onStartWorkflow }: MyReusableWorkflowsProp
               <div className="flex-1">
                 <div className={`flex items-center gap-2 mb-1 ${getRTLAwareFlexDirection()}`}>
                   <h4 className={`font-medium text-sm text-card-foreground ${getRTLAwareTextAlign()}`}>{workflow.name}</h4>
-                  <Badge className="bg-status-success-bg text-status-success border-theme-accent">
+                  <Badge className="bg-secondary/10 text-secondary border-secondary/20">
                     <Repeat className="h-3 w-3 me-1" />
                     {t('workflow.reusable')}
                   </Badge>
