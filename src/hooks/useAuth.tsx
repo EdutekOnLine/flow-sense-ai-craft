@@ -11,6 +11,7 @@ export interface UserProfile {
   department?: string;
   avatar_url?: string;
   workspace_id?: string;
+  created_at: string;
 }
 
 export function useAuth() {

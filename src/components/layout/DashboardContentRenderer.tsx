@@ -8,6 +8,7 @@ import { ReportsPage } from '@/components/reports/ReportsPage';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
 import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { ModuleGuard } from '@/components/modules/ModuleGuard';
+import { ThemeSettings } from '@/components/theme/ThemeSettings';
 
 interface DashboardContentRendererProps {
   activeTab: string;
@@ -93,12 +94,7 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
       
       case 'settings':
         // Core feature - no ModuleGuard needed, always accessible
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Settings</h1>
-            <p className="text-muted-foreground">Settings page coming soon...</p>
-          </div>
-        );
+        return <ThemeSettings />;
       
       default:
         return <DashboardContent />;
