@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useRootPermissions } from './useRootPermissions';
 import { toast } from '@/components/ui/use-toast';
 
 export interface Team {
@@ -15,6 +16,9 @@ export interface Team {
     first_name: string;
     last_name: string;
     email: string;
+  };
+  workspace?: {
+    name: string;
   };
   member_count?: number;
 }
@@ -36,15 +40,14 @@ export interface TeamMember {
 
 export function useTeamManagement() {
   const { profile } = useAuth();
+  const { isRootUser } = useRootPermissions();
   const queryClient = useQueryClient();
 
-  // Fetch teams for current workspace
+  // Fetch teams - for root users get all teams, for regular users get workspace teams
   const { data: teams = [], isLoading: teamsLoading } = useQuery({
-    queryKey: ['teams', profile?.workspace_id],
+    queryKey: ['teams', isRootUser ? 'all' : profile?.workspace_id],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
         .select(`
           *,
@@ -52,11 +55,19 @@ export function useTeamManagement() {
             first_name,
             last_name,
             email
+          ),
+          workspace:workspace_id (
+            name
           )
         `)
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // For non-root users, filter by workspace
+      if (!isRootUser && profile?.workspace_id) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       
       // Get member counts for each team
@@ -83,16 +94,14 @@ export function useTeamManagement() {
         member_count: 0,
       })) as Team[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (isRootUser || !!profile?.workspace_id),
   });
 
-  // Fetch team members
+  // Fetch team members - for root users get all, for regular users get workspace teams
   const { data: teamMembers = [] } = useQuery({
-    queryKey: ['team-members', profile?.workspace_id],
+    queryKey: ['team-members', isRootUser ? 'all' : profile?.workspace_id],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('team_members')
         .select(`
           *,
@@ -104,15 +113,21 @@ export function useTeamManagement() {
             department
           ),
           teams!inner (
-            workspace_id
+            workspace_id,
+            name
           )
-        `)
-        .eq('teams.workspace_id', profile.workspace_id);
+        `);
 
+      // For non-root users, filter by workspace
+      if (!isRootUser && profile?.workspace_id) {
+        query = query.eq('teams.workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as TeamMember[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (isRootUser || !!profile?.workspace_id),
   });
 
   // Function to get workspace-specific managers
@@ -160,41 +175,47 @@ export function useTeamManagement() {
     return users;
   };
 
-  // Fetch available managers (users with manager role) for current workspace
+  // Fetch available managers - for root users get all managers, for regular users get workspace managers
   const { data: availableManagers = [] } = useQuery({
-    queryKey: ['available-managers', profile?.workspace_id],
+    queryKey: ['available-managers', isRootUser ? 'all' : profile?.workspace_id],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
-        .select('id, first_name, last_name, email')
-        .eq('workspace_id', profile.workspace_id)
+        .select('id, first_name, last_name, email, workspace_id')
         .eq('role', 'manager')
         .order('first_name');
 
+      // For non-root users, filter by workspace
+      if (!isRootUser && profile?.workspace_id) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (isRootUser || !!profile?.workspace_id),
   });
 
-  // Fetch all workspace users for team assignment
+  // Fetch all workspace users for team assignment - for root users get all, for regular users get workspace users
   const { data: workspaceUsers = [] } = useQuery({
-    queryKey: ['workspace-users', profile?.workspace_id],
+    queryKey: ['workspace-users', isRootUser ? 'all' : profile?.workspace_id],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
-      
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, role, department')
-        .eq('workspace_id', profile.workspace_id)
+        .select('id, first_name, last_name, email, role, department, workspace_id')
         .order('first_name');
 
+      // For non-root users, filter by workspace
+      if (!isRootUser && profile?.workspace_id) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (isRootUser || !!profile?.workspace_id),
   });
 
   // Create team mutation
@@ -325,9 +346,10 @@ export function useTeamManagement() {
     return teamMembers.filter(member => member.team_id === teamId);
   };
 
-  // Check if user can manage a specific team
+  // Check if user can manage a specific team - root users can manage all teams
   const canManageTeam = (teamId: string) => {
-    if (profile?.role === 'admin' || profile?.role === 'root') return true;
+    if (isRootUser) return true;
+    if (profile?.role === 'admin') return true;
     return teams.some(team => team.id === teamId && team.manager_id === profile?.id);
   };
 
@@ -350,5 +372,6 @@ export function useTeamManagement() {
     isCreating: createTeamMutation.isPending,
     isUpdating: updateTeamMutation.isPending,
     isDeleting: deleteTeamMutation.isPending,
+    isRootUser, // Expose root status for UI components
   };
 }

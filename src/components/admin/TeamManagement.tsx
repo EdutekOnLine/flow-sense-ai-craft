@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Plus, Users, Edit, Trash2, UserPlus, Building2 } from 'lucide-react';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { CreateTeamDialog } from './team-management/CreateTeamDialog';
 import { EditTeamDialog } from './team-management/EditTeamDialog';
@@ -29,6 +29,7 @@ export function TeamManagement() {
     getTeamMembers,
     isLoading,
     isDeleting,
+    isRootUser,
   } = useTeamManagement();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -59,7 +60,10 @@ export function TeamManagement() {
         <div>
           <h2 className="text-2xl font-bold">Team Management</h2>
           <p className="text-muted-foreground">
-            Manage teams and their members within your workspace
+            {isRootUser 
+              ? 'Manage teams across all workspaces' 
+              : 'Manage teams and their members within your workspace'
+            }
           </p>
         </div>
         {isAdmin && (
@@ -83,6 +87,16 @@ export function TeamManagement() {
               </div>
               {team.description && (
                 <p className="text-sm text-muted-foreground">{team.description}</p>
+              )}
+              
+              {/* Show workspace info for root users */}
+              {isRootUser && team.workspace && (
+                <div className="flex items-center gap-1 mt-2">
+                  <Building2 className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    {team.workspace.name}
+                  </p>
+                </div>
               )}
             </CardHeader>
             <CardContent className="space-y-4">
@@ -160,7 +174,10 @@ export function TeamManagement() {
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No teams found</h3>
             <p className="text-muted-foreground mb-4">
-              Get started by creating your first team.
+              {isRootUser 
+                ? 'No teams exist in any workspace yet.' 
+                : 'Get started by creating your first team.'
+              }
             </p>
             {isAdmin && (
               <Button onClick={() => setCreateDialogOpen(true)}>
