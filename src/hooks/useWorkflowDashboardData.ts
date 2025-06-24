@@ -38,12 +38,12 @@ export function useWorkflowDashboardData() {
     queryFn: async (): Promise<WorkflowDashboardData> => {
       if (!profile) throw new Error('No user profile');
 
-      // Fetch workflow instances with saved_workflows
+      // Fetch workflow instances with saved_workflows using the correct foreign key
       const { data: instances } = await supabase
         .from('workflow_instances')
         .select(`
           *,
-          saved_workflows!workflow_instances_workflow_id_fkey(name, created_by)
+          saved_workflows(name, created_by)
         `)
         .order('created_at', { ascending: false });
 
@@ -52,12 +52,12 @@ export function useWorkflowDashboardData() {
         .from('workflow_step_assignments')
         .select(`
           *,
-          workflow_steps!inner(
+          workflow_steps(
             id,
             workflow_id,
             name
           ),
-          profiles!workflow_step_assignments_assigned_to_fkey(first_name, last_name)
+          profiles(first_name, last_name)
         `)
         .order('created_at', { ascending: false });
 
