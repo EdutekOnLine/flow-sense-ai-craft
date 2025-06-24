@@ -32,14 +32,24 @@ export function WorkspaceSelector({ value, onValueChange, disabled }: WorkspaceS
     },
   });
 
+  const handleValueChange = (newValue: string) => {
+    // Only call onValueChange with actual workspace IDs, not placeholder values
+    if (newValue !== 'select-workspace') {
+      onValueChange(newValue);
+    }
+  };
+
   return (
     <div>
       <Label htmlFor="workspace">Target Workspace</Label>
-      <Select value={value} onValueChange={onValueChange} disabled={disabled || isLoading}>
+      <Select value={value || 'select-workspace'} onValueChange={handleValueChange} disabled={disabled || isLoading}>
         <SelectTrigger>
           <SelectValue placeholder={isLoading ? "Loading workspaces..." : "Select a workspace"} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="select-workspace" disabled>
+            {isLoading ? "Loading workspaces..." : "Select a workspace"}
+          </SelectItem>
           {workspaces.map((workspace) => (
             <SelectItem key={workspace.id} value={workspace.id}>
               <div className="flex items-center gap-2">

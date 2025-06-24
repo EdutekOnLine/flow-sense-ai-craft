@@ -22,14 +22,19 @@ export function TeamFilter({ selectedTeamId, onTeamSelect }: TeamFilterProps) {
 
   const selectedTeam = teams.find(team => team.id === selectedTeamId);
 
+  const handleValueChange = (value: string) => {
+    // Convert "all-teams" back to null for the parent component
+    onTeamSelect(value === "all-teams" ? null : value);
+  };
+
   return (
     <div className="flex items-center gap-2">
-      <Select value={selectedTeamId || ''} onValueChange={(value) => onTeamSelect(value || null)}>
+      <Select value={selectedTeamId || 'all-teams'} onValueChange={handleValueChange}>
         <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="Filter by team" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All teams</SelectItem>
+          <SelectItem value="all-teams">All teams</SelectItem>
           {teams.map((team) => (
             <SelectItem key={team.id} value={team.id}>
               {team.name}

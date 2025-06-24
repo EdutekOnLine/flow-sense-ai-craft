@@ -58,6 +58,13 @@ export function WorkspaceSelector({ selectedWorkspaceId, onWorkspaceSelect }: Wo
 
   const selectedWorkspace = workspaces.find(w => w.id === selectedWorkspaceId);
 
+  const handleValueChange = (newValue: string) => {
+    // Only call onWorkspaceSelect with actual workspace IDs, not placeholder values
+    if (newValue !== 'select-workspace') {
+      onWorkspaceSelect(newValue);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -68,14 +75,17 @@ export function WorkspaceSelector({ selectedWorkspaceId, onWorkspaceSelect }: Wo
       </CardHeader>
       <CardContent className="space-y-4">
         <Select 
-          value={selectedWorkspaceId || ''} 
-          onValueChange={onWorkspaceSelect}
+          value={selectedWorkspaceId || 'select-workspace'} 
+          onValueChange={handleValueChange}
           disabled={isLoading}
         >
           <SelectTrigger>
             <SelectValue placeholder={isLoading ? "Loading workspaces..." : "Select a workspace"} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="select-workspace" disabled>
+              {isLoading ? "Loading workspaces..." : "Select a workspace"}
+            </SelectItem>
             {workspaces.map((workspace) => (
               <SelectItem key={workspace.id} value={workspace.id}>
                 <div className="flex items-center gap-2 w-full">
