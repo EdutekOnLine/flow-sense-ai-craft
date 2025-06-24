@@ -1509,6 +1509,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_workspace: {
+        Args: { user_id: string }
+        Returns: string
+      }
       get_user_workspace_id: {
         Args: { user_id: string }
         Returns: string
@@ -1551,6 +1555,10 @@ export type Database = {
           user_id: string
           roles: Database["public"]["Enums"]["user_role"][]
         }
+        Returns: boolean
+      }
+      validate_manager_in_workspace: {
+        Args: { manager_id: string; target_workspace_id: string }
         Returns: boolean
       }
       validate_module_configuration: {
