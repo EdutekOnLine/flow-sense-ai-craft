@@ -26,21 +26,38 @@ export function useCrmDeals() {
           ),
           companies:company_id (
             name
-          ),
-          assigned_profile:assigned_to (
-            first_name,
-            last_name
           )
         `)
         .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Fetch assigned profiles separately to avoid relationship conflicts
+      const dealIds = data?.map(deal => deal.id) || [];
+      const assignedUserIds = [...new Set(data?.map(deal => deal.assigned_to).filter(Boolean))];
+      
+      let assignedProfiles: Record<string, { first_name: string; last_name: string }> = {};
+      
+      if (assignedUserIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', assignedUserIds);
+        
+        if (profilesData) {
+          assignedProfiles = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = { first_name: profile.first_name || '', last_name: profile.last_name || '' };
+            return acc;
+          }, {} as Record<string, { first_name: string; last_name: string }>);
+        }
+      }
+
       return (data || []).map(deal => ({
         ...deal,
         crm_contacts: deal.crm_contacts || undefined,
         companies: deal.companies || undefined,
-        profiles: deal.assigned_profile || undefined,
+        profiles: deal.assigned_to ? assignedProfiles[deal.assigned_to] : undefined,
       })) as (CrmDeal & {
         crm_contacts?: { first_name: string; last_name: string; email: string };
         companies?: { name: string };
@@ -58,20 +75,34 @@ export function useCrmDeals() {
       
       const { data, error } = await supabase
         .from('crm_deal_activities')
-        .select(`
-          *,
-          creator_profile:created_by (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Fetch creator profiles separately
+      const creatorUserIds = [...new Set(data?.map(activity => activity.created_by).filter(Boolean))];
+      
+      let creatorProfiles: Record<string, { first_name: string; last_name: string }> = {};
+      
+      if (creatorUserIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', creatorUserIds);
+        
+        if (profilesData) {
+          creatorProfiles = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = { first_name: profile.first_name || '', last_name: profile.last_name || '' };
+            return acc;
+          }, {} as Record<string, { first_name: string; last_name: string }>);
+        }
+      }
+
       return (data || []).map(activity => ({
         ...activity,
-        profiles: activity.creator_profile || undefined,
+        profiles: activity.created_by ? creatorProfiles[activity.created_by] : undefined,
       })) as (CrmDealActivity & {
         profiles?: { first_name: string; last_name: string };
       })[];
