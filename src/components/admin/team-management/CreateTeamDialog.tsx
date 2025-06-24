@@ -55,9 +55,16 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
   });
 
   const onSubmit = async (data: CreateTeamForm) => {
-    createTeam(data);
-    form.reset();
-    onOpenChange(false);
+    // Ensure all required fields are present
+    if (data.name && data.manager_id) {
+      createTeam({
+        name: data.name,
+        description: data.description || '',
+        manager_id: data.manager_id,
+      });
+      form.reset();
+      onOpenChange(false);
+    }
   };
 
   return (

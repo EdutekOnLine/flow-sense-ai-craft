@@ -164,11 +164,11 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
                           </div>
                         </div>
                         
-                        {canManage && user.id !== team.manager_id && (
+                        {canManage && member.user_id !== team.manager_id && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleRemoveMember(user.id)}
+                            onClick={() => handleRemoveMember(member.user_id)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <UserMinus className="h-4 w-4" />

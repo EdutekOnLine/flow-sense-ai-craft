@@ -5,13 +5,14 @@ import { DynamicSidebar } from './DynamicSidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardContentRenderer } from './DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -34,7 +35,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 flex flex-col">
           <DashboardHeader isMainDashboard={true} isRTL={false} />
           <div className="flex-1 p-6">
-            <DashboardContentRenderer activeTab={activeTab} onOpenWorkflow={() => {}} />
+            <DashboardContentRenderer 
+              activeTab={activeTab} 
+              onOpenWorkflow={() => {}} 
+              currentPath={location.pathname}
+            />
           </div>
         </main>
       </div>

@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -53,8 +54,7 @@ export function useCrmData() {
       
       // For managers and employees, filter to only contacts they can access
       return (data || []).filter(contact => 
-        canAccessUser(contact.created_by) || 
-        (contact.assigned_to && canAccessUser(contact.assigned_to))
+        canAccessUser(contact.created_by)
       ) as (CrmContact & { companies?: { name: string } })[];
     },
     enabled: !!profile?.workspace_id,
