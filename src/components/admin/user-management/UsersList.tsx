@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
@@ -59,6 +58,13 @@ export function UsersList({ users }: UsersListProps) {
 
   const handleDeleteUser = (userId: string) => {
     deleteUser.mutate(userId);
+  };
+
+  const handleAddToTeam = (userId: string) => {
+    const user = usersWithWorkspace.find(u => u.id === userId);
+    if (user) {
+      setTeamAssignUser(user);
+    }
   };
 
   const getDisplayName = (user: User) => {
@@ -175,7 +181,7 @@ export function UsersList({ users }: UsersListProps) {
                           </div>
                           <UserTeamInfo 
                             user={user} 
-                            onAddToTeam={canManageAnyTeam ? setTeamAssignUser : undefined}
+                            onAddToTeam={canManageAnyTeam ? handleAddToTeam : undefined}
                           />
                         </div>
                       )}
