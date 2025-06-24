@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { DashboardMetrics } from './DashboardMetrics';
 import { ModuleQuickActions } from './ModuleQuickActions';
 import { ModuleIntegrationOverview } from './ModuleIntegrationOverview';
 import { PersonalWelcomeSection } from './personalized/PersonalWelcomeSection';
@@ -26,9 +25,6 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
     <div className="space-y-8">
       {/* Personal Welcome Section */}
       <PersonalWelcomeSection />
-
-      {/* Unified Dashboard Metrics */}
-      <DashboardMetrics />
 
       {/* Main content layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
