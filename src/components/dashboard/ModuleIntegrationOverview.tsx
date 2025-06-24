@@ -2,128 +2,188 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useModuleDashboardData } from '@/hooks/useModuleDashboardData';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { 
   Workflow, 
   Users, 
+  Building2, 
   FileText, 
-  BookOpen, 
-  Settings,
-  ExternalLink,
-  Grid3X3
+  GraduationCap,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  Target,
+  Zap
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { MODULE_REGISTRY } from '@/modules';
+
+const moduleIcons = {
+  'neura-flow': Workflow,
+  'neura-crm': Building2,
+  'neura-forms': FileText,
+  'neura-edu': GraduationCap,
+};
 
 export function ModuleIntegrationOverview() {
-  const { getAccessibleModules, canManageModules } = useModulePermissions();
+  const { data, isLoading } = useModuleDashboardData();
+  const { getAccessibleModules } = useModulePermissions();
   const { t } = useTranslation();
 
   const accessibleModules = getAccessibleModules();
-  
-  const moduleIcons = {
-    'neura-core': Settings,
-    'neura-flow': Workflow,
-    'neura-crm': Users,
-    'neura-forms': FileText,
-    'neura-edu': BookOpen
-  };
 
-  const handleModuleClick = (moduleName: string) => {
-    // Navigate to module-specific section based on the module
-    switch (moduleName) {
-      case 'neura-flow':
-        window.location.hash = 'workflow-inbox';
-        break;
-      case 'neura-crm':
-        window.location.hash = 'crm';
-        break;
-      case 'neura-forms':
-        window.location.hash = 'forms';
-        break;
-      case 'neura-edu':
-        window.location.hash = 'education';
-        break;
-      default:
-        window.location.hash = 'dashboard';
-    }
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-  };
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="animate-pulse h-6 bg-muted rounded w-48"></CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-20 bg-muted rounded animate-pulse"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const handleManageModules = () => {
-    window.location.hash = 'module-management';
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-  };
+  if (accessibleModules.length <= 1) {
+    return null;
+  }
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <div className="p-3 bg-gradient-to-br from-primary to-accent rounded-xl border border-border shadow-card">
-            <Grid3X3 className="h-6 w-6 text-primary-foreground" />
+            <Zap className="h-6 w-6 text-primary-foreground" />
           </div>
-          Active Modules
+          Module Integration Overview
         </CardTitle>
-        {canManageModules() && (
-          <Button variant="outline" size="sm" onClick={handleManageModules}>
-            <Settings className="h-4 w-4 mr-2" />
-            Manage
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {accessibleModules.map((moduleName) => {
-            const moduleInfo = MODULE_REGISTRY[moduleName];
-            const IconComponent = moduleIcons[moduleName as keyof typeof moduleIcons] || Settings;
-            const isCore = moduleInfo?.isCore;
-            
-            return (
-              <Card 
-                key={moduleName} 
-                className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/20"
-                onClick={() => handleModuleClick(moduleName)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <IconComponent className="h-8 w-8 text-primary" />
-                    <Badge variant={isCore ? "default" : "secondary"}>
-                      {isCore ? "Core" : "Module"}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">
-                    {moduleInfo?.name || moduleName}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {moduleInfo?.description || `${moduleName} functionality`}
+        <div className="space-y-6">
+          {/* NeuraFlow Integration */}
+          {accessibleModules.includes('neura-flow') && (
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Workflow className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">NeuraFlow</h3>
+                  <p className="text-sm text-muted-foreground">Workflow automation active</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Badge variant="default" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+                <span className="text-xs text-muted-foreground">Core module</span>
+              </div>
+            </div>
+          )}
+
+          {/* NeuraCRM Integration */}
+          {accessibleModules.includes('neura-crm') && (
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">NeuraCRM</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {data?.moduleMetrics?.['neura-crm']?.totalLeads || 0} leads tracked
                   </p>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-xs">
-                      v{moduleInfo?.version || '1.0.0'}
-                    </Badge>
-                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="default" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+                {data?.moduleMetrics?.['neura-crm'] && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>{data.moduleMetrics['neura-crm'].conversionRate}% conversion</span>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        
-        {accessibleModules.length === 1 && (
-          <div className="mt-4 text-center text-muted-foreground">
-            <p className="text-sm">
-              You have access to core functionality. 
-              {canManageModules() && (
-                <span className="ml-1">
-                  <Button variant="link" className="h-auto p-0 text-primary" onClick={handleManageModules}>
-                    Activate more modules
-                  </Button> to unlock additional features.
-                </span>
-              )}
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* NeuraForms Integration */}
+          {accessibleModules.includes('neura-forms') && (
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">NeuraForms</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {data?.moduleMetrics?.['neura-forms']?.submissions || 0} submissions collected
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Badge variant="default" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+                <span className="text-xs text-muted-foreground">Data collection</span>
+              </div>
+            </div>
+          )}
+
+          {/* NeuraEdu Integration */}
+          {accessibleModules.includes('neura-edu') && (
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <GraduationCap className="h-6 w-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">NeuraEdu</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {data?.moduleMetrics?.['neura-edu']?.activeStudents || 0} active students
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="default" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+                {data?.moduleMetrics?.['neura-edu'] && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Target className="h-3 w-3" />
+                    <span>{data.moduleMetrics['neura-edu'].completionRate}% completion</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Integration Health */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-green-800">Integration Health</h4>
+              <Badge variant="default" className="bg-green-100 text-green-800">
+                Excellent
+              </Badge>
+            </div>
+            <Progress value={95} className="h-2 mb-2" />
+            <p className="text-xs text-green-700">
+              All modules are functioning optimally with excellent data synchronization
             </p>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );

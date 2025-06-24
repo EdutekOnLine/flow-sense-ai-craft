@@ -12,7 +12,8 @@ import {
   BarChart3,
   Settings,
   Users,
-  Zap
+  Zap,
+  Building2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +25,8 @@ const iconMap = {
   BookOpen,
   BarChart3,
   Settings,
-  Users
+  Users,
+  Building2
 };
 
 export function ModuleQuickActions() {

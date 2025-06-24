@@ -45,6 +45,344 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          address: string | null
+          annual_revenue: number | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string
+          email: string | null
+          employee_count: number | null
+          id: string
+          industry: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+          updated_by: string | null
+          website: string | null
+          workspace_id: string
+        }
+        Insert: {
+          address?: string | null
+          annual_revenue?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
+          employee_count?: number | null
+          id?: string
+          industry?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          website?: string | null
+          workspace_id: string
+        }
+        Update: {
+          address?: string | null
+          annual_revenue?: number | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          employee_count?: number | null
+          id?: string
+          industry?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          website?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string
+          department: string | null
+          email: string | null
+          first_name: string
+          id: string
+          job_title: string | null
+          last_contact_date: string | null
+          last_name: string
+          lead_score: number | null
+          lead_source: Database["public"]["Enums"]["lead_source"] | null
+          mobile_phone: string | null
+          next_follow_up: string | null
+          notes: string | null
+          phone: string | null
+          social_linkedin: string | null
+          social_twitter: string | null
+          status: Database["public"]["Enums"]["contact_status"]
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          department?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          job_title?: string | null
+          last_contact_date?: string | null
+          last_name: string
+          lead_score?: number | null
+          lead_source?: Database["public"]["Enums"]["lead_source"] | null
+          mobile_phone?: string | null
+          next_follow_up?: string | null
+          notes?: string | null
+          phone?: string | null
+          social_linkedin?: string | null
+          social_twitter?: string | null
+          status?: Database["public"]["Enums"]["contact_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          department?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          job_title?: string | null
+          last_contact_date?: string | null
+          last_name?: string
+          lead_score?: number | null
+          lead_source?: Database["public"]["Enums"]["lead_source"] | null
+          mobile_phone?: string | null
+          next_follow_up?: string | null
+          notes?: string | null
+          phone?: string | null
+          social_linkedin?: string | null
+          social_twitter?: string | null
+          status?: Database["public"]["Enums"]["contact_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tasks: {
+        Row: {
+          assigned_to: string | null
+          company_id: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          company_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_audit_logs: {
         Row: {
           action: string
@@ -932,6 +1270,15 @@ export type Database = {
       }
     }
     Enums: {
+      contact_status: "lead" | "prospect" | "customer" | "inactive"
+      lead_source:
+        | "website"
+        | "referral"
+        | "social_media"
+        | "email_campaign"
+        | "cold_call"
+        | "trade_show"
+        | "other"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status:
         | "pending"
@@ -1056,6 +1403,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      contact_status: ["lead", "prospect", "customer", "inactive"],
+      lead_source: [
+        "website",
+        "referral",
+        "social_media",
+        "email_campaign",
+        "cold_call",
+        "trade_show",
+        "other",
+      ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: [
         "pending",

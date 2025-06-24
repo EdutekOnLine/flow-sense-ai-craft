@@ -1,105 +1,61 @@
 
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
-import UserManagement from '@/components/admin/UserManagement';
-import ModuleManagement from '@/components/admin/ModuleManagement';
-import WorkspaceManagement from '@/components/admin/WorkspaceManagement';
-import { ReportsPage } from '@/components/reports/ReportsPage';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
-import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
-import { ModuleGuard } from '@/components/modules/ModuleGuard';
+import { WorkflowBuilder } from '@/components/workflow-builder/WorkflowBuilder';
+import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { WorkspaceManagement } from '@/components/admin/WorkspaceManagement';
+import { ReportsPage } from '@/components/reports/ReportsPage';
+import { ModuleManagement } from '@/components/admin/ModuleManagement';
 import { ThemeSettings } from '@/components/theme/ThemeSettings';
+import { CrmDashboard } from '@/components/crm/CrmDashboard';
+import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface DashboardContentRendererProps {
   activeTab: string;
-  onOpenWorkflow: () => void;
+  onOpenWorkflow?: (workflowId: string) => void;
 }
 
 export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: DashboardContentRendererProps) {
+  const { canAccessModule } = useModulePermissions();
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        // Core feature - no ModuleGuard needed, always accessible
-        return <DashboardContent />;
-      
+        return <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
       case 'workflow-inbox':
-        return (
-          <ModuleGuard moduleName="neura-flow">
-            <WorkflowInbox />
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
+        return <WorkflowInbox />;
       case 'workflow-builder':
-        return (
-          <ModuleGuard moduleName="neura-flow">
-            <WorkflowBuilder />
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
+        return <WorkflowBuilder />;
       case 'templates':
-        return (
-          <ModuleGuard moduleName="neura-flow">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Workflow Templates</h1>
-              <p className="text-muted-foreground">Workflow templates coming soon...</p>
-            </div>
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
+        return <SavedWorkflows />;
       case 'crm':
-        return (
-          <ModuleGuard moduleName="neura-crm">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">CRM</h1>
-              <p className="text-muted-foreground">CRM module coming soon...</p>
-            </div>
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
+        return <CrmDashboard />;
       case 'forms':
-        return (
-          <ModuleGuard moduleName="neura-forms">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Forms</h1>
-              <p className="text-muted-foreground">Forms module coming soon...</p>
-            </div>
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-forms')) return <div>Access denied</div>;
+        return <div>Forms module coming soon...</div>;
       case 'education':
-        return (
-          <ModuleGuard moduleName="neura-edu">
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Education</h1>
-              <p className="text-muted-foreground">Education module coming soon...</p>
-            </div>
-          </ModuleGuard>
-        );
-      
+        if (!canAccessModule('neura-edu')) return <div>Access denied</div>;
+        return <div>Education module coming soon...</div>;
       case 'users':
-        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <UserManagement />;
-      
       case 'workspace-management':
-        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <WorkspaceManagement />;
-      
       case 'reports':
-        // Core feature - no ModuleGuard needed, always accessible
         return <ReportsPage />;
-      
       case 'module-management':
-        // Core admin feature - no ModuleGuard needed, role-based access handled in component
         return <ModuleManagement />;
-      
       case 'settings':
-        // Core feature - no ModuleGuard needed, always accessible
         return <ThemeSettings />;
-      
       default:
-        return <DashboardContent />;
+        return <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
     }
   };
 
-  return <>{renderContent()}</>;
+  return <div className="w-full">{renderContent()}</div>;
 }

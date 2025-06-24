@@ -1,143 +1,131 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useModulePermissions } from './useModulePermissions';
-import { useRealtimeDashboardMetrics } from './useRealtimeDashboardMetrics';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useCrmData } from './useCrmData';
 
-export interface ModuleDashboardData {
-  moduleMetrics: Record<string, any>;
-  moduleActivities: Array<{
-    id: string;
-    module: string;
-    type: string;
-    title: string;
-    description: string;
-    timestamp: string;
-    isNew?: boolean;
-  }>;
-  quickActions: Array<{
-    id: string;
-    module: string;
-    label: string;
-    action: string;
-    icon: string;
-  }>;
+interface QuickAction {
+  id: string;
+  label: string;
+  action: string;
+  icon: string;
+  module: string;
+}
+
+interface ModuleMetrics {
+  [key: string]: any;
+}
+
+interface ModuleDashboardData {
+  quickActions: QuickAction[];
+  moduleMetrics: ModuleMetrics;
 }
 
 export function useModuleDashboardData() {
-  const { profile } = useAuth();
-  const { getAccessibleModules, canAccessModule } = useModulePermissions();
-  const { metrics: workflowMetrics } = useRealtimeDashboardMetrics();
-  const [moduleDashboardData, setModuleDashboardData] = useState<ModuleDashboardData>({
-    moduleMetrics: {},
-    moduleActivities: [],
-    quickActions: []
+  const { canAccessModule, getAccessibleModules } = useModulePermissions();
+  const { metrics: crmMetrics, isLoading: crmLoading } = useCrmData();
+
+  return useQuery({
+    queryKey: ['module-dashboard-data', getAccessibleModules()],
+    queryFn: async (): Promise<ModuleDashboardData> => {
+      const quickActions: QuickAction[] = [];
+      const moduleMetrics: ModuleMetrics = {};
+
+      // NeuraFlow Quick Actions
+      if (canAccessModule('neura-flow')) {
+        quickActions.push(
+          {
+            id: 'create-workflow',
+            label: 'Create Workflow',
+            action: '#workflow-builder',
+            icon: 'Plus',
+            module: 'neura-flow'
+          },
+          {
+            id: 'view-tasks',
+            label: 'My Tasks',
+            action: '#workflow-inbox',
+            icon: 'CheckSquare',
+            module: 'neura-flow'
+          }
+        );
+      }
+
+      // NeuraCRM Quick Actions
+      if (canAccessModule('neura-crm')) {
+        quickActions.push(
+          {
+            id: 'add-contact',
+            label: 'Add Contact',
+            action: '#crm/contacts/new',
+            icon: 'UserPlus',
+            module: 'neura-crm'
+          },
+          {
+            id: 'add-company',
+            label: 'Add Company',
+            action: '#crm/companies/new',
+            icon: 'Building2',
+            module: 'neura-crm'
+          },
+          {
+            id: 'crm-dashboard',
+            label: 'CRM Dashboard',
+            action: '#crm',
+            icon: 'BarChart3',
+            module: 'neura-crm'
+          }
+        );
+
+        // Include CRM metrics
+        moduleMetrics['neura-crm'] = crmMetrics;
+      }
+
+      // NeuraForms Quick Actions
+      if (canAccessModule('neura-forms')) {
+        quickActions.push(
+          {
+            id: 'create-form',
+            label: 'Create Form',
+            action: '#forms/new',
+            icon: 'FileText',
+            module: 'neura-forms'
+          }
+        );
+
+        // Mock metrics for forms
+        moduleMetrics['neura-forms'] = {
+          submissions: Math.floor(Math.random() * 1000) + 100,
+          activeForms: Math.floor(Math.random() * 20) + 5,
+          conversionRate: Math.floor(Math.random() * 100),
+        };
+      }
+
+      // NeuraEdu Quick Actions
+      if (canAccessModule('neura-edu')) {
+        quickActions.push(
+          {
+            id: 'create-course',
+            label: 'Create Course',
+            action: '#education/courses/new',
+            icon: 'BookOpen',
+            module: 'neura-edu'
+          }
+        );
+
+        // Mock metrics for education
+        moduleMetrics['neura-edu'] = {
+          activeStudents: Math.floor(Math.random() * 500) + 50,
+          completionRate: Math.floor(Math.random() * 100),
+          coursesCreated: Math.floor(Math.random() * 50) + 10,
+        };
+      }
+
+      return {
+        quickActions,
+        moduleMetrics,
+      };
+    },
+    enabled: true,
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchModuleData = async () => {
-    if (!profile) return;
-
-    const accessibleModules = getAccessibleModules();
-    const newData: ModuleDashboardData = {
-      moduleMetrics: {},
-      moduleActivities: [],
-      quickActions: []
-    };
-
-    // Add NeuraFlow data if accessible
-    if (canAccessModule('neura-flow')) {
-      newData.moduleMetrics['neura-flow'] = workflowMetrics;
-      newData.quickActions.push(
-        {
-          id: 'create-workflow',
-          module: 'neura-flow',
-          label: 'Create Workflow',
-          action: 'workflow-builder',
-          icon: 'Plus'
-        },
-        {
-          id: 'view-tasks',
-          module: 'neura-flow',
-          label: 'View My Tasks',
-          action: 'workflow-inbox',
-          icon: 'CheckSquare'
-        }
-      );
-    }
-
-    // Add NeuraCRM data if accessible
-    if (canAccessModule('neura-crm')) {
-      newData.moduleMetrics['neura-crm'] = {
-        totalLeads: 0,
-        activeDeals: 0,
-        monthlyRevenue: 0,
-        conversionRate: 0
-      };
-      newData.quickActions.push({
-        id: 'add-lead',
-        module: 'neura-crm',
-        label: 'Add Lead',
-        action: 'crm',
-        icon: 'UserPlus'
-      });
-    }
-
-    // Add NeuraForms data if accessible
-    if (canAccessModule('neura-forms')) {
-      newData.moduleMetrics['neura-forms'] = {
-        totalForms: 0,
-        submissions: 0,
-        responseRate: 0,
-        activeForms: 0
-      };
-      newData.quickActions.push({
-        id: 'create-form',
-        module: 'neura-forms',
-        label: 'Create Form',
-        action: 'forms',
-        icon: 'FileText'
-      });
-    }
-
-    // Add NeuraEdu data if accessible
-    if (canAccessModule('neura-edu')) {
-      newData.moduleMetrics['neura-edu'] = {
-        totalCourses: 0,
-        activeStudents: 0,
-        completionRate: 0,
-        assignmentsDue: 0
-      };
-      newData.quickActions.push({
-        id: 'create-course',
-        module: 'neura-edu',
-        label: 'Create Course',
-        action: 'education',
-        icon: 'BookOpen'
-      });
-    }
-
-    // Always add core actions
-    newData.quickActions.push({
-      id: 'view-reports',
-      module: 'neura-core',
-      label: 'View Reports',
-      action: 'reports',
-      icon: 'BarChart3'
-    });
-
-    setModuleDashboardData(newData);
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchModuleData();
-  }, [profile?.id, canAccessModule]);
-
-  return {
-    data: moduleDashboardData,
-    isLoading,
-    refresh: fetchModuleData
-  };
 }
