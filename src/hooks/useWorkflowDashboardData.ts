@@ -38,25 +38,26 @@ export function useWorkflowDashboardData() {
     queryFn: async (): Promise<WorkflowDashboardData> => {
       if (!profile) throw new Error('No user profile');
 
-      // Fetch workflow instances
+      // Fetch workflow instances with saved_workflows
       const { data: instances } = await supabase
         .from('workflow_instances')
         .select(`
           *,
-          saved_workflows!inner(name, created_by)
+          saved_workflows!workflow_instances_workflow_id_fkey(name, created_by)
         `)
         .order('created_at', { ascending: false });
 
-      // Fetch assignments
+      // Fetch assignments with proper joins
       const { data: assignments } = await supabase
         .from('workflow_step_assignments')
         .select(`
           *,
-          workflow_instances!inner(
+          workflow_steps!inner(
             id,
-            saved_workflows!inner(name)
+            workflow_id,
+            name
           ),
-          profiles!inner(first_name, last_name)
+          profiles!workflow_step_assignments_assigned_to_fkey(first_name, last_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -101,21 +102,24 @@ export function useWorkflowDashboardData() {
         recentActivity.push({
           id: `instance-${instance.id}`,
           type: 'instance_started',
-          title: `Workflow "${instance.saved_workflows?.name}" started`,
+          title: `Workflow "${instance.saved_workflows?.name || 'Unknown'}" started`,
           timestamp: instance.created_at,
-          workflowName: instance.saved_workflows?.name
+          workflowName: instance.saved_workflows?.name || 'Unknown'
         });
       });
 
       // Add recent completed assignments
       assignments?.filter(a => a.status === 'completed').slice(0, 3).forEach(assignment => {
+        // Get workflow name from saved_workflows through workflow_instances
+        const workflowName = assignment.workflow_steps?.workflow_id ? 'Unknown Workflow' : 'Task Assignment';
+        
         recentActivity.push({
           id: `assignment-${assignment.id}`,
           type: 'assignment_completed',
-          title: `Task completed in "${assignment.workflow_instances?.saved_workflows?.name}"`,
+          title: `Task "${assignment.workflow_steps?.name || 'Unknown'}" completed`,
           timestamp: assignment.updated_at || assignment.created_at,
-          user: `${assignment.profiles?.first_name} ${assignment.profiles?.last_name}`,
-          workflowName: assignment.workflow_instances?.saved_workflows?.name
+          user: assignment.profiles ? `${assignment.profiles.first_name || ''} ${assignment.profiles.last_name || ''}`.trim() : 'Unknown User',
+          workflowName: workflowName
         });
       });
 
