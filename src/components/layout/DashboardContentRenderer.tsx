@@ -2,12 +2,12 @@
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
-import { WorkflowBuilder } from '@/components/workflow-builder/WorkflowBuilder';
+import WorkflowBuilder from '@/components/workflow-builder/WorkflowBuilder';
 import { SavedWorkflows } from '@/components/dashboard/SavedWorkflows';
-import { UserManagement } from '@/components/admin/UserManagement';
-import { WorkspaceManagement } from '@/components/admin/WorkspaceManagement';
+import UserManagement from '@/components/admin/UserManagement';
+import WorkspaceManagement from '@/components/admin/WorkspaceManagement';
 import { ReportsPage } from '@/components/reports/ReportsPage';
-import { ModuleManagement } from '@/components/admin/ModuleManagement';
+import ModuleManagement from '@/components/admin/ModuleManagement';
 import { ThemeSettings } from '@/components/theme/ThemeSettings';
 import { CrmDashboard } from '@/components/crm/CrmDashboard';
 import { useModulePermissions } from '@/hooks/useModulePermissions';

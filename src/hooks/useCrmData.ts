@@ -48,7 +48,7 @@ export function useCrmData() {
     enabled: !!profile?.workspace_id,
   });
 
-  // Fetch tasks
+  // Fetch tasks with proper type handling
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['crm-tasks', profile?.workspace_id],
     queryFn: async () => {
@@ -65,7 +65,7 @@ export function useCrmData() {
           companies:company_id (
             name
           ),
-          profiles:assigned_to (
+          assigned_user:assigned_to (
             first_name,
             last_name
           )
@@ -74,7 +74,14 @@ export function useCrmData() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (CrmTask & {
+      
+      // Transform the data to match our expected type
+      return data.map(task => ({
+        ...task,
+        crm_contacts: task.crm_contacts || undefined,
+        companies: task.companies || undefined,
+        profiles: task.assigned_user || undefined,
+      })) as (CrmTask & {
         crm_contacts?: { first_name: string; last_name: string };
         companies?: { name: string };
         profiles?: { first_name: string; last_name: string };
