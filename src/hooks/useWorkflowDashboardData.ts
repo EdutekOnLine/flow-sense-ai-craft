@@ -38,27 +38,10 @@ export function useWorkflowDashboardData() {
     queryFn: async (): Promise<WorkflowDashboardData> => {
       if (!profile) throw new Error('No user profile');
 
-      // Fetch workflow instances with saved_workflows using the correct foreign key
+      // Fetch workflow instances
       const { data: instances } = await supabase
         .from('workflow_instances')
-        .select(`
-          *,
-          saved_workflows(name, created_by)
-        `)
-        .order('created_at', { ascending: false });
-
-      // Fetch assignments with proper joins
-      const { data: assignments } = await supabase
-        .from('workflow_step_assignments')
-        .select(`
-          *,
-          workflow_steps(
-            id,
-            workflow_id,
-            name
-          ),
-          profiles(first_name, last_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Fetch saved workflows
@@ -66,6 +49,22 @@ export function useWorkflowDashboardData() {
         .from('saved_workflows')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Fetch assignments
+      const { data: assignments } = await supabase
+        .from('workflow_step_assignments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Fetch workflow steps
+      const { data: workflowSteps } = await supabase
+        .from('workflow_steps')
+        .select('*');
+
+      // Fetch profiles for user names
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name');
 
       const now = new Date();
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -94,37 +93,49 @@ export function useWorkflowDashboardData() {
       // Mock team productivity score
       const teamProductivity = Math.floor(Math.random() * 100) + 75;
 
+      // Create lookup maps
+      const workflowsMap = new Map(workflows?.map(w => [w.id, w]) || []);
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const workflowStepsMap = new Map(workflowSteps?.map(s => [s.id, s]) || []);
+
       // Recent activity
       const recentActivity: RecentActivity[] = [];
       
       // Add recent instance starts
       instances?.slice(0, 3).forEach(instance => {
+        const workflow = workflowsMap.get(instance.workflow_id);
         recentActivity.push({
           id: `instance-${instance.id}`,
           type: 'instance_started',
-          title: `Workflow "${instance.saved_workflows?.name || 'Unknown'}" started`,
+          title: `Workflow "${workflow?.name || 'Unknown'}" started`,
           timestamp: instance.created_at,
-          workflowName: instance.saved_workflows?.name || 'Unknown'
+          workflowName: workflow?.name || 'Unknown'
         });
       });
 
       // Add recent completed assignments
       assignments?.filter(a => a.status === 'completed').slice(0, 3).forEach(assignment => {
-        // Get workflow name from saved_workflows through workflow_instances
-        const workflowName = assignment.workflow_steps?.workflow_id ? 'Unknown Workflow' : 'Task Assignment';
+        const workflowStep = workflowStepsMap.get(assignment.workflow_step_id);
+        const assignedUser = profilesMap.get(assignment.assigned_to);
         
         recentActivity.push({
           id: `assignment-${assignment.id}`,
           type: 'assignment_completed',
-          title: `Task "${assignment.workflow_steps?.name || 'Unknown'}" completed`,
+          title: `Task "${workflowStep?.name || 'Unknown'}" completed`,
           timestamp: assignment.updated_at || assignment.created_at,
-          user: assignment.profiles ? `${assignment.profiles.first_name || ''} ${assignment.profiles.last_name || ''}`.trim() : 'Unknown User',
-          workflowName: workflowName
+          user: assignedUser ? `${assignedUser.first_name || ''} ${assignedUser.last_name || ''}`.trim() : 'Unknown User',
+          workflowName: 'Task Assignment'
         });
       });
 
       // Sort by timestamp
       recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      // Enhance active instances with workflow names
+      const enhancedActiveInstances = instances?.filter(i => i.status === 'active').slice(0, 5).map(instance => ({
+        ...instance,
+        saved_workflows: workflowsMap.get(instance.workflow_id)
+      })) || [];
 
       return {
         metrics: {
@@ -138,7 +149,7 @@ export function useWorkflowDashboardData() {
           teamProductivity
         },
         recentActivity: recentActivity.slice(0, 10),
-        activeInstances: instances?.filter(i => i.status === 'active').slice(0, 5) || [],
+        activeInstances: enhancedActiveInstances,
         myRecentAssignments: assignments?.filter(a => a.assigned_to === profile.id).slice(0, 5) || []
       };
     },
