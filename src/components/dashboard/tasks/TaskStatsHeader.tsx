@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 interface TaskStatsHeaderProps {
   pendingCount: number;
   inProgressCount: number;
+  isSystemWide?: boolean;
 }
 
-export function TaskStatsHeader({ pendingCount, inProgressCount }: TaskStatsHeaderProps) {
+export function TaskStatsHeader({ pendingCount, inProgressCount, isSystemWide }: TaskStatsHeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -20,6 +21,11 @@ export function TaskStatsHeader({ pendingCount, inProgressCount }: TaskStatsHead
         <Badge variant="secondary" className="bg-status-active-bg text-status-active text-xs">
           {inProgressCount} {t('status.active')}
         </Badge>
+        {isSystemWide && (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+            System-Wide
+          </Badge>
+        )}
       </div>
     </div>
   );

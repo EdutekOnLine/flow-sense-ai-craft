@@ -13,9 +13,10 @@ interface TaskItemProps {
   onUpdateStatus: (assignmentId: string, status: string) => void;
   onCompleteStep: (assignment: any, notes: string) => Promise<void>;
   isCompleting: boolean;
+  showWorkspaceInfo?: boolean;
 }
 
-export function TaskItem({ assignment, onUpdateStatus, onCompleteStep, isCompleting }: TaskItemProps) {
+export function TaskItem({ assignment, onUpdateStatus, onCompleteStep, isCompleting, showWorkspaceInfo }: TaskItemProps) {
   const { t, i18n } = useTranslation();
 
   const getStatusColor = (status: string) => {
@@ -58,6 +59,11 @@ export function TaskItem({ assignment, onUpdateStatus, onCompleteStep, isComplet
             <p className="text-xs text-muted-foreground truncate">
               {assignment.workflow_steps.workflows.name}
             </p>
+            {showWorkspaceInfo && assignment.workspace && (
+              <p className="text-xs text-muted-foreground truncate">
+                Workspace: {assignment.workspace.name}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">
               {t('common.assigned')} {formatLocalizedDistanceToNow(new Date(assignment.created_at), i18n.language)}
             </p>
