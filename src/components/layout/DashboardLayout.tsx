@@ -7,10 +7,13 @@ import { DashboardContentRenderer } from './DashboardContentRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ModuleStatusNotifier } from '@/components/modules/ModuleStatusNotifier';
+import { RootSystemOverview } from '@/components/admin/RootSystemOverview';
+import { useRootPermissions } from '@/hooks/useRootPermissions';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { signOut } = useAuth();
+  const { isRootUser } = useRootPermissions();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,6 +38,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 flex flex-col">
           <DashboardHeader isMainDashboard={true} isRTL={false} />
           <div className="flex-1 p-6">
+            {/* Show Root System Overview for root users on dashboard */}
+            {isRootUser && activeTab === 'dashboard' && (
+              <div className="mb-6">
+                <RootSystemOverview />
+              </div>
+            )}
+            
             <DashboardContentRenderer 
               activeTab={activeTab} 
               onOpenWorkflow={() => {}} 

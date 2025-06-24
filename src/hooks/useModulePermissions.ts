@@ -1,6 +1,7 @@
 
 import { useAuth } from './useAuth';
 import { useWorkspace } from './useWorkspace';
+import { useRootPermissions } from './useRootPermissions';
 
 export interface ModuleStatus {
   isActive: boolean;
@@ -14,6 +15,7 @@ export interface ModuleStatus {
 
 export function useModulePermissions() {
   const { profile } = useAuth();
+  const { isRootUser } = useRootPermissions();
   const { 
     isModuleActive, 
     activeModules, 
@@ -23,28 +25,25 @@ export function useModulePermissions() {
     checkModuleDependencies 
   } = useWorkspace();
 
-  // Use workspace data directly, no additional smart cache call to eliminate duplication
-  const effectiveModuleInfo = moduleAccessInfo;
-
-  // Optimistic module access check - assume access until proven otherwise
+  // Root users can access ALL modules regardless of workspace activation
   const canAccessModule = (moduleName: string) => {
     if (!profile) return false;
     
     // Root users can access ALL modules regardless of workspace activation
-    if (profile.role === 'root') return true;
+    if (isRootUser) return true;
     
     // Core module is always accessible to authenticated users
     if (moduleName === 'neura-core') return true;
     
-    // For regular users, use optimistic approach - check workspace activation
+    // For regular users, check workspace activation
     return isModuleActive(moduleName);
   };
 
-  // Lightweight module status check - optimistic approach
+  // Module status check with root bypass
   const getModuleStatus = (moduleName: string): ModuleStatus => {
     if (!profile) {
       return {
-        isActive: true, // Optimistic default
+        isActive: true,
         isAvailable: true,
         isRestricted: false,
         statusMessage: 'Loading...'
@@ -52,12 +51,12 @@ export function useModulePermissions() {
     }
 
     // Root users see all modules as active and available
-    if (profile.role === 'root') {
+    if (isRootUser) {
       return {
         isActive: true,
         isAvailable: true,
         isRestricted: false,
-        statusMessage: 'Root Access',
+        statusMessage: 'Root Access - All Modules Available',
         hasDependencies: true,
         missingDependencies: [],
         version: '1.0.0'
@@ -78,8 +77,8 @@ export function useModulePermissions() {
     }
 
     // Use cached module info if available for detailed status
-    if (effectiveModuleInfo) {
-      const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       if (accessInfo) {
         return {
           isActive: accessInfo.is_active,
@@ -96,32 +95,32 @@ export function useModulePermissions() {
       }
     }
 
-    // Optimistic fallback - assume active for better UX
+    // Optimistic fallback
     const isActive = isModuleActive(moduleName);
-    const moduleExists = allModules?.some(m => m.name === moduleName) || true; // Optimistic
+    const moduleExists = allModules?.some(m => m.name === moduleName) || true;
     
     return {
-      isActive: isActive || true, // Optimistic default
+      isActive: isActive || true,
       isAvailable: moduleExists,
-      isRestricted: false, // Optimistic - don't restrict by default
+      isRestricted: false,
       statusMessage: isActive ? 'Active' : 'Loading...'
     };
   };
 
-  // Check if user can manage modules (root users only)
+  // Check if user can manage modules (root users can manage all)
   const canManageModules = () => {
-    return profile?.role === 'root';
+    return isRootUser; // Only root users can manage modules
   };
 
-  // Check if user can access workspace settings
+  // Check if user can access workspace settings (root users can access all)
   const canManageWorkspace = () => {
     if (!profile) return false;
-    return ['root', 'admin'].includes(profile.role);
+    return isRootUser || ['admin'].includes(profile.role);
   };
 
-  // Get list of accessible modules for current user - optimistic approach
+  // Get list of accessible modules - root users get all available modules
   const getAccessibleModules = () => {
-    if (profile?.role === 'root') {
+    if (isRootUser) {
       // Root users get all available modules
       const allAvailableModules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
       return allAvailableModules;
@@ -133,7 +132,7 @@ export function useModulePermissions() {
 
   // Get modules with their status information - optimistic loading
   const getModulesWithStatus = () => {
-    if (profile?.role === 'root') {
+    if (isRootUser) {
       const allAvailableModules = ['neura-core', 'neura-flow', 'neura-crm', 'neura-forms', 'neura-edu'];
       return allAvailableModules.map(moduleName => ({
         name: moduleName,
@@ -141,7 +140,7 @@ export function useModulePermissions() {
         isActive: true,
         isAvailable: true,
         isRestricted: false,
-        statusMessage: 'Root Access',
+        statusMessage: 'Root Access - All Modules Available',
         hasDependencies: true,
         missingDependencies: [],
         version: '1.0.0',
@@ -149,8 +148,8 @@ export function useModulePermissions() {
       }));
     }
 
-    if (effectiveModuleInfo && effectiveModuleInfo.length > 0) {
-      return effectiveModuleInfo.map(accessInfo => ({
+    if (moduleAccessInfo && moduleAccessInfo.length > 0) {
+      return moduleAccessInfo.map(accessInfo => ({
         name: accessInfo.module_name,
         displayName: accessInfo.display_name,
         isActive: accessInfo.is_active,
@@ -178,8 +177,8 @@ export function useModulePermissions() {
 
   // Get display name for a module
   const getModuleDisplayName = (moduleName: string) => {
-    if (effectiveModuleInfo) {
-      const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       if (accessInfo) return accessInfo.display_name;
     }
 
@@ -193,28 +192,28 @@ export function useModulePermissions() {
     return displayNames[moduleName] || moduleName;
   };
 
-  // Optimistic checks
+  // Root users can activate any module in any workspace
   const canActivateModule = (moduleName: string) => {
-    if (profile?.role === 'root') return true;
+    if (isRootUser) return true;
     
-    if (effectiveModuleInfo) {
-      const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
-      return accessInfo ? accessInfo.has_dependencies : true; // Optimistic default
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
+      return accessInfo ? accessInfo.has_dependencies : true;
     }
     return true;
   };
 
   const getMissingDependencies = (moduleName: string): string[] => {
-    if (profile?.role === 'root') return [];
+    if (isRootUser) return []; // Root users bypass dependency checks
     
-    if (effectiveModuleInfo) {
-      const accessInfo = effectiveModuleInfo.find(m => m.module_name === moduleName);
+    if (moduleAccessInfo) {
+      const accessInfo = moduleAccessInfo.find(m => m.module_name === moduleName);
       return accessInfo ? accessInfo.missing_dependencies : [];
     }
     return [];
   };
 
-  // Specific module access checks - optimistic
+  // Specific module access checks - root users can access all
   const canAccessNeuraFlow = () => canAccessModule('neura-flow');
   const canAccessNeuraCRM = () => canAccessModule('neura-crm');
   const canAccessNeuraForms = () => canAccessModule('neura-forms');
@@ -236,6 +235,7 @@ export function useModulePermissions() {
     canAccessNeuraForms,
     canAccessNeuraEdu,
     activeModules,
-    isLoading: false, // Always false for optimistic loading
+    isLoading: false,
+    isRootUser, // Expose root status
   };
 }
