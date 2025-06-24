@@ -24,10 +24,13 @@ import {
   LucideIcon
 } from 'lucide-react';
 
-interface MetricCard {
+interface BaseMetricCard {
   title: string;
   value: string | number;
   icon: LucideIcon;
+}
+
+interface MetricCard extends BaseMetricCard {
   color: string;
   bgColor: string;
   borderColor: string;
@@ -46,11 +49,11 @@ export function DashboardMetrics() {
 
   // Build all metric cards with stable color assignment
   const metricCards = useMemo(() => {
-    const cards: MetricCard[] = [];
+    const baseCards: BaseMetricCard[] = [];
 
     // Core workflow metrics (always visible if NeuraFlow is accessible)
     if (canAccessModule('neura-flow')) {
-      cards.push(
+      baseCards.push(
         {
           title: t('dashboard.pendingTasks'),
           value: workflowMetrics.pendingTasks,
@@ -87,7 +90,7 @@ export function DashboardMetrics() {
     // Module-specific metrics
     if (canAccessModule('neura-crm') && moduleData.moduleMetrics['neura-crm']) {
       const crmMetrics = moduleData.moduleMetrics['neura-crm'];
-      cards.push(
+      baseCards.push(
         {
           title: 'Total Leads',
           value: crmMetrics.totalLeads,
@@ -108,7 +111,7 @@ export function DashboardMetrics() {
 
     if (canAccessModule('neura-forms') && moduleData.moduleMetrics['neura-forms']) {
       const formsMetrics = moduleData.moduleMetrics['neura-forms'];
-      cards.push(
+      baseCards.push(
         {
           title: 'Form Submissions',
           value: formsMetrics.submissions,
@@ -124,7 +127,7 @@ export function DashboardMetrics() {
 
     if (canAccessModule('neura-edu') && moduleData.moduleMetrics['neura-edu']) {
       const eduMetrics = moduleData.moduleMetrics['neura-edu'];
-      cards.push(
+      baseCards.push(
         {
           title: 'Active Students',
           value: eduMetrics.activeStudents,
@@ -139,14 +142,16 @@ export function DashboardMetrics() {
     }
 
     // Create stable color assignment for all card titles
-    const cardTitles = cards.map(card => card.title);
+    const cardTitles = baseCards.map(card => card.title);
     const colorAssignment = createRandomColorAssignment(cardTitles, sessionKey);
 
-    // Apply colors to cards
-    return cards.map(card => ({
-      ...card,
-      ...colorAssignment[card.title]
+    // Apply colors to cards to create final MetricCard objects
+    const finalCards: MetricCard[] = baseCards.map(baseCard => ({
+      ...baseCard,
+      ...colorAssignment[baseCard.title]
     }));
+
+    return finalCards;
   }, [workflowMetrics, moduleData, canAccessModule, t, sessionKey]);
 
   const isLoading = workflowLoading || moduleLoading;
