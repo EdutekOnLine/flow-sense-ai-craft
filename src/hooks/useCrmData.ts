@@ -104,7 +104,7 @@ export function useCrmData() {
     enabled: !!profile?.workspace_id,
   });
 
-  // Calculate CRM metrics
+  // Calculate CRM metrics including pipeline metrics
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['crm-metrics', profile?.workspace_id],
     queryFn: async (): Promise<CrmMetrics> => {
@@ -117,6 +117,11 @@ export function useCrmData() {
           newContactsThisWeek: 0,
           tasksCompleted: 0,
           upcomingTasks: 0,
+          totalPipelineValue: 0,
+          weightedPipelineValue: 0,
+          averageDealSize: 0,
+          dealsWonThisMonth: 0,
+          dealsLostThisMonth: 0,
         };
       }
 
@@ -169,6 +174,29 @@ export function useCrmData() {
         .in('status', ['pending', 'in_progress'])
         .lte('due_date', nextWeek.toISOString());
 
+      // Get deals data for pipeline metrics
+      const { data: dealsData } = await supabase
+        .from('crm_deals')
+        .select('value, probability, stage, created_at')
+        .eq('workspace_id', profile.workspace_id);
+
+      const deals = dealsData || [];
+      const totalPipelineValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
+      const weightedPipelineValue = deals.reduce((sum, deal) => sum + ((deal.value || 0) * (deal.probability || 0) / 100), 0);
+      const averageDealSize = deals.length > 0 ? totalPipelineValue / deals.length : 0;
+
+      // Get deals won/lost this month
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      
+      const dealsWonThisMonth = deals.filter(deal => 
+        deal.stage === 'won' && new Date(deal.created_at) >= monthAgo
+      ).length;
+      
+      const dealsLostThisMonth = deals.filter(deal => 
+        deal.stage === 'lost' && new Date(deal.created_at) >= monthAgo
+      ).length;
+
       // Calculate conversion rate
       const totalContacts = (leadsCount || 0) + (prospectsCount || 0) + (customersCount || 0);
       const conversionRate = totalContacts > 0 ? ((customersCount || 0) / totalContacts) * 100 : 0;
@@ -181,6 +209,11 @@ export function useCrmData() {
         newContactsThisWeek: newContactsCount || 0,
         tasksCompleted: completedTasksCount || 0,
         upcomingTasks: upcomingTasksCount || 0,
+        totalPipelineValue,
+        weightedPipelineValue,
+        averageDealSize,
+        dealsWonThisMonth,
+        dealsLostThisMonth,
       };
     },
     enabled: !!profile?.workspace_id,
@@ -198,6 +231,11 @@ export function useCrmData() {
       newContactsThisWeek: 0,
       tasksCompleted: 0,
       upcomingTasks: 0,
+      totalPipelineValue: 0,
+      weightedPipelineValue: 0,
+      averageDealSize: 0,
+      dealsWonThisMonth: 0,
+      dealsLostThisMonth: 0,
     },
     isLoading: companiesLoading || contactsLoading || tasksLoading || metricsLoading,
   };

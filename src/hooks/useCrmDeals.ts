@@ -36,7 +36,12 @@ export function useCrmDeals() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (CrmDeal & {
+      return (data || []).map(deal => ({
+        ...deal,
+        crm_contacts: deal.crm_contacts || undefined,
+        companies: deal.companies || undefined,
+        profiles: deal.profiles || undefined,
+      })) as (CrmDeal & {
         crm_contacts?: { first_name: string; last_name: string; email: string };
         companies?: { name: string };
         profiles?: { first_name: string; last_name: string };
@@ -64,7 +69,10 @@ export function useCrmDeals() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (CrmDealActivity & {
+      return (data || []).map(activity => ({
+        ...activity,
+        profiles: activity.profiles || undefined,
+      })) as (CrmDealActivity & {
         profiles?: { first_name: string; last_name: string };
       })[];
     },
@@ -79,7 +87,18 @@ export function useCrmDeals() {
       const { data, error } = await supabase
         .from('crm_deals')
         .insert({
-          ...dealData,
+          title: dealData.title || '',
+          description: dealData.description,
+          value: dealData.value || 0,
+          currency: dealData.currency || 'USD',
+          stage: dealData.stage || 'lead',
+          probability: dealData.probability || 25,
+          source: dealData.source,
+          expected_close_date: dealData.expected_close_date,
+          contact_id: dealData.contact_id,
+          company_id: dealData.company_id,
+          assigned_to: dealData.assigned_to,
+          notes: dealData.notes,
           workspace_id: profile.workspace_id,
           created_by: profile.id,
         })
