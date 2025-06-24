@@ -54,24 +54,31 @@ export function useModuleDashboardData() {
       if (canAccessModule('neura-crm')) {
         quickActions.push(
           {
+            id: 'crm-dashboard',
+            label: 'CRM Dashboard',
+            action: '#crm-dashboard',
+            icon: 'BarChart3',
+            module: 'neura-crm'
+          },
+          {
             id: 'add-contact',
             label: 'Add Contact',
-            action: '#crm/contacts/new',
+            action: '#crm-contacts',
             icon: 'UserPlus',
             module: 'neura-crm'
           },
           {
             id: 'add-company',
             label: 'Add Company',
-            action: '#crm/companies/new',
+            action: '#crm-companies',
             icon: 'Building2',
             module: 'neura-crm'
           },
           {
-            id: 'crm-dashboard',
-            label: 'CRM Dashboard',
-            action: '#crm',
-            icon: 'BarChart3',
+            id: 'view-pipeline',
+            label: 'View Pipeline',
+            action: '#crm-pipeline',
+            icon: 'TrendingUp',
             module: 'neura-crm'
           }
         );
@@ -86,7 +93,7 @@ export function useModuleDashboardData() {
           {
             id: 'create-form',
             label: 'Create Form',
-            action: '#forms/new',
+            action: '#forms',
             icon: 'FileText',
             module: 'neura-forms'
           }
@@ -106,7 +113,7 @@ export function useModuleDashboardData() {
           {
             id: 'create-course',
             label: 'Create Course',
-            action: '#education/courses/new',
+            action: '#education',
             icon: 'BookOpen',
             module: 'neura-edu'
           }

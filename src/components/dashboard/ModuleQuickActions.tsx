@@ -13,7 +13,8 @@ import {
   Settings,
   Users,
   Zap,
-  Building2
+  Building2,
+  TrendingUp
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -26,7 +27,8 @@ const iconMap = {
   BarChart3,
   Settings,
   Users,
-  Building2
+  Building2,
+  TrendingUp
 };
 
 export function ModuleQuickActions() {

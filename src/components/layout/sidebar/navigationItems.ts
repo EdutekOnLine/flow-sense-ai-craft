@@ -12,6 +12,11 @@ import {
   GraduationCap,
   Package,
   Building,
+  UserPlus,
+  Briefcase,
+  CheckSquare,
+  TrendingUp,
+  PieChart,
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -57,10 +62,50 @@ export const navigationItems: NavigationItem[] = [
     group: 'modules'
   },
   {
-    id: 'crm',
-    label: 'CRM',
+    id: 'crm-dashboard',
+    label: 'CRM Dashboard',
+    icon: BarChart3,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-contacts',
+    label: 'Contacts',
+    icon: UserPlus,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-companies',
+    label: 'Companies',
     icon: Building2,
     roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-tasks',
+    label: 'CRM Tasks',
+    icon: CheckSquare,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-pipeline',
+    label: 'Pipeline',
+    icon: TrendingUp,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-reports',
+    label: 'CRM Reports',
+    icon: PieChart,
+    roles: ['admin', 'manager', 'root'],
     module: 'neura-crm',
     group: 'modules'
   },
