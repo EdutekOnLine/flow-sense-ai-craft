@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -129,51 +130,6 @@ export function useTeamManagement() {
     },
     enabled: !!profile && (isRootUser || !!profile?.workspace_id),
   });
-
-  // Function to get workspace-specific managers
-  const getWorkspaceManagers = (workspaceId: string) => {
-    const { data: managers = [] } = useQuery({
-      queryKey: ['workspace-managers', workspaceId],
-      queryFn: async () => {
-        if (!workspaceId) return [];
-        
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email')
-          .eq('workspace_id', workspaceId)
-          .eq('role', 'manager')
-          .order('first_name');
-
-        if (error) throw error;
-        return data || [];
-      },
-      enabled: !!workspaceId,
-    });
-    
-    return managers;
-  };
-
-  // Function to get workspace-specific users
-  const getWorkspaceUsers = (workspaceId: string) => {
-    const { data: users = [] } = useQuery({
-      queryKey: ['workspace-users', workspaceId],
-      queryFn: async () => {
-        if (!workspaceId) return [];
-        
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email, role, department')
-          .eq('workspace_id', workspaceId)
-          .order('first_name');
-
-        if (error) throw error;
-        return data || [];
-      },
-      enabled: !!workspaceId,
-    });
-    
-    return users;
-  };
 
   // Fetch available managers - for root users get all managers, for regular users get workspace managers
   const { data: availableManagers = [] } = useQuery({
@@ -313,7 +269,12 @@ export function useTeamManagement() {
       toast({ title: 'Team member added successfully' });
     },
     onError: (error) => {
-      toast({ title: 'Error adding team member', description: error.message, variant: 'destructive' });
+      console.error('Error adding team member:', error);
+      toast({ 
+        title: 'Error adding team member', 
+        description: error.message || 'Failed to add team member. Please check permissions.',
+        variant: 'destructive' 
+      });
     },
   });
 
@@ -346,6 +307,14 @@ export function useTeamManagement() {
     return teamMembers.filter(member => member.team_id === teamId);
   };
 
+  // Get users available for a specific team's workspace
+  const getTeamWorkspaceUsers = (teamId: string) => {
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return [];
+    
+    return workspaceUsers.filter(user => user.workspace_id === team.workspace_id);
+  };
+
   // Check if user can manage a specific team - root users can manage all teams
   const canManageTeam = (teamId: string) => {
     if (isRootUser) return true;
@@ -366,12 +335,13 @@ export function useTeamManagement() {
     addTeamMember: addTeamMemberMutation.mutate,
     removeTeamMember: removeTeamMemberMutation.mutate,
     getTeamMembers,
+    getTeamWorkspaceUsers,
     canManageTeam,
-    getWorkspaceManagers,
-    getWorkspaceUsers,
     isCreating: createTeamMutation.isPending,
     isUpdating: updateTeamMutation.isPending,
     isDeleting: deleteTeamMutation.isPending,
+    isAddingMember: addTeamMemberMutation.isPending,
+    isRemovingMember: removeTeamMemberMutation.isPending,
     isRootUser, // Expose root status for UI components
   };
 }

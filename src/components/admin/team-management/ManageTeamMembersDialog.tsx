@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus, UserMinus, Search } from 'lucide-react';
+import { UserPlus, UserMinus, Search, AlertCircle } from 'lucide-react';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -31,10 +31,12 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
   const {
     teams,
     getTeamMembers,
-    getWorkspaceUsers,
+    getTeamWorkspaceUsers,
     addTeamMember,
     removeTeamMember,
     canManageTeam,
+    isAddingMember,
+    isRemovingMember,
   } = useTeamManagement();
 
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -44,11 +46,11 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
   const teamMembers = getTeamMembers(teamId);
   const canManage = canManageTeam(teamId);
 
-  // Get users from the team's workspace, not the current user's workspace
-  const workspaceUsers = getWorkspaceUsers(team?.workspace_id || '');
+  // Get users from the team's workspace using the new function
+  const teamWorkspaceUsers = getTeamWorkspaceUsers(teamId);
 
   const memberUserIds = new Set(teamMembers.map(member => member.user_id));
-  const availableUsers = workspaceUsers.filter(user => !memberUserIds.has(user.id));
+  const availableUsers = teamWorkspaceUsers.filter(user => !memberUserIds.has(user.id));
 
   const filteredTeamMembers = teamMembers.filter(member => {
     if (!searchTerm) return true;
@@ -71,16 +73,39 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
     removeTeamMember({ team_id: teamId, user_id: userId });
   };
 
-  if (!team) return null;
+  if (!team) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Team Not Found
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">The requested team could not be found.</p>
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Manage Team Members - {team.name}</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Managing team in workspace: {team.workspace_id}
-          </p>
+          {team.workspace && (
+            <p className="text-sm text-muted-foreground">
+              Workspace: {team.workspace.name}
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
@@ -110,9 +135,26 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button onClick={handleAddMember} disabled={!selectedUserId}>
-                    Add Member
+                  <Button 
+                    onClick={handleAddMember} 
+                    disabled={!selectedUserId || isAddingMember}
+                  >
+                    {isAddingMember ? 'Adding...' : 'Add Member'}
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* No available users message */}
+          {canManage && availableUsers.length === 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-4">
+                  <UserPlus className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground">
+                    All users in this workspace are already team members.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -145,6 +187,8 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
                     const user = member.user;
                     if (!user) return null;
 
+                    const isTeamManager = member.user_id === team.manager_id;
+
                     return (
                       <div
                         key={member.id}
@@ -154,6 +198,11 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
                           <div>
                             <p className="font-medium">
                               {user.first_name} {user.last_name}
+                              {isTeamManager && (
+                                <Badge variant="secondary" className="ml-2 text-xs">
+                                  Manager
+                                </Badge>
+                              )}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {user.email}
@@ -170,12 +219,13 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
                           </div>
                         </div>
                         
-                        {canManage && member.user_id !== team.manager_id && (
+                        {canManage && !isTeamManager && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleRemoveMember(member.user_id)}
                             className="text-red-600 hover:text-red-700"
+                            disabled={isRemovingMember}
                           >
                             <UserMinus className="h-4 w-4" />
                           </Button>
