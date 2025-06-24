@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -137,6 +136,28 @@ export function useTeamManagement() {
     });
     
     return managers;
+  };
+
+  // Function to get workspace-specific users
+  const getWorkspaceUsers = (workspaceId: string) => {
+    const { data: users = [] } = useQuery({
+      queryKey: ['workspace-users', workspaceId],
+      queryFn: async () => {
+        if (!workspaceId) return [];
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email, role, department')
+          .eq('workspace_id', workspaceId)
+          .order('first_name');
+
+        if (error) throw error;
+        return data || [];
+      },
+      enabled: !!workspaceId,
+    });
+    
+    return users;
   };
 
   // Fetch available managers (users with manager role) for current workspace
@@ -325,6 +346,7 @@ export function useTeamManagement() {
     getTeamMembers,
     canManageTeam,
     getWorkspaceManagers,
+    getWorkspaceUsers,
     isCreating: createTeamMutation.isPending,
     isUpdating: updateTeamMutation.isPending,
     isDeleting: deleteTeamMutation.isPending,

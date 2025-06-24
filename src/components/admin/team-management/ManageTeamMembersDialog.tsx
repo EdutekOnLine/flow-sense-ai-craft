@@ -31,7 +31,7 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
   const {
     teams,
     getTeamMembers,
-    workspaceUsers,
+    getWorkspaceUsers,
     addTeamMember,
     removeTeamMember,
     canManageTeam,
@@ -43,6 +43,9 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
   const team = teams.find(t => t.id === teamId);
   const teamMembers = getTeamMembers(teamId);
   const canManage = canManageTeam(teamId);
+
+  // Get users from the team's workspace, not the current user's workspace
+  const workspaceUsers = getWorkspaceUsers(team?.workspace_id || '');
 
   const memberUserIds = new Set(teamMembers.map(member => member.user_id));
   const availableUsers = workspaceUsers.filter(user => !memberUserIds.has(user.id));
@@ -75,6 +78,9 @@ export function ManageTeamMembersDialog({ teamId, open, onOpenChange }: ManageTe
       <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Manage Team Members - {team.name}</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Managing team in workspace: {team.workspace_id}
+          </p>
         </DialogHeader>
 
         <div className="space-y-6">
