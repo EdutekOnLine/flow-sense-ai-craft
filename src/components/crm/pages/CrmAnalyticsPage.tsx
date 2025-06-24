@@ -14,7 +14,7 @@ import {
   DollarSign
 } from 'lucide-react';
 
-export function CrmReportsPage() {
+export function CrmAnalyticsPage() {
   const { contacts, companies, tasks, metrics, isLoading } = useCrmData();
 
   const statusBreakdown = {
@@ -62,7 +62,7 @@ export function CrmReportsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">CRM Reports</h1>
+        <h1 className="text-2xl font-bold">CRM Analytics</h1>
         <p className="text-muted-foreground">Analytics and insights for your CRM data</p>
       </div>
 
@@ -117,7 +117,7 @@ export function CrmReportsPage() {
         </Card>
       </div>
 
-      {/* Detailed Reports */}
+      {/* Detailed Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Contact Status Breakdown */}
         <Card>

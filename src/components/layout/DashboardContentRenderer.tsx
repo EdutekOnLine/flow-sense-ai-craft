@@ -1,3 +1,4 @@
+
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -13,8 +14,9 @@ import { CrmContactsPage } from '@/components/crm/pages/CrmContactsPage';
 import { CrmCompaniesPage } from '@/components/crm/pages/CrmCompaniesPage';
 import { CrmTasksPage } from '@/components/crm/pages/CrmTasksPage';
 import { CrmPipelinePage } from '@/components/crm/pages/CrmPipelinePage';
-import { CrmReportsPage } from '@/components/crm/pages/CrmReportsPage';
+import { CrmAnalyticsPage } from '@/components/crm/pages/CrmAnalyticsPage';
 import { WorkflowDashboard } from '@/components/workflow/WorkflowDashboard';
+import { WorkflowAnalyticsPage } from '@/components/workflow/pages/WorkflowAnalyticsPage';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface DashboardContentRendererProps {
@@ -41,6 +43,9 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
       case 'templates':
         if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
         return <SavedWorkflows />;
+      case 'workflow-analytics':
+        if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
+        return <WorkflowAnalyticsPage />;
       case 'crm-dashboard':
         if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
         return <CrmDashboard />;
@@ -56,9 +61,9 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
       case 'crm-pipeline':
         if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
         return <CrmPipelinePage />;
-      case 'crm-reports':
+      case 'crm-analytics':
         if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
-        return <CrmReportsPage />;
+        return <CrmAnalyticsPage />;
       case 'forms':
         if (!canAccessModule('neura-forms')) return <div>Access denied</div>;
         return <div>Forms module coming soon...</div>;

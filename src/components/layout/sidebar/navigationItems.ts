@@ -70,6 +70,14 @@ export const navigationItems: NavigationItem[] = [
     group: 'modules'
   },
   {
+    id: 'workflow-analytics',
+    label: 'Workflow Analytics',
+    icon: BarChart3,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
+  },
+  {
     id: 'crm-dashboard',
     label: 'CRM Dashboard',
     icon: BarChart3,
@@ -110,8 +118,8 @@ export const navigationItems: NavigationItem[] = [
     group: 'modules'
   },
   {
-    id: 'crm-reports',
-    label: 'CRM Reports',
+    id: 'crm-analytics',
+    label: 'CRM Analytics',
     icon: PieChart,
     roles: ['admin', 'manager', 'root'],
     module: 'neura-crm',
