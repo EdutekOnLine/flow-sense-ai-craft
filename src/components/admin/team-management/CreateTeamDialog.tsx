@@ -49,11 +49,11 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
   const { profile } = useAuth();
   const { 
     createTeam, 
-    getWorkspaceManagers, 
-    isCreating 
+    availableManagers,
+    workspaceUsers,
+    isCreating,
+    isRootUser
   } = useTeamManagement();
-
-  const isRootUser = profile?.role === 'root';
 
   const form = useForm<CreateTeamForm>({
     resolver: zodResolver(createTeamSchema),
@@ -66,7 +66,13 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
   });
 
   const watchedWorkspaceId = form.watch('workspace_id');
-  const availableManagers = getWorkspaceManagers(watchedWorkspaceId || profile?.workspace_id || '');
+  
+  // Filter managers based on selected workspace for root users, or use available managers for regular users
+  const filteredManagers = isRootUser && watchedWorkspaceId
+    ? workspaceUsers.filter(user => 
+        user.workspace_id === watchedWorkspaceId && user.role === 'manager'
+      )
+    : availableManagers;
 
   // Reset manager selection when workspace changes
   useEffect(() => {
@@ -173,7 +179,7 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {availableManagers.map((manager) => (
+                      {filteredManagers.map((manager) => (
                         <SelectItem key={manager.id} value={manager.id}>
                           {manager.first_name} {manager.last_name} ({manager.email})
                         </SelectItem>
