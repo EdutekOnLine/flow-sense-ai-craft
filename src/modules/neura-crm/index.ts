@@ -77,6 +77,40 @@ export interface CrmTask {
   updated_at: string;
 }
 
+export interface CrmDeal {
+  id: string;
+  title: string;
+  description?: string;
+  value: number;
+  currency: string;
+  stage: 'lead' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+  probability: number;
+  source?: 'website' | 'referral' | 'cold_call' | 'social_media' | 'email_campaign' | 'trade_show' | 'partner' | 'existing_customer' | 'other';
+  expected_close_date?: string;
+  actual_close_date?: string;
+  contact_id?: string;
+  company_id?: string;
+  assigned_to?: string;
+  created_by: string;
+  updated_by?: string;
+  workspace_id: string;
+  created_at: string;
+  updated_at: string;
+  notes?: string;
+}
+
+export interface CrmDealActivity {
+  id: string;
+  deal_id: string;
+  activity_type: string;
+  old_value?: string;
+  new_value?: string;
+  description?: string;
+  created_by: string;
+  workspace_id: string;
+  created_at: string;
+}
+
 export interface CrmMetrics {
   totalLeads: number;
   activeDeals: number;
@@ -85,4 +119,9 @@ export interface CrmMetrics {
   newContactsThisWeek: number;
   tasksCompleted: number;
   upcomingTasks: number;
+  totalPipelineValue: number;
+  weightedPipelineValue: number;
+  averageDealSize: number;
+  dealsWonThisMonth: number;
+  dealsLostThisMonth: number;
 }

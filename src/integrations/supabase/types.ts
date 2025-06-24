@@ -265,6 +265,201 @@ export type Database = {
           },
         ]
       }
+      crm_deal_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string
+          deal_id: string
+          description: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          workspace_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by: string
+          deal_id: string
+          description?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          workspace_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          description?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_deal_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deal_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "crm_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deal_activities_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_deals: {
+        Row: {
+          actual_close_date: string | null
+          assigned_to: string | null
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          currency: string | null
+          description: string | null
+          expected_close_date: string | null
+          id: string
+          notes: string | null
+          probability: number | null
+          source: Database["public"]["Enums"]["deal_source"] | null
+          stage: Database["public"]["Enums"]["deal_stage"]
+          title: string
+          updated_at: string
+          updated_by: string | null
+          value: number
+          workspace_id: string
+        }
+        Insert: {
+          actual_close_date?: string | null
+          assigned_to?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string | null
+          description?: string | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          probability?: number | null
+          source?: Database["public"]["Enums"]["deal_source"] | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: number
+          workspace_id: string
+        }
+        Update: {
+          actual_close_date?: string | null
+          assigned_to?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          probability?: number | null
+          source?: Database["public"]["Enums"]["deal_source"] | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_tasks: {
         Row: {
           assigned_to: string | null
@@ -1271,6 +1466,24 @@ export type Database = {
     }
     Enums: {
       contact_status: "lead" | "prospect" | "customer" | "inactive"
+      deal_source:
+        | "website"
+        | "referral"
+        | "cold_call"
+        | "social_media"
+        | "email_campaign"
+        | "trade_show"
+        | "partner"
+        | "existing_customer"
+        | "other"
+      deal_stage:
+        | "lead"
+        | "contacted"
+        | "qualified"
+        | "proposal"
+        | "negotiation"
+        | "won"
+        | "lost"
       lead_source:
         | "website"
         | "referral"
@@ -1404,6 +1617,26 @@ export const Constants = {
   public: {
     Enums: {
       contact_status: ["lead", "prospect", "customer", "inactive"],
+      deal_source: [
+        "website",
+        "referral",
+        "cold_call",
+        "social_media",
+        "email_campaign",
+        "trade_show",
+        "partner",
+        "existing_customer",
+        "other",
+      ],
+      deal_stage: [
+        "lead",
+        "contacted",
+        "qualified",
+        "proposal",
+        "negotiation",
+        "won",
+        "lost",
+      ],
       lead_source: [
         "website",
         "referral",
