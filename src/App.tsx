@@ -70,6 +70,10 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
+      <Route path="/admin/users" element={<Dashboard />} />
+      <Route path="/admin/teams" element={<Dashboard />} />
+      <Route path="/admin/workspaces" element={<Dashboard />} />
+      <Route path="/admin/modules" element={<Dashboard />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -73,6 +74,8 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow, currentPat
         return <div>Education module coming soon...</div>;
       case 'users':
         return <UserManagement />;
+      case 'teams':
+        return <TeamManagement />;
       case 'workspace-management':
         return <WorkspaceManagement />;
       case 'reports':

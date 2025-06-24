@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard,
   Users,
@@ -148,6 +149,14 @@ export const navigationItems: NavigationItem[] = [
     label: 'navigation.users',
     icon: Users,
     roles: ['admin', 'manager', 'root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'teams',
+    label: 'Team Management',
+    icon: Users2,
+    roles: ['admin', 'root'],
     module: 'neura-core',
     group: 'admin'
   },
