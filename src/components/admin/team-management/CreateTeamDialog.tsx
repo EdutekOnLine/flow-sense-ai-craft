@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,10 +28,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { WorkspaceSelector } from '@/components/admin/WorkspaceSelector';
+import { useAuth } from '@/hooks/useAuth';
 
 const createTeamSchema = z.object({
   name: z.string().min(1, 'Team name is required').max(100, 'Team name too long'),
   description: z.string().optional(),
+  workspace_id: z.string().optional(),
   manager_id: z.string().min(1, 'Manager selection is required'),
 });
 
@@ -43,24 +46,45 @@ interface CreateTeamDialogProps {
 }
 
 export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) {
-  const { createTeam, availableManagers, isCreating } = useTeamManagement();
+  const { profile } = useAuth();
+  const { 
+    createTeam, 
+    getWorkspaceManagers, 
+    isCreating 
+  } = useTeamManagement();
+
+  const isRootUser = profile?.role === 'root';
 
   const form = useForm<CreateTeamForm>({
     resolver: zodResolver(createTeamSchema),
     defaultValues: {
       name: '',
       description: '',
+      workspace_id: isRootUser ? '' : profile?.workspace_id || '',
       manager_id: '',
     },
   });
 
+  const watchedWorkspaceId = form.watch('workspace_id');
+  const availableManagers = getWorkspaceManagers(watchedWorkspaceId || profile?.workspace_id || '');
+
+  // Reset manager selection when workspace changes
+  useEffect(() => {
+    if (isRootUser && watchedWorkspaceId) {
+      form.setValue('manager_id', '');
+    }
+  }, [watchedWorkspaceId, isRootUser, form]);
+
   const onSubmit = async (data: CreateTeamForm) => {
-    // Ensure all required fields are present
-    if (data.name && data.manager_id) {
+    // Determine the target workspace
+    const targetWorkspaceId = isRootUser ? data.workspace_id : profile?.workspace_id;
+    
+    if (data.name && data.manager_id && targetWorkspaceId) {
       createTeam({
         name: data.name,
         description: data.description || '',
         manager_id: data.manager_id,
+        workspace_id: targetWorkspaceId,
       });
       form.reset();
       onOpenChange(false);
@@ -76,6 +100,26 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {isRootUser && (
+              <FormField
+                control={form.control}
+                name="workspace_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Target Workspace</FormLabel>
+                    <FormControl>
+                      <WorkspaceSelector
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={isCreating}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="name"
@@ -114,10 +158,18 @@ export function CreateTeamDialog({ open, onOpenChange }: CreateTeamDialogProps) 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Team Manager</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={isRootUser && !watchedWorkspaceId}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a manager" />
+                        <SelectValue placeholder={
+                          isRootUser && !watchedWorkspaceId 
+                            ? "Select a workspace first" 
+                            : "Select a manager"
+                        } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

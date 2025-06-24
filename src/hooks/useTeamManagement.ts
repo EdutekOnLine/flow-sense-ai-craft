@@ -116,7 +116,30 @@ export function useTeamManagement() {
     enabled: !!profile?.workspace_id,
   });
 
-  // Fetch available managers (users with manager role)
+  // Function to get workspace-specific managers
+  const getWorkspaceManagers = (workspaceId: string) => {
+    const { data: managers = [] } = useQuery({
+      queryKey: ['workspace-managers', workspaceId],
+      queryFn: async () => {
+        if (!workspaceId) return [];
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .eq('workspace_id', workspaceId)
+          .eq('role', 'manager')
+          .order('first_name');
+
+        if (error) throw error;
+        return data || [];
+      },
+      enabled: !!workspaceId,
+    });
+    
+    return managers;
+  };
+
+  // Fetch available managers (users with manager role) for current workspace
   const { data: availableManagers = [] } = useQuery({
     queryKey: ['available-managers', profile?.workspace_id],
     queryFn: async () => {
@@ -155,16 +178,19 @@ export function useTeamManagement() {
 
   // Create team mutation
   const createTeamMutation = useMutation({
-    mutationFn: async (teamData: { name: string; description?: string; manager_id: string }) => {
-      if (!profile?.workspace_id) throw new Error('No workspace');
-      
+    mutationFn: async (teamData: { 
+      name: string; 
+      description?: string; 
+      manager_id: string; 
+      workspace_id: string; 
+    }) => {
       const { data, error } = await supabase
         .from('teams')
         .insert({
           name: teamData.name,
           description: teamData.description,
           manager_id: teamData.manager_id,
-          workspace_id: profile.workspace_id,
+          workspace_id: teamData.workspace_id,
         })
         .select()
         .single();
@@ -298,6 +324,7 @@ export function useTeamManagement() {
     removeTeamMember: removeTeamMemberMutation.mutate,
     getTeamMembers,
     canManageTeam,
+    getWorkspaceManagers,
     isCreating: createTeamMutation.isPending,
     isUpdating: updateTeamMutation.isPending,
     isDeleting: deleteTeamMutation.isPending,
