@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard,
   Users,
@@ -17,6 +16,9 @@ import {
   CheckSquare,
   TrendingUp,
   PieChart,
+  UserCheck,
+  Layers,
+  Users2
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -180,6 +182,41 @@ export const navigationItems: NavigationItem[] = [
     roles: ['admin', 'root'],
     module: 'neura-core',
     group: 'admin'
+  },
+];
+
+export const adminNavigation = [
+  {
+    title: 'User Management',
+    icon: UserCheck,
+    href: '/admin/users',
+    description: 'Manage users, invitations, and permissions',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
+  },
+  {
+    title: 'Team Management',
+    icon: Users2,
+    href: '/admin/teams',
+    description: 'Organize users into teams and assign managers',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
+  },
+  {
+    title: 'Workspace Management',
+    icon: Building2,
+    href: '/admin/workspaces',
+    description: 'Configure workspace settings and structure',
+    requiresAuth: true,
+    roles: ['root'],
+  },
+  {
+    title: 'Module Management',
+    icon: Layers,
+    href: '/admin/modules',
+    description: 'Enable and configure workspace modules',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
   },
 ];
 

@@ -1,15 +1,16 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useTeamBasedAccess } from './useTeamBasedAccess';
 import type { CrmDeal, CrmDealActivity } from '@/modules/neura-crm';
 import { toast } from '@/components/ui/use-toast';
 
 export function useCrmDeals() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const { canAccessUser } = useTeamBasedAccess();
 
-  // Fetch deals
+  // Fetch deals with team-based filtering
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
     queryKey: ['crm-deals', profile?.workspace_id],
     queryFn: async () => {
@@ -53,7 +54,14 @@ export function useCrmDeals() {
         }
       }
 
-      return (data || []).map(deal => ({
+      // Filter based on team access for non-admin users
+      const isAdmin = profile.role === 'admin' || profile.role === 'root';
+      const filteredDeals = isAdmin ? data : (data || []).filter(deal => 
+        canAccessUser(deal.created_by) || 
+        (deal.assigned_to && canAccessUser(deal.assigned_to))
+      );
+
+      return (filteredDeals || []).map(deal => ({
         ...deal,
         crm_contacts: deal.crm_contacts || undefined,
         companies: deal.companies || undefined,

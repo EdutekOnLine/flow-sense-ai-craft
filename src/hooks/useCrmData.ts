@@ -1,11 +1,12 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useTeamBasedAccess } from './useTeamBasedAccess';
 import type { Company, CrmContact, CrmTask, CrmMetrics } from '@/modules/neura-crm';
 
 export function useCrmData() {
   const { profile } = useAuth();
+  const { canAccessUser } = useTeamBasedAccess();
 
   // Fetch companies
   const { data: companies = [], isLoading: companiesLoading } = useQuery({
@@ -25,7 +26,7 @@ export function useCrmData() {
     enabled: !!profile?.workspace_id,
   });
 
-  // Fetch contacts
+  // Fetch contacts with team-based filtering
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: ['crm-contacts', profile?.workspace_id],
     queryFn: async () => {
@@ -43,12 +44,23 @@ export function useCrmData() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as (CrmContact & { companies?: { name: string } })[];
+      
+      // Filter based on team access for non-admin users
+      const isAdmin = profile.role === 'admin' || profile.role === 'root';
+      if (isAdmin) {
+        return data as (CrmContact & { companies?: { name: string } })[];
+      }
+      
+      // For managers and employees, filter to only contacts they can access
+      return (data || []).filter(contact => 
+        canAccessUser(contact.created_by) || 
+        (contact.assigned_to && canAccessUser(contact.assigned_to))
+      ) as (CrmContact & { companies?: { name: string } })[];
     },
     enabled: !!profile?.workspace_id,
   });
 
-  // Fetch tasks with proper type handling
+  // Fetch tasks with team-based filtering
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['crm-tasks', profile?.workspace_id],
     queryFn: async () => {
@@ -75,8 +87,14 @@ export function useCrmData() {
 
       if (error) throw error;
       
+      const isAdmin = profile.role === 'admin' || profile.role === 'root';
+      const filteredTasks = isAdmin ? data : (data || []).filter(task => 
+        canAccessUser(task.created_by) || 
+        (task.assigned_to && canAccessUser(task.assigned_to))
+      );
+      
       // Transform the data to match our expected type
-      return (data || []).map(task => ({
+      return (filteredTasks || []).map(task => ({
         id: task.id,
         contact_id: task.contact_id,
         company_id: task.company_id,

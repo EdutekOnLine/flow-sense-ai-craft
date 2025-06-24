@@ -1,4 +1,3 @@
-
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -18,13 +17,15 @@ import { CrmAnalyticsPage } from '@/components/crm/pages/CrmAnalyticsPage';
 import { WorkflowDashboard } from '@/components/workflow/WorkflowDashboard';
 import { WorkflowAnalyticsPage } from '@/components/workflow/pages/WorkflowAnalyticsPage';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
+import { TeamManagement } from '@/components/admin/TeamManagement';
 
 interface DashboardContentRendererProps {
   activeTab: string;
   onOpenWorkflow?: (workflowId: string) => void;
+  currentPath: string;
 }
 
-export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: DashboardContentRendererProps) {
+export function DashboardContentRenderer({ activeTab, onOpenWorkflow, currentPath }: DashboardContentRendererProps) {
   const { canAccessModule } = useModulePermissions();
 
   const renderContent = () => {
@@ -84,6 +85,23 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
         return <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
     }
   };
+
+  // Admin routes
+  if (currentPath === '/admin/users') {
+    return <UserManagement />;
+  }
+  
+  if (currentPath === '/admin/teams') {
+    return <TeamManagement />;
+  }
+  
+  if (currentPath === '/admin/workspaces') {
+    return <WorkspaceManagement />;
+  }
+  
+  if (currentPath === '/admin/modules') {
+    return <ModuleManagement />;
+  }
 
   return <div className="w-full">{renderContent()}</div>;
 }
