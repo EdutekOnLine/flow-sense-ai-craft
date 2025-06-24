@@ -34,6 +34,13 @@ export function useModuleDashboardData() {
       if (canAccessModule('neura-flow')) {
         quickActions.push(
           {
+            id: 'workflow-dashboard',
+            label: 'Workflow Dashboard',
+            action: '#workflow-dashboard',
+            icon: 'BarChart3',
+            module: 'neura-flow'
+          },
+          {
             id: 'create-workflow',
             label: 'Create Workflow',
             action: '#workflow-builder',

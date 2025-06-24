@@ -38,6 +38,14 @@ export const navigationItems: NavigationItem[] = [
     group: 'core'
   },
   {
+    id: 'workflow-dashboard',
+    label: 'Workflow Dashboard',
+    icon: Workflow,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
+  },
+  {
     id: 'workflow-inbox',
     label: 'navigation.myTasks',
     icon: Inbox,

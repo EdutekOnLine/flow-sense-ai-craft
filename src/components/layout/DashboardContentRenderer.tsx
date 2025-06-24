@@ -1,4 +1,3 @@
-
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -15,6 +14,7 @@ import { CrmCompaniesPage } from '@/components/crm/pages/CrmCompaniesPage';
 import { CrmTasksPage } from '@/components/crm/pages/CrmTasksPage';
 import { CrmPipelinePage } from '@/components/crm/pages/CrmPipelinePage';
 import { CrmReportsPage } from '@/components/crm/pages/CrmReportsPage';
+import { WorkflowDashboard } from '@/components/workflow/WorkflowDashboard';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 
 interface DashboardContentRendererProps {
@@ -29,6 +29,9 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow }: Dashboar
     switch (activeTab) {
       case 'dashboard':
         return <DashboardContent onOpenWorkflow={onOpenWorkflow} />;
+      case 'workflow-dashboard':
+        if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
+        return <WorkflowDashboard />;
       case 'workflow-inbox':
         if (!canAccessModule('neura-flow')) return <div>Access denied</div>;
         return <WorkflowInbox />;
