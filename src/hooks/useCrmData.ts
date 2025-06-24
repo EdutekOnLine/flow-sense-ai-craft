@@ -65,7 +65,7 @@ export function useCrmData() {
           companies:company_id (
             name
           ),
-          assigned_user:assigned_to (
+          profiles!crm_tasks_assigned_to_fkey (
             first_name,
             last_name
           )
@@ -76,11 +76,25 @@ export function useCrmData() {
       if (error) throw error;
       
       // Transform the data to match our expected type
-      return data.map(task => ({
-        ...task,
+      return (data || []).map(task => ({
+        id: task.id,
+        contact_id: task.contact_id,
+        company_id: task.company_id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        due_date: task.due_date,
+        completed_at: task.completed_at,
+        assigned_to: task.assigned_to,
+        created_by: task.created_by,
+        updated_by: task.updated_by,
+        workspace_id: task.workspace_id,
+        created_at: task.created_at,
+        updated_at: task.updated_at,
         crm_contacts: task.crm_contacts || undefined,
         companies: task.companies || undefined,
-        profiles: task.assigned_user || undefined,
+        profiles: task.profiles || undefined,
       })) as (CrmTask & {
         crm_contacts?: { first_name: string; last_name: string };
         companies?: { name: string };
