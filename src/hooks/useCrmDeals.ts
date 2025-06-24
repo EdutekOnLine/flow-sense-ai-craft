@@ -27,7 +27,7 @@ export function useCrmDeals() {
           companies:company_id (
             name
           ),
-          profiles:assigned_to (
+          assigned_profile:assigned_to (
             first_name,
             last_name
           )
@@ -40,7 +40,7 @@ export function useCrmDeals() {
         ...deal,
         crm_contacts: deal.crm_contacts || undefined,
         companies: deal.companies || undefined,
-        profiles: deal.profiles || undefined,
+        profiles: deal.assigned_profile || undefined,
       })) as (CrmDeal & {
         crm_contacts?: { first_name: string; last_name: string; email: string };
         companies?: { name: string };
@@ -60,7 +60,7 @@ export function useCrmDeals() {
         .from('crm_deal_activities')
         .select(`
           *,
-          profiles:created_by (
+          creator_profile:created_by (
             first_name,
             last_name
           )
@@ -71,7 +71,7 @@ export function useCrmDeals() {
       if (error) throw error;
       return (data || []).map(activity => ({
         ...activity,
-        profiles: activity.profiles || undefined,
+        profiles: activity.creator_profile || undefined,
       })) as (CrmDealActivity & {
         profiles?: { first_name: string; last_name: string };
       })[];
