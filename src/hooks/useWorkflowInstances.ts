@@ -46,7 +46,7 @@ interface WorkflowNode {
 }
 
 export function useWorkflowInstances() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [instances, setInstances] = useState<WorkflowInstance[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -77,8 +77,8 @@ export function useWorkflowInstances() {
   const createWorkflowFromSavedWorkflow = async (savedWorkflowId: string) => {
     console.log('Creating workflow from saved workflow:', savedWorkflowId);
     
-    if (!user) {
-      throw new Error('User not authenticated');
+    if (!user || !profile?.workspace_id) {
+      throw new Error('User not authenticated or missing workspace');
     }
     
     try {
@@ -190,6 +190,7 @@ export function useWorkflowInstances() {
         .insert({
           workflow_id: savedWorkflowId, // Link to the saved workflow, not the transient workflow
           started_by: user.id,
+          workspace_id: profile.workspace_id,
           current_step_id: firstStepId,
           start_data: { 
             nodeIdToStepIdMap,
@@ -218,6 +219,7 @@ export function useWorkflowInstances() {
             workflow_step_id: step.id,
             assigned_to: step.assigned_to,
             assigned_by: user.id,
+            workspace_id: profile.workspace_id,
             status: 'pending', // All start as pending - only current step will be actionable
             notes: `Auto-created assignment for step: ${step.name}`
           })
@@ -269,7 +271,7 @@ export function useWorkflowInstances() {
       toast.error(errorMessage);
       throw error;
     }
-  }, [user, fetchWorkflowInstances]);
+  }, [user, profile?.workspace_id, fetchWorkflowInstances]);
 
   const cancelWorkflowInstance = useCallback(async (instanceId: string) => {
     try {

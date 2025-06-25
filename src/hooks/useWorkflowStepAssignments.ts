@@ -5,11 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export function useWorkflowStepAssignments() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
 
   const createAssignmentsForWorkflow = useCallback(async (workflowId: string) => {
-    if (!user) return;
+    if (!user || !profile?.workspace_id) {
+      toast({
+        title: "Error",
+        description: "User must be authenticated and have a workspace",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       console.log('Creating assignments for workflow:', workflowId);
@@ -66,6 +73,7 @@ export function useWorkflowStepAssignments() {
         workflow_step_id: step.id,
         assigned_to: step.assigned_to,
         assigned_by: user.id,
+        workspace_id: profile.workspace_id,
         status: 'pending',
         notes: `Auto-created assignment for step: ${step.name}`
       }));
@@ -99,7 +107,7 @@ export function useWorkflowStepAssignments() {
       });
       throw error;
     }
-  }, [user, toast]);
+  }, [user, profile?.workspace_id, toast]);
 
   return {
     createAssignmentsForWorkflow

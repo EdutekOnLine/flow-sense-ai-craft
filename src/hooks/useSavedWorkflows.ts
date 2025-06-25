@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -94,8 +95,8 @@ export function useSavedWorkflows() {
     viewport: Viewport,
     isReusable: boolean = false
   ): Promise<SavedWorkflow> => {
-    if (!user) {
-      throw new Error('User must be authenticated to save workflows');
+    if (!user || !profile?.workspace_id) {
+      throw new Error('User must be authenticated and have a workspace to save workflows');
     }
     
     if (isSaving) {
@@ -117,6 +118,7 @@ export function useSavedWorkflows() {
           edges: edges as unknown as Json,
           viewport: viewport as unknown as Json,
           created_by: user.id,
+          workspace_id: profile.workspace_id,
           is_reusable: isReusable,
         })
         .select()
@@ -152,7 +154,7 @@ export function useSavedWorkflows() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, fetchWorkflows, isSaving]);
+  }, [user, profile?.workspace_id, fetchWorkflows, isSaving]);
 
   const updateWorkflow = useCallback(async (
     id: string,
