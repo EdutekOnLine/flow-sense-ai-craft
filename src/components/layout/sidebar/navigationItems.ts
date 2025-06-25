@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard,
   Users,
@@ -19,7 +18,8 @@ import {
   PieChart,
   UserCheck,
   Layers,
-  Users2
+  Users2,
+  Activity
 } from 'lucide-react';
 
 export interface NavigationItem {
@@ -43,7 +43,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'workflow-dashboard',
     label: 'Workflow Dashboard',
-    icon: Workflow,
+    icon: Activity,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-flow',
     group: 'modules'
@@ -83,7 +83,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'crm-dashboard',
     label: 'CRM Dashboard',
-    icon: BarChart3,
+    icon: Briefcase,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-crm',
     group: 'modules'
