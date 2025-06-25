@@ -10,9 +10,17 @@ import { ModuleGuard } from '@/components/modules/ModuleGuard';
 import { useWorkflowState } from '../hooks/useWorkflowState';
 import { useWorkflowDialogs } from '../hooks/useWorkflowDialogs';
 import { useWorkflowActions } from '../hooks/useWorkflowActions';
+import { useEnhancedWorkflowPermissions } from '@/hooks/useEnhancedWorkflowPermissions';
 
 export default function WorkflowBuilder() {
   const { t } = useTranslation();
+  const {
+    canCreateWorkflows,
+    canEditWorkflows,
+    canDeleteWorkflows,
+    canAccessWorkflowBuilder
+  } = useEnhancedWorkflowPermissions();
+
   const {
     selectedNode,
     isNodeEditorOpen,
@@ -53,9 +61,6 @@ export default function WorkflowBuilder() {
     onAddSuggestedStep,
     isSaving,
     availableFields,
-    canDeleteWorkflows,
-    canEditWorkflows,
-    canCreateWorkflows,
     selectedNodeLabel,
   } = useWorkflowActions({
     generatePersistentNodeId,
