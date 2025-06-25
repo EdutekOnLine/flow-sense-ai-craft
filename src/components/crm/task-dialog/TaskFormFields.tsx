@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { CalendarIcon } from 'lucide-react';
@@ -24,12 +23,12 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { CreateTaskForm } from './taskFormSchema';
-import type { CrmContact, CrmCompany } from '@/modules/neura-crm';
+import type { CrmContact, Company } from '@/modules/neura-crm';
 
 interface TaskFormFieldsProps {
   form: UseFormReturn<CreateTaskForm>;
   contacts: CrmContact[];
-  companies: CrmCompany[];
+  companies: Company[];
 }
 
 export function TaskFormFields({ form, contacts, companies }: TaskFormFieldsProps) {
