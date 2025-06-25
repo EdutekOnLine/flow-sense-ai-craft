@@ -43,7 +43,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'workflow-dashboard',
     label: 'Workflow Dashboard',
-    icon: Activity,
+    icon: LayoutDashboard,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-flow',
     group: 'modules'
@@ -83,7 +83,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'crm-dashboard',
     label: 'CRM Dashboard',
-    icon: Briefcase,
+    icon: LayoutDashboard,
     roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-crm',
     group: 'modules'
