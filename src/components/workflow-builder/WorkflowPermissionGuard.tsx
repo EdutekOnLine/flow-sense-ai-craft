@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { useEnhancedWorkflowPermissions } from '@/hooks/useEnhancedWorkflowPermissions';
-import { useRootPermissions } from '@/hooks/useRootPermissions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Crown } from 'lucide-react';
+import { Lock, Crown, Zap } from 'lucide-react';
 
 interface WorkflowPermissionGuardProps {
   children: React.ReactNode;
@@ -11,11 +10,15 @@ interface WorkflowPermissionGuardProps {
 }
 
 export function WorkflowPermissionGuard({ children, fallback }: WorkflowPermissionGuardProps) {
-  const { hasWorkflowPermissions, userRole } = useEnhancedWorkflowPermissions();
-  const { isRootUser } = useRootPermissions();
+  const { 
+    canAccessWorkflowBuilder, 
+    userRole, 
+    isRootUser,
+    workspaceId 
+  } = useEnhancedWorkflowPermissions();
 
-  // Root users always have access
-  if (isRootUser || hasWorkflowPermissions) {
+  // Allow access if user has workflow builder permissions
+  if (canAccessWorkflowBuilder) {
     return <>{children}</>;
   }
 
@@ -23,32 +26,41 @@ export function WorkflowPermissionGuard({ children, fallback }: WorkflowPermissi
     <div className="h-[800px] w-full flex items-center justify-center bg-gray-50">
       <Card className="w-96">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
             {isRootUser ? (
               <Crown className="h-6 w-6 text-amber-600" />
+            ) : userRole === 'admin' ? (
+              <Zap className="h-6 w-6 text-blue-600" />
             ) : (
               <Lock className="h-6 w-6 text-red-600" />
             )}
           </div>
           <CardTitle className="text-xl text-gray-900">
-            {isRootUser ? 'Root Access' : 'Access Restricted'}
+            Workflow Builder Access
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
           <p className="text-gray-600 mb-4">
             {isRootUser 
-              ? 'You have full system access to the Workflow Builder.'
-              : "You don't have permission to access the Workflow Builder."
+              ? 'Welcome! You have full system access to the Workflow Builder.'
+              : userRole === 'admin'
+              ? 'As an admin, you have access to the Workflow Builder.'
+              : userRole === 'manager'
+              ? 'As a manager, you have access to the Workflow Builder.'
+              : "The Workflow Builder requires admin or manager permissions."
             }
           </p>
-          <p className="text-sm text-gray-500">
-            Current role: <span className="font-medium capitalize">{userRole}</span>
-          </p>
-          {!isRootUser && (
-            <p className="text-sm text-gray-500 mt-2">
-              Contact your administrator to request access.
-            </p>
-          )}
+          <div className="space-y-2 text-sm text-gray-500">
+            <p>Current role: <span className="font-medium capitalize">{userRole}</span></p>
+            {workspaceId && (
+              <p>Workspace: <span className="font-medium">{workspaceId}</span></p>
+            )}
+            {!canAccessWorkflowBuilder && (
+              <p className="text-amber-600 mt-3">
+                Contact your administrator to request workflow builder access.
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

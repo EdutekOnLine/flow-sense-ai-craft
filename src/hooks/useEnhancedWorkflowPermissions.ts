@@ -1,41 +1,64 @@
 
-import { useAuth } from './useAuth';
-import { useRootPermissions } from './useRootPermissions';
+import { useAuth } from '@/hooks/useAuth';
+import { useRootPermissions } from '@/hooks/useRootPermissions';
 
-/**
- * Enhanced workflow permissions with comprehensive root user bypass
- */
 export function useEnhancedWorkflowPermissions() {
   const { profile } = useAuth();
   const { isRootUser } = useRootPermissions();
 
-  // Root users have all workflow permissions across all workspaces
-  if (isRootUser) {
-    return {
-      hasWorkflowPermissions: true,
-      canCreateWorkflows: true,
-      canEditAllWorkflows: true,
-      canDeleteAllWorkflows: true,
-      canAssignAcrossWorkspaces: true,
-      canViewAllWorkflowMetrics: true,
-      canManageAllAssignments: true,
-      userRole: 'root' as const,
-      isLoading: false,
-    };
-  }
+  const canCreateWorkflows = () => {
+    if (!profile) return false;
+    return ['admin', 'manager', 'root'].includes(profile.role);
+  };
 
-  // For non-root users, check traditional permissions
-  const hasWorkflowPermissions = profile?.role === 'admin' || profile?.role === 'manager';
+  const canEditWorkflows = () => {
+    if (!profile) return false;
+    return ['admin', 'manager', 'root'].includes(profile.role);
+  };
+
+  const canDeleteWorkflows = () => {
+    if (!profile) return false;
+    return ['admin', 'manager', 'root'].includes(profile.role);
+  };
+
+  const canViewWorkflows = () => {
+    if (!profile) return false;
+    // All authenticated users can view workflows, but RLS will filter by workspace
+    return true;
+  };
+
+  const canManageAssignments = () => {
+    if (!profile) return false;
+    return ['admin', 'manager', 'root'].includes(profile.role);
+  };
+
+  const canAccessWorkflowBuilder = () => {
+    if (!profile) return false;
+    return ['admin', 'manager', 'root'].includes(profile.role);
+  };
+
+  const hasWorkflowPermissions = () => {
+    return canCreateWorkflows() || canEditWorkflows() || canDeleteWorkflows();
+  };
+
+  const canAccessCrossWorkspace = () => {
+    return isRootUser;
+  };
 
   return {
-    hasWorkflowPermissions,
-    canCreateWorkflows: hasWorkflowPermissions,
-    canEditAllWorkflows: profile?.role === 'admin',
-    canDeleteAllWorkflows: profile?.role === 'admin',
-    canAssignAcrossWorkspaces: false,
-    canViewAllWorkflowMetrics: profile?.role === 'admin',
-    canManageAllAssignments: profile?.role === 'admin',
-    userRole: profile?.role || 'employee',
-    isLoading: false,
+    canCreateWorkflows: canCreateWorkflows(),
+    canEditWorkflows: canEditWorkflows(),
+    canDeleteWorkflows: canDeleteWorkflows(),
+    canViewWorkflows: canViewWorkflows(),
+    canManageAssignments: canManageAssignments(),
+    canAccessWorkflowBuilder: canAccessWorkflowBuilder(),
+    hasWorkflowPermissions: hasWorkflowPermissions(),
+    canAccessCrossWorkspace: canAccessCrossWorkspace(),
+    isRootUser,
+    isAdmin: profile?.role === 'admin',
+    isManager: profile?.role === 'manager',
+    isEmployee: profile?.role === 'employee',
+    userRole: profile?.role,
+    workspaceId: profile?.workspace_id
   };
 }
