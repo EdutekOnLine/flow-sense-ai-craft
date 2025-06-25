@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useCrmData } from '@/hooks/useCrmData';
+import { useCrmTasks } from '@/hooks/useCrmTasks';
 import { 
   Search, 
   Plus, 
@@ -15,13 +16,16 @@ import {
   User,
   Building2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -31,12 +35,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { CreateTaskDialog } from '@/components/crm/CreateTaskDialog';
+import { EditTaskDialog } from '@/components/crm/EditTaskDialog';
+import type { CrmTask } from '@/modules/neura-crm';
 
 export function CrmTasksPage() {
   const { tasks, isLoading } = useCrmData();
+  const { updateTaskStatus, deleteTask, isUpdatingStatus, isDeleting } = useCrmTasks();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState<CrmTask | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<CrmTask | null>(null);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = searchTerm === '' || 
@@ -61,6 +83,33 @@ export function CrmTasksPage() {
     return new Date(dueDate) < new Date();
   };
 
+  const handleEditTask = (task: CrmTask) => {
+    setEditingTask(task);
+    setShowEditDialog(true);
+  };
+
+  const handleMarkComplete = async (task: CrmTask) => {
+    try {
+      await updateTaskStatus({ 
+        taskId: task.id, 
+        status: task.status === 'completed' ? 'pending' : 'completed' 
+      });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return;
+    
+    try {
+      await deleteTask(taskToDelete.id);
+      setTaskToDelete(null);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
   const TaskCard = ({ task }: { task: typeof tasks[0] }) => (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -80,10 +129,26 @@ export function CrmTasksPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Edit Task</DropdownMenuItem>
-              <DropdownMenuItem>Mark Complete</DropdownMenuItem>
-              <DropdownMenuItem>Change Priority</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEditTask(task)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Task
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleMarkComplete(task)}
+                disabled={isUpdatingStatus}
+              >
+                <CheckSquare className="h-4 w-4 mr-2" />
+                {task.status === 'completed' ? 'Mark Incomplete' : 'Mark Complete'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive"
+                onClick={() => setTaskToDelete(task)}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -171,7 +236,7 @@ export function CrmTasksPage() {
           <h1 className="text-2xl font-bold">CRM Tasks</h1>
           <p className="text-muted-foreground">Manage tasks related to contacts and companies</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create Task
         </Button>
@@ -301,13 +366,47 @@ export function CrmTasksPage() {
                 ? 'No tasks match your current filters.' 
                 : 'Get started by creating your first task.'}
             </p>
-            <Button>
+            <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Task
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Dialogs */}
+      <CreateTaskDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog}
+      />
+      
+      <EditTaskDialog 
+        task={editingTask}
+        open={showEditDialog} 
+        onOpenChange={setShowEditDialog}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task
+              "{taskToDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteTask}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Task
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
