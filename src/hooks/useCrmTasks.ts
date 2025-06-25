@@ -128,7 +128,7 @@ export function useCrmTasks() {
       // Set completed_at when marking as completed, clear it otherwise
       if (status === 'completed') {
         updateData.completed_at = new Date().toISOString();
-      } else if (status !== 'completed') {
+      } else {
         updateData.completed_at = null;
       }
 
