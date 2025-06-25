@@ -1,22 +1,23 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useTeamBasedAccess } from './useTeamBasedAccess';
+import { useRootPermissions } from './useRootPermissions';
 import type { CrmDeal, CrmDealActivity } from '@/modules/neura-crm';
 import { toast } from '@/components/ui/use-toast';
 
 export function useCrmDeals() {
   const { profile } = useAuth();
+  const { isRootUser } = useRootPermissions();
   const queryClient = useQueryClient();
-  const { canAccessUser } = useTeamBasedAccess();
 
-  // Fetch deals with team-based filtering
+  // Fetch deals - RLS policies handle team-based filtering automatically
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
-    queryKey: ['crm-deals', profile?.workspace_id],
+    queryKey: ['crm-deals', profile?.workspace_id, isRootUser],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!profile?.workspace_id && !isRootUser) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('crm_deals')
         .select(`
           *,
@@ -29,13 +30,17 @@ export function useCrmDeals() {
             name
           )
         `)
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // Only filter by workspace for non-root users - RLS handles role restrictions
+      if (!isRootUser) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       
       // Fetch assigned profiles separately to avoid relationship conflicts
-      const dealIds = data?.map(deal => deal.id) || [];
       const assignedUserIds = [...new Set(data?.map(deal => deal.assigned_to).filter(Boolean))];
       
       let assignedProfiles: Record<string, { first_name: string; last_name: string }> = {};
@@ -54,14 +59,7 @@ export function useCrmDeals() {
         }
       }
 
-      // Filter based on team access for non-admin users
-      const isAdmin = profile.role === 'admin' || profile.role === 'root';
-      const filteredDeals = isAdmin ? data : (data || []).filter(deal => 
-        canAccessUser(deal.created_by) || 
-        (deal.assigned_to && canAccessUser(deal.assigned_to))
-      );
-
-      return (filteredDeals || []).map(deal => ({
+      return (data || []).map(deal => ({
         ...deal,
         crm_contacts: deal.crm_contacts || undefined,
         companies: deal.companies || undefined,
@@ -72,21 +70,26 @@ export function useCrmDeals() {
         profiles?: { first_name: string; last_name: string };
       })[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
-  // Fetch deal activities
+  // Fetch deal activities - RLS policies handle filtering
   const { data: dealActivities = [] } = useQuery({
-    queryKey: ['crm-deal-activities', profile?.workspace_id],
+    queryKey: ['crm-deal-activities', profile?.workspace_id, isRootUser],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!profile?.workspace_id && !isRootUser) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('crm_deal_activities')
         .select('*')
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // Only filter by workspace for non-root users
+      if (!isRootUser) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       
       // Fetch creator profiles separately
@@ -115,13 +118,13 @@ export function useCrmDeals() {
         profiles?: { first_name: string; last_name: string };
       })[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
   // Create deal mutation
   const createDealMutation = useMutation({
     mutationFn: async (dealData: Partial<CrmDeal>) => {
-      if (!profile?.workspace_id) throw new Error('No workspace');
+      if (!profile?.workspace_id && !isRootUser) throw new Error('No workspace');
       
       const { data, error } = await supabase
         .from('crm_deals')
@@ -138,7 +141,7 @@ export function useCrmDeals() {
           company_id: dealData.company_id,
           assigned_to: dealData.assigned_to,
           notes: dealData.notes,
-          workspace_id: profile.workspace_id,
+          workspace_id: profile.workspace_id || null, // Root users might not have workspace_id
           created_by: profile.id,
         })
         .select()
@@ -159,7 +162,7 @@ export function useCrmDeals() {
   // Update deal mutation
   const updateDealMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CrmDeal> & { id: string }) => {
-      if (!profile?.workspace_id) throw new Error('No workspace');
+      if (!profile?.workspace_id && !isRootUser) throw new Error('No workspace');
       
       const { data, error } = await supabase
         .from('crm_deals')
@@ -168,7 +171,6 @@ export function useCrmDeals() {
           updated_by: profile.id,
         })
         .eq('id', id)
-        .eq('workspace_id', profile.workspace_id)
         .select()
         .single();
 

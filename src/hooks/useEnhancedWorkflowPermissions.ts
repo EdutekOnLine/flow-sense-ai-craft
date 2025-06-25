@@ -69,11 +69,9 @@ export function useEnhancedWorkflowPermissions() {
     // Admin can assign to anyone in their workspace
     if (profile.role === 'admin') return true;
     
-    // Manager can only assign to their team members
+    // Manager can only assign to their team members - this is now enforced by RLS
     if (profile.role === 'manager') {
-      // This would need to be checked against team_members table in practice
-      // For now, return true - the actual restriction is handled by RLS policies
-      return true;
+      return true; // RLS policies will enforce team restrictions
     }
     
     // Employees cannot assign workflows
@@ -93,9 +91,8 @@ export function useEnhancedWorkflowPermissions() {
     // Admin can view all workflows in their workspace
     if (profile.role === 'admin') return true;
     
-    // Manager can view workflows involving their team
+    // Manager can view workflows involving their team - enforced by RLS
     if (profile.role === 'manager') {
-      // Can view if they created it or it involves their team members
       return workflowData.createdBy === profile.id || workflowData.hasAssignment;
     }
     

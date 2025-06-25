@@ -14,14 +14,26 @@ interface TeamAwareWorkflowFilters {
 
 export function useTeamAwareWorkflows() {
   const { user, profile } = useAuth();
-  const { dashboardScope, userRole } = useEnhancedWorkflowPermissions();
+  const { dashboardScope, userRole, isRootUser } = useEnhancedWorkflowPermissions();
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch team members for managers
+  // Fetch team members for managers using new database function
   const fetchTeamMembers = useCallback(async () => {
-    if (!user || !profile || profile.role !== 'manager') {
+    if (!user || !profile) {
+      setTeamMembers([]);
+      return;
+    }
+
+    // Root users and admins don't need team member restrictions
+    if (profile.role === 'root' || profile.role === 'admin') {
+      setTeamMembers([]);
+      return;
+    }
+
+    // Only managers need to fetch team members
+    if (profile.role !== 'manager') {
       setTeamMembers([]);
       return;
     }
@@ -29,31 +41,14 @@ export function useTeamAwareWorkflows() {
     try {
       setIsLoading(true);
       
-      // Get teams where this user is the manager
-      const { data: teams, error: teamsError } = await supabase
-        .from('teams')
-        .select('id')
-        .eq('manager_id', user.id)
-        .eq('workspace_id', profile.workspace_id);
+      // Use the new database function to get team members
+      const { data, error } = await supabase.rpc('get_user_team_members', {
+        manager_id: user.id
+      });
 
-      if (teamsError) throw teamsError;
+      if (error) throw error;
 
-      if (!teams || teams.length === 0) {
-        setTeamMembers([]);
-        return;
-      }
-
-      // Get team members for all teams managed by this user
-      const teamIds = teams.map(t => t.id);
-      const { data: members, error: membersError } = await supabase
-        .from('team_members')
-        .select('user_id')
-        .in('team_id', teamIds);
-
-      if (membersError) throw membersError;
-
-      const memberIds = members?.map(m => m.user_id) || [];
-      setTeamMembers(memberIds);
+      setTeamMembers(data || []);
       
     } catch (error) {
       console.error('Error fetching team members:', error);
@@ -62,75 +57,33 @@ export function useTeamAwareWorkflows() {
         description: "Failed to load team information",
         variant: "destructive",
       });
+      setTeamMembers([]);
     } finally {
       setIsLoading(false);
     }
   }, [user, profile, toast]);
 
-  // Build workspace-aware query filters
+  // Build workspace-aware query filters - simplified since RLS handles most filtering
   const buildWorkflowFilters = useCallback((filters: TeamAwareWorkflowFilters = {}) => {
     if (!profile) return null;
 
+    // For root users, return empty filter to see everything
+    if (userRole === 'root') {
+      return {};
+    }
+
+    // For other roles, basic workspace filtering is sufficient since RLS handles the rest
     const baseFilters: any = {
       workspace_id: profile.workspace_id
     };
 
-    switch (userRole) {
-      case 'root':
-        // Root users see everything - remove workspace filter
-        return {};
-        
-      case 'admin':
-        // Admins see all workflows in their workspace
-        return baseFilters;
-        
-      case 'manager':
-        // Managers see workflows involving their team
-        const managerFilters: any[] = [];
-        
-        if (filters.includeOwnWorkflows !== false) {
-          managerFilters.push({ created_by: user?.id });
-        }
-        
-        if (filters.includeTeamMembers !== false && teamMembers.length > 0) {
-          managerFilters.push({ created_by: { in: teamMembers } });
-        }
-        
-        if (managerFilters.length === 0) {
-          return { ...baseFilters, created_by: user?.id };
-        }
-        
-        return {
-          ...baseFilters,
-          or: managerFilters
-        };
-        
-      case 'employee':
-        // Employees see limited workflows
-        const employeeFilters: any[] = [];
-        
-        if (filters.includeOwnWorkflows !== false) {
-          employeeFilters.push({ created_by: user?.id });
-        }
-        
-        if (filters.includeReusableWorkflows !== false) {
-          employeeFilters.push({ is_reusable: true });
-        }
-        
-        // Note: includeAssignedWorkflows would require a more complex query
-        // involving workflow_step_assignments table
-        
-        return {
-          ...baseFilters,
-          or: employeeFilters.length > 0 ? employeeFilters : [{ created_by: user?.id }]
-        };
-        
-      default:
-        return { ...baseFilters, created_by: user?.id };
-    }
-  }, [profile, userRole, user?.id, teamMembers]);
+    // Additional client-side filters can be added here if needed
+    // But most filtering is now handled by RLS policies
+    
+    return baseFilters;
+  }, [profile, userRole]);
 
-  // Get users available for assignment based on role
+  // Get users available for assignment based on role and team membership
   const getAssignableUsers = useCallback(async () => {
     if (!profile) return [];
 
@@ -164,6 +117,25 @@ export function useTeamAwareWorkflows() {
     }
   }, [profile, userRole, teamMembers, toast]);
 
+  // Check if user can be assigned to by current user
+  const canAssignToUser = useCallback((targetUserId: string) => {
+    if (!profile) return false;
+    
+    // Root users can assign to anyone
+    if (userRole === 'root') return true;
+    
+    // Admins can assign to anyone in their workspace
+    if (userRole === 'admin') return true;
+    
+    // Managers can only assign to their team members
+    if (userRole === 'manager') {
+      return teamMembers.includes(targetUserId);
+    }
+    
+    // Employees cannot assign
+    return false;
+  }, [profile, userRole, teamMembers]);
+
   // Initialize team data
   useEffect(() => {
     fetchTeamMembers();
@@ -175,6 +147,7 @@ export function useTeamAwareWorkflows() {
     dashboardScope,
     buildWorkflowFilters,
     getAssignableUsers,
+    canAssignToUser,
     refetchTeamMembers: fetchTeamMembers,
   };
 }

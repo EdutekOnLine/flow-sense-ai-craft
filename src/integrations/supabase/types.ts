@@ -756,6 +756,7 @@ export type Database = {
           nodes: Json
           updated_at: string
           viewport: Json | null
+          workspace_id: string
         }
         Insert: {
           created_at?: string
@@ -768,6 +769,7 @@ export type Database = {
           nodes?: Json
           updated_at?: string
           viewport?: Json | null
+          workspace_id: string
         }
         Update: {
           created_at?: string
@@ -780,8 +782,17 @@ export type Database = {
           nodes?: Json
           updated_at?: string
           viewport?: Json | null
+          workspace_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saved_workflows_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
@@ -1044,6 +1055,7 @@ export type Database = {
           status: string
           updated_at: string
           workflow_id: string
+          workspace_id: string
         }
         Insert: {
           completed_at?: string | null
@@ -1055,6 +1067,7 @@ export type Database = {
           status?: string
           updated_at?: string
           workflow_id: string
+          workspace_id: string
         }
         Update: {
           completed_at?: string | null
@@ -1066,6 +1079,7 @@ export type Database = {
           status?: string
           updated_at?: string
           workflow_id?: string
+          workspace_id?: string
         }
         Relationships: [
           {
@@ -1089,6 +1103,13 @@ export type Database = {
             referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workflow_instances_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
         ]
       }
       workflow_step_assignments: {
@@ -1103,6 +1124,7 @@ export type Database = {
           status: string
           updated_at: string
           workflow_step_id: string
+          workspace_id: string
         }
         Insert: {
           assigned_by: string
@@ -1115,6 +1137,7 @@ export type Database = {
           status?: string
           updated_at?: string
           workflow_step_id: string
+          workspace_id: string
         }
         Update: {
           assigned_by?: string
@@ -1127,6 +1150,7 @@ export type Database = {
           status?: string
           updated_at?: string
           workflow_step_id?: string
+          workspace_id?: string
         }
         Relationships: [
           {
@@ -1134,6 +1158,13 @@ export type Database = {
             columns: ["workflow_step_id"]
             isOneToOne: false
             referencedRelation: "workflow_steps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_step_assignments_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -1450,6 +1481,14 @@ export type Database = {
         Args: { user_id: string; target_user_id: string }
         Returns: boolean
       }
+      can_access_workflow: {
+        Args: { user_id: string; workflow_id: string }
+        Returns: boolean
+      }
+      can_manage_team_member: {
+        Args: { manager_id: string; target_user_id: string }
+        Returns: boolean
+      }
       can_user_access_workspace: {
         Args: { user_id: string; target_workspace_id: string }
         Returns: boolean
@@ -1509,6 +1548,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_team_members: {
+        Args: { manager_id: string }
+        Returns: string[]
+      }
       get_user_workspace: {
         Args: { user_id: string }
         Returns: string
@@ -1519,6 +1562,10 @@ export type Database = {
       }
       has_workflow_permissions: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_assigned_to_workflow: {
+        Args: { user_id: string; workflow_id: string }
         Returns: boolean
       }
       is_root_user: {

@@ -2,38 +2,43 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useTeamBasedAccess } from './useTeamBasedAccess';
+import { useRootPermissions } from './useRootPermissions';
 import type { Company, CrmContact, CrmTask, CrmMetrics } from '@/modules/neura-crm';
 
 export function useCrmData() {
   const { profile } = useAuth();
-  const { canAccessUser } = useTeamBasedAccess();
+  const { isRootUser } = useRootPermissions();
 
-  // Fetch companies
+  // Fetch companies - RLS policies now handle role-based filtering
   const { data: companies = [], isLoading: companiesLoading } = useQuery({
-    queryKey: ['crm-companies', profile?.workspace_id],
+    queryKey: ['crm-companies', profile?.workspace_id, isRootUser],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!profile?.workspace_id && !isRootUser) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('companies')
         .select('*')
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // Only filter by workspace for non-root users
+      if (!isRootUser) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Company[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
-  // Fetch contacts with team-based filtering
+  // Fetch contacts - RLS policies handle team-based filtering
   const { data: contacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: ['crm-contacts', profile?.workspace_id],
+    queryKey: ['crm-contacts', profile?.workspace_id, isRootUser],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!profile?.workspace_id && !isRootUser) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('crm_contacts')
         .select(`
           *,
@@ -41,32 +46,28 @@ export function useCrmData() {
             name
           )
         `)
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // Only filter by workspace for non-root users - RLS handles role restrictions
+      if (!isRootUser) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       
-      // Filter based on team access for non-admin users
-      const isAdmin = profile.role === 'admin' || profile.role === 'root';
-      if (isAdmin) {
-        return data as (CrmContact & { companies?: { name: string } })[];
-      }
-      
-      // For managers and employees, filter to only contacts they can access
-      return (data || []).filter(contact => 
-        canAccessUser(contact.created_by)
-      ) as (CrmContact & { companies?: { name: string } })[];
+      return data as (CrmContact & { companies?: { name: string } })[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
-  // Fetch tasks with team-based filtering
+  // Fetch tasks - RLS policies handle team-based and assignment-based filtering
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
-    queryKey: ['crm-tasks', profile?.workspace_id],
+    queryKey: ['crm-tasks', profile?.workspace_id, isRootUser],
     queryFn: async () => {
-      if (!profile?.workspace_id) return [];
+      if (!profile?.workspace_id && !isRootUser) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('crm_tasks')
         .select(`
           *,
@@ -82,19 +83,18 @@ export function useCrmData() {
             last_name
           )
         `)
-        .eq('workspace_id', profile.workspace_id)
         .order('created_at', { ascending: false });
 
+      // Only filter by workspace for non-root users - RLS handles role restrictions
+      if (!isRootUser) {
+        query = query.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       
-      const isAdmin = profile.role === 'admin' || profile.role === 'root';
-      const filteredTasks = isAdmin ? data : (data || []).filter(task => 
-        canAccessUser(task.created_by) || 
-        (task.assigned_to && canAccessUser(task.assigned_to))
-      );
-      
       // Transform the data to match our expected type
-      return (filteredTasks || []).map(task => ({
+      return (data || []).map(task => ({
         id: task.id,
         contact_id: task.contact_id,
         company_id: task.company_id,
@@ -119,14 +119,14 @@ export function useCrmData() {
         profiles?: { first_name: string; last_name: string };
       })[];
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
-  // Calculate CRM metrics including pipeline metrics
+  // Calculate CRM metrics - scoped by RLS policies
   const { data: metrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ['crm-metrics', profile?.workspace_id],
+    queryKey: ['crm-metrics', profile?.workspace_id, isRootUser],
     queryFn: async (): Promise<CrmMetrics> => {
-      if (!profile?.workspace_id) {
+      if (!profile?.workspace_id && !isRootUser) {
         return {
           totalLeads: 0,
           activeDeals: 0,
@@ -143,60 +143,95 @@ export function useCrmData() {
         };
       }
 
-      // Get leads count
-      const { count: leadsCount } = await supabase
+      // Get leads count - RLS will filter appropriately
+      let contactQuery = supabase
         .from('crm_contacts')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .eq('status', 'lead');
+      
+      if (!isRootUser) {
+        contactQuery = contactQuery.eq('workspace_id', profile.workspace_id);
+      }
 
-      // Get prospects (active deals)
-      const { count: prospectsCount } = await supabase
+      const { count: leadsCount } = await contactQuery;
+
+      // Get prospects (active deals) - RLS will filter appropriately
+      let prospectQuery = supabase
         .from('crm_contacts')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .eq('status', 'prospect');
+      
+      if (!isRootUser) {
+        prospectQuery = prospectQuery.eq('workspace_id', profile.workspace_id);
+      }
 
-      // Get customers
-      const { count: customersCount } = await supabase
+      const { count: prospectsCount } = await prospectQuery;
+
+      // Get customers - RLS will filter appropriately
+      let customerQuery = supabase
         .from('crm_contacts')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .eq('status', 'customer');
+      
+      if (!isRootUser) {
+        customerQuery = customerQuery.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { count: customersCount } = await customerQuery;
 
       // Get new contacts this week
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       
-      const { count: newContactsCount } = await supabase
+      let newContactQuery = supabase
         .from('crm_contacts')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .gte('created_at', weekAgo.toISOString());
+      
+      if (!isRootUser) {
+        newContactQuery = newContactQuery.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { count: newContactsCount } = await newContactQuery;
 
       // Get completed tasks
-      const { count: completedTasksCount } = await supabase
+      let completedTaskQuery = supabase
         .from('crm_tasks')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .eq('status', 'completed');
+      
+      if (!isRootUser) {
+        completedTaskQuery = completedTaskQuery.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { count: completedTasksCount } = await completedTaskQuery;
 
       // Get upcoming tasks (due in next 7 days)
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
       
-      const { count: upcomingTasksCount } = await supabase
+      let upcomingTaskQuery = supabase
         .from('crm_tasks')
         .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', profile.workspace_id)
         .in('status', ['pending', 'in_progress'])
         .lte('due_date', nextWeek.toISOString());
+      
+      if (!isRootUser) {
+        upcomingTaskQuery = upcomingTaskQuery.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { count: upcomingTasksCount } = await upcomingTaskQuery;
 
       // Get deals data for pipeline metrics
-      const { data: dealsData } = await supabase
+      let dealsQuery = supabase
         .from('crm_deals')
-        .select('value, probability, stage, created_at')
-        .eq('workspace_id', profile.workspace_id);
+        .select('value, probability, stage, created_at');
+      
+      if (!isRootUser) {
+        dealsQuery = dealsQuery.eq('workspace_id', profile.workspace_id);
+      }
+
+      const { data: dealsData } = await dealsQuery;
 
       const deals = dealsData || [];
       const totalPipelineValue = deals.reduce((sum, deal) => sum + (deal.value || 0), 0);
@@ -234,7 +269,7 @@ export function useCrmData() {
         dealsLostThisMonth,
       };
     },
-    enabled: !!profile?.workspace_id,
+    enabled: !!profile && (!!profile?.workspace_id || isRootUser),
   });
 
   return {
