@@ -75,7 +75,7 @@ export const navigationItems: NavigationItem[] = [
   {
     id: 'workflow-analytics',
     label: 'Workflow Analytics',
-    icon: BarChart3,
+    icon: PieChart,
     roles: ['admin', 'manager', 'root'],
     module: 'neura-flow',
     group: 'modules'
