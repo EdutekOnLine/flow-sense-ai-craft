@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -82,8 +81,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         priority: task.priority,
         status: task.status,
         due_date: task.due_date ? new Date(task.due_date) : undefined,
-        contact_id: task.contact_id || '',
-        company_id: task.company_id || '',
+        contact_id: task.contact_id || 'none',
+        company_id: task.company_id || 'none',
         assigned_to: task.assigned_to || '',
       });
     }
@@ -99,8 +98,8 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
       priority: data.priority,
       status: data.status,
       due_date: data.due_date?.toISOString() || null,
-      contact_id: data.contact_id || null,
-      company_id: data.company_id || null,
+      contact_id: data.contact_id === 'none' ? null : data.contact_id || null,
+      company_id: data.company_id === 'none' ? null : data.company_id || null,
       assigned_to: data.assigned_to || null,
     });
 
@@ -256,7 +255,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No contact</SelectItem>
+                        <SelectItem value="none">No contact</SelectItem>
                         {contacts.map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.first_name} {contact.last_name}
@@ -282,7 +281,7 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No company</SelectItem>
+                        <SelectItem value="none">No company</SelectItem>
                         {companies.map((company) => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}

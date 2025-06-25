@@ -67,8 +67,8 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
       priority: 'medium',
       status: 'pending',
       due_date: undefined,
-      contact_id: '',
-      company_id: '',
+      contact_id: 'none',
+      company_id: 'none',
       assigned_to: '',
     },
   });
@@ -82,14 +82,23 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
       priority: data.priority,
       status: data.status,
       due_date: data.due_date?.toISOString() || null,
-      contact_id: data.contact_id || null,
-      company_id: data.company_id || null,
+      contact_id: data.contact_id === 'none' ? null : data.contact_id || null,
+      company_id: data.company_id === 'none' ? null : data.company_id || null,
       assigned_to: data.assigned_to || null,
       workspace_id: profile.workspace_id,
       created_by: profile.id,
     });
 
-    form.reset();
+    form.reset({
+      title: '',
+      description: '',
+      priority: 'medium',
+      status: 'pending',
+      due_date: undefined,
+      contact_id: 'none',
+      company_id: 'none',
+      assigned_to: '',
+    });
     onOpenChange(false);
   };
 
@@ -240,7 +249,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No contact</SelectItem>
+                        <SelectItem value="none">No contact</SelectItem>
                         {contacts.map((contact) => (
                           <SelectItem key={contact.id} value={contact.id}>
                             {contact.first_name} {contact.last_name}
@@ -266,7 +275,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">No company</SelectItem>
+                        <SelectItem value="none">No company</SelectItem>
                         {companies.map((company) => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name}
