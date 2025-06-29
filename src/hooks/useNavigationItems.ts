@@ -6,13 +6,11 @@ import { MODULE_REGISTRY } from '@/modules';
 export function useNavigationItems() {
   const { profile } = useAuth();
 
-  // Phase 2: Show all navigation items for user role immediately (optimistic UI)
-  // No module filtering here - access is checked at the content level
+  // Show all navigation items for user role immediately (optimistic UI)
   const getVisibleItems = (): NavigationItem[] => {
     if (!profile) return [];
 
     // Show ALL navigation items that match the user's role
-    // Module access is checked later at the content level for better performance
     return navigationItems.filter(item => 
       item.roles.includes(profile.role)
     );
