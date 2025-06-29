@@ -114,6 +114,13 @@ export type Database = {
             foreignKeyName: "companies_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -123,6 +130,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_performance_analytics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "companies_updated_by_fkey"
@@ -232,6 +246,13 @@ export type Database = {
             foreignKeyName: "crm_contacts_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -241,6 +262,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_performance_analytics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "crm_contacts_updated_by_fkey"
@@ -304,6 +332,13 @@ export type Database = {
             foreignKeyName: "crm_deal_activities_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_deal_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -312,6 +347,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "crm_deal_pipeline_analytics"
             referencedColumns: ["id"]
           },
           {
@@ -399,6 +441,13 @@ export type Database = {
             foreignKeyName: "crm_deals_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -420,8 +469,22 @@ export type Database = {
             foreignKeyName: "crm_deals_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
+            referencedRelation: "crm_contact_performance_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
             referencedRelation: "crm_contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "crm_deals_created_by_fkey"
@@ -436,6 +499,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_performance_analytics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "crm_deals_updated_by_fkey"
@@ -517,6 +587,13 @@ export type Database = {
             foreignKeyName: "crm_tasks_assigned_to_fkey"
             columns: ["assigned_to"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -538,8 +615,22 @@ export type Database = {
             foreignKeyName: "crm_tasks_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
+            referencedRelation: "crm_contact_performance_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
             referencedRelation: "crm_contacts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "crm_tasks_created_by_fkey"
@@ -554,6 +645,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_performance_analytics"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "crm_tasks_updated_by_fkey"
@@ -828,6 +926,13 @@ export type Database = {
             foreignKeyName: "team_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -869,6 +974,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "teams_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "teams_manager_id_fkey"
             columns: ["manager_id"]
@@ -1405,6 +1517,176 @@ export type Database = {
       }
     }
     Views: {
+      crm_contact_performance_view: {
+        Row: {
+          company_industry: string | null
+          company_name: string | null
+          completed_tasks: number | null
+          created_at: string | null
+          created_by: string | null
+          created_by_name: string | null
+          department: string | null
+          email: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string | null
+          job_title: string | null
+          last_contact_date: string | null
+          last_name: string | null
+          lead_score: number | null
+          lead_source: Database["public"]["Enums"]["lead_source"] | null
+          next_follow_up: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["contact_status"] | null
+          task_completion_rate: number | null
+          total_deal_value: number | null
+          total_deals: number | null
+          total_tasks: number | null
+          updated_at: string | null
+          won_deal_value: number | null
+          won_deals: number | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_contacts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_deal_pipeline_analytics: {
+        Row: {
+          actual_close_date: string | null
+          assigned_to: string | null
+          assigned_to_name: string | null
+          company_name: string | null
+          contact_name: string | null
+          created_at: string | null
+          created_by: string | null
+          created_by_name: string | null
+          currency: string | null
+          days_to_close: number | null
+          expected_close_date: string | null
+          id: string | null
+          probability: number | null
+          source: Database["public"]["Enums"]["deal_source"] | null
+          stage: Database["public"]["Enums"]["deal_stage"] | null
+          title: string | null
+          updated_at: string | null
+          value: number | null
+          weighted_value: number | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "crm_sales_performance_analytics"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_performance_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_deals_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_sales_performance_analytics: {
+        Row: {
+          active_deals: number | null
+          completed_tasks: number | null
+          contact_conversion_rate: number | null
+          converted_contacts: number | null
+          deal_win_rate: number | null
+          department: string | null
+          email: string | null
+          full_name: string | null
+          lost_deals: number | null
+          overdue_tasks: number | null
+          pipeline_value: number | null
+          task_completion_rate: number | null
+          total_contacts: number | null
+          total_deal_value: number | null
+          total_deals: number | null
+          total_tasks: number | null
+          user_id: string | null
+          weighted_pipeline_value: number | null
+          won_deal_value: number | null
+          won_deals: number | null
+          workspace_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       department_analytics: {
         Row: {
           avg_time_variance: number | null

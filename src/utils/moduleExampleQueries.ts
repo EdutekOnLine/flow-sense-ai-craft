@@ -66,22 +66,64 @@ const MODULE_EXAMPLE_QUERIES: Record<string, ExampleQuery[]> = {
   ],
   'neura-crm': [
     {
-      id: 'crm-department-performance',
-      text: 'Show me the best performing departments by completion rate',
+      id: 'crm-leads-by-status',
+      text: 'Show me all leads by status this month',
       modules: ['neura-crm'],
-      dataSources: ['department_analytics'],
-      category: 'Department Analytics'
+      dataSources: ['crm_contacts'],
+      category: 'Lead Management'
     },
     {
-      id: 'crm-user-metrics',
-      text: 'Display user performance metrics for sales department',
+      id: 'crm-deal-pipeline',
+      text: 'Display deal pipeline with values by stage',
       modules: ['neura-crm'],
-      dataSources: ['profiles', 'department_analytics'],
+      dataSources: ['crm_deal_pipeline_analytics'],
+      category: 'Sales Pipeline'
+    },
+    {
+      id: 'crm-overdue-tasks',
+      text: 'List overdue CRM tasks by assignee',
+      modules: ['neura-crm'],
+      dataSources: ['crm_tasks'],
+      category: 'Task Management'
+    },
+    {
+      id: 'crm-contact-conversion',
+      text: 'Generate contact conversion funnel report',
+      modules: ['neura-crm'],
+      dataSources: ['crm_contact_performance_view'],
+      category: 'Conversion Analytics'
+    },
+    {
+      id: 'crm-company-performance',
+      text: 'Show company engagement and deal metrics',
+      modules: ['neura-crm'],
+      dataSources: ['companies', 'crm_deals'],
+      category: 'Account Management'
+    },
+    {
+      id: 'crm-sales-performance',
+      text: 'Display sales team performance metrics',
+      modules: ['neura-crm'],
+      dataSources: ['crm_sales_performance_analytics'],
       category: 'Sales Analytics'
     },
     {
-      id: 'crm-department-comparison',
-      text: 'Compare completion rates across all departments',
+      id: 'crm-lead-sources',
+      text: 'Analyze lead sources and conversion rates',
+      modules: ['neura-crm'],
+      dataSources: ['crm_contacts', 'crm_deals'],
+      category: 'Marketing Analytics'
+    },
+    {
+      id: 'crm-deal-activities',
+      text: 'Show recent deal activity and stage changes',
+      modules: ['neura-crm'],
+      dataSources: ['crm_deal_activities'],
+      category: 'Deal Tracking'
+    },
+    {
+      id: 'crm-department-performance',
+      text: 'Compare CRM performance across departments',
       modules: ['neura-crm'],
       dataSources: ['department_analytics'],
       category: 'Department Analytics'

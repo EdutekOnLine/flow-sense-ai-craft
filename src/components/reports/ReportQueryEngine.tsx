@@ -39,6 +39,34 @@ export class ReportQueryEngine {
         case 'profiles':
           query = supabase.from('profiles').select(selectedColumns.join(', '));
           break;
+        // CRM Data Sources
+        case 'crm_contacts':
+          query = supabase.from('crm_contacts').select(selectedColumns.join(', '));
+          break;
+        case 'crm_companies':
+          query = supabase.from('crm_contacts').select(selectedColumns.join(', '));
+          break;
+        case 'companies':
+          query = supabase.from('companies').select(selectedColumns.join(', '));
+          break;
+        case 'crm_tasks':
+          query = supabase.from('crm_tasks').select(selectedColumns.join(', '));
+          break;
+        case 'crm_deals':
+          query = supabase.from('crm_deals').select(selectedColumns.join(', '));
+          break;
+        case 'crm_deal_activities':
+          query = supabase.from('crm_deal_activities').select(selectedColumns.join(', '));
+          break;
+        case 'crm_deal_pipeline_analytics':
+          query = supabase.from('crm_deal_pipeline_analytics').select(selectedColumns.join(', '));
+          break;
+        case 'crm_contact_performance_view':
+          query = supabase.from('crm_contact_performance_view').select(selectedColumns.join(', '));
+          break;
+        case 'crm_sales_performance_analytics':
+          query = supabase.from('crm_sales_performance_analytics').select(selectedColumns.join(', '));
+          break;
         default:
           throw new Error(`Unsupported data source: ${dataSource}`);
       }
@@ -159,6 +187,61 @@ export class ReportQueryEngine {
       'profiles': [
         'id', 'email', 'first_name', 'last_name', 'role', 'department',
         'created_at', 'updated_at'
+      ],
+      // CRM Data Sources
+      'crm_contacts': [
+        'id', 'first_name', 'last_name', 'email', 'phone', 'mobile_phone',
+        'job_title', 'department', 'status', 'lead_source', 'lead_score',
+        'last_contact_date', 'next_follow_up', 'company_id', 'created_by',
+        'created_at', 'updated_at', 'notes'
+      ],
+      'crm_companies': [
+        'id', 'first_name', 'last_name', 'email', 'phone', 'mobile_phone',
+        'job_title', 'department', 'status', 'lead_source', 'lead_score',
+        'last_contact_date', 'next_follow_up', 'company_id', 'created_by',
+        'created_at', 'updated_at', 'notes'
+      ],
+      'companies': [
+        'id', 'name', 'industry', 'website', 'phone', 'email', 'address',
+        'city', 'state', 'postal_code', 'country', 'annual_revenue',
+        'employee_count', 'created_by', 'created_at', 'updated_at', 'notes'
+      ],
+      'crm_tasks': [
+        'id', 'title', 'description', 'status', 'priority', 'due_date',
+        'completed_at', 'contact_id', 'company_id', 'assigned_to',
+        'created_by', 'created_at', 'updated_at'
+      ],
+      'crm_deals': [
+        'id', 'title', 'description', 'value', 'currency', 'stage',
+        'probability', 'source', 'expected_close_date', 'actual_close_date',
+        'contact_id', 'company_id', 'assigned_to', 'created_by',
+        'created_at', 'updated_at', 'notes'
+      ],
+      'crm_deal_activities': [
+        'id', 'deal_id', 'activity_type', 'old_value', 'new_value',
+        'description', 'created_by', 'created_at'
+      ],
+      'crm_deal_pipeline_analytics': [
+        'id', 'title', 'value', 'currency', 'stage', 'probability', 'source',
+        'expected_close_date', 'actual_close_date', 'assigned_to_name',
+        'created_by_name', 'contact_name', 'company_name', 'weighted_value',
+        'days_to_close', 'created_at', 'updated_at'
+      ],
+      'crm_contact_performance_view': [
+        'id', 'first_name', 'last_name', 'full_name', 'email', 'phone',
+        'job_title', 'department', 'status', 'lead_source', 'lead_score',
+        'created_by_name', 'company_name', 'company_industry',
+        'total_deals', 'won_deals', 'total_deal_value', 'won_deal_value',
+        'total_tasks', 'completed_tasks', 'task_completion_rate',
+        'created_at', 'updated_at'
+      ],
+      'crm_sales_performance_analytics': [
+        'user_id', 'full_name', 'email', 'department', 'total_deals',
+        'won_deals', 'lost_deals', 'active_deals', 'total_deal_value',
+        'won_deal_value', 'pipeline_value', 'weighted_pipeline_value',
+        'deal_win_rate', 'total_tasks', 'completed_tasks', 'overdue_tasks',
+        'task_completion_rate', 'total_contacts', 'converted_contacts',
+        'contact_conversion_rate'
       ]
     };
 

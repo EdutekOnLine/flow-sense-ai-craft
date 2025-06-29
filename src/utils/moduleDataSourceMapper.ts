@@ -30,7 +30,7 @@ export const MODULE_DATA_SOURCES: ModuleDataSourceConfig[] = [
   },
   {
     moduleId: 'neura-crm',
-    dataSources: ['profiles', 'department_analytics'],
+    dataSources: ['crm_contacts', 'crm_companies', 'crm_tasks', 'crm_deals', 'crm_deal_activities', 'crm_deal_pipeline_analytics', 'crm_contact_performance_view', 'crm_sales_performance_analytics', 'companies', 'profiles', 'department_analytics'],
     displayName: 'NeuraCRM',
     description: 'Customer relationship and sales data'
   },
@@ -109,6 +109,61 @@ export const DATA_SOURCE_INFO: Record<string, DataSourceInfo> = {
     name: 'User Analytics',
     description: 'Advanced user performance analytics',
     requiredModules: ['neura-edu']
+  },
+  // CRM Data Sources
+  'crm_contacts': {
+    id: 'crm_contacts',
+    name: 'CRM Contacts',
+    description: 'Customer contact information and lead data',
+    requiredModules: ['neura-crm']
+  },
+  'crm_companies': {
+    id: 'crm_companies',
+    name: 'CRM Companies',
+    description: 'Company and organization information',
+    requiredModules: ['neura-crm']
+  },
+  'companies': {
+    id: 'companies',
+    name: 'Companies',
+    description: 'Company records and business information',
+    requiredModules: ['neura-crm']
+  },
+  'crm_tasks': {
+    id: 'crm_tasks',
+    name: 'CRM Tasks',
+    description: 'CRM task management and follow-up activities',
+    requiredModules: ['neura-crm']
+  },
+  'crm_deals': {
+    id: 'crm_deals',
+    name: 'CRM Deals',
+    description: 'Sales pipeline and deal management data',
+    requiredModules: ['neura-crm']
+  },
+  'crm_deal_activities': {
+    id: 'crm_deal_activities',
+    name: 'Deal Activities',
+    description: 'Deal history and activity tracking',
+    requiredModules: ['neura-crm']
+  },
+  'crm_deal_pipeline_analytics': {
+    id: 'crm_deal_pipeline_analytics',
+    name: 'Deal Pipeline Analytics',
+    description: 'Advanced deal pipeline performance and conversion metrics',
+    requiredModules: ['neura-crm']
+  },
+  'crm_contact_performance_view': {
+    id: 'crm_contact_performance_view',
+    name: 'Contact Performance Analytics',
+    description: 'Contact engagement and conversion performance data',
+    requiredModules: ['neura-crm']
+  },
+  'crm_sales_performance_analytics': {
+    id: 'crm_sales_performance_analytics',
+    name: 'Sales Performance Analytics',
+    description: 'Sales team performance and productivity metrics',
+    requiredModules: ['neura-crm']
   }
 };
 
