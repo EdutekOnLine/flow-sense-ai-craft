@@ -4,13 +4,20 @@ import { navigationItems, NavigationItem } from '@/components/layout/sidebar/nav
 import { MODULE_REGISTRY } from '@/modules';
 
 export function useNavigationItems() {
-  const { profile } = useAuth();
+  const { profile, loading } = useAuth();
 
-  // Show all navigation items for user role immediately (optimistic UI)
+  // Show navigation items optimistically during loading, then filter by role
   const getVisibleItems = (): NavigationItem[] => {
-    if (!profile) return [];
+    // If still loading auth state, show basic navigation for all users
+    if (loading || !profile) {
+      // Show core items that are available to all authenticated users
+      return navigationItems.filter(item => 
+        item.group === 'core' || 
+        (item.group === 'modules' && item.roles.includes('user'))
+      );
+    }
 
-    // Show ALL navigation items that match the user's role
+    // Once profile is loaded, filter by actual user role
     return navigationItems.filter(item => 
       item.roles.includes(profile.role)
     );
@@ -47,5 +54,6 @@ export function useNavigationItems() {
     groupItems,
     groupItemsByModule,
     getModuleDisplayName,
+    isLoading: loading,
   };
 }
