@@ -1,5 +1,6 @@
 
 import { ReportConfig } from '../types';
+import { BarChart3, Users, TrendingUp, Calendar, Target, Building, Activity, User, Bell, PieChart, Clock, CheckCircle } from 'lucide-react';
 
 export interface PredefinedReport {
   id: string;
@@ -8,6 +9,8 @@ export interface PredefinedReport {
   category: string;
   config: ReportConfig;
   requiredModules: string[];
+  icon: any;
+  isPopular?: boolean;
 }
 
 export const PREDEFINED_REPORTS: PredefinedReport[] = [
@@ -18,6 +21,8 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Overview of workflow completion rates and performance metrics',
     category: 'Workflow Analytics',
     requiredModules: ['neura-flow'],
+    icon: BarChart3,
+    isPopular: true,
     config: {
       name: 'Workflow Performance Summary',
       dataSource: 'workflow_performance',
@@ -31,6 +36,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'List of overdue workflow step assignments',
     category: 'Task Management',
     requiredModules: ['neura-flow'],
+    icon: Clock,
     config: {
       name: 'Overdue Task Assignments',
       dataSource: 'workflow_step_assignments',
@@ -59,6 +65,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Individual user productivity and completion statistics',
     category: 'Performance Analytics',
     requiredModules: ['neura-flow'],
+    icon: Users,
     config: {
       name: 'User Performance Metrics',
       dataSource: 'user_performance',
@@ -73,6 +80,8 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Comprehensive overview of deals by stage with values and conversion metrics',
     category: 'Sales Pipeline',
     requiredModules: ['neura-crm'],
+    icon: TrendingUp,
+    isPopular: true,
     config: {
       name: 'Sales Pipeline Summary',
       dataSource: 'crm_deal_pipeline_analytics',
@@ -86,6 +95,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Analysis of lead sources and conversion rates to customers',
     category: 'Conversion Analytics',
     requiredModules: ['neura-crm'],
+    icon: Target,
     config: {
       name: 'Lead Conversion Report',
       dataSource: 'crm_contact_performance_view',
@@ -99,6 +109,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Overview of CRM task management and completion rates',
     category: 'Task Management',
     requiredModules: ['neura-crm'],
+    icon: CheckCircle,
     config: {
       name: 'CRM Task Completion Analytics',
       dataSource: 'crm_tasks',
@@ -112,6 +123,8 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Individual and team sales performance metrics',
     category: 'Sales Analytics',
     requiredModules: ['neura-crm'],
+    icon: Activity,
+    isPopular: true,
     config: {
       name: 'Sales Team Performance',
       dataSource: 'crm_sales_performance_analytics',
@@ -125,6 +138,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Analysis of company interactions and business development',
     category: 'Account Management',
     requiredModules: ['neura-crm'],
+    icon: Building,
     config: {
       name: 'Company Engagement Metrics',
       dataSource: 'companies',
@@ -138,6 +152,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Historical view of deal changes and activities',
     category: 'Deal Tracking',
     requiredModules: ['neura-crm'],
+    icon: Calendar,
     config: {
       name: 'Deal Activity Timeline',
       dataSource: 'crm_deal_activities',
@@ -152,6 +167,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Cross-department productivity comparison',
     category: 'Department Analytics',
     requiredModules: ['neura-crm'],
+    icon: PieChart,
     config: {
       name: 'Department Performance Comparison',
       dataSource: 'department_analytics',
@@ -166,6 +182,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Complete user listing with roles and departments',
     category: 'User Management',
     requiredModules: ['neura-core'],
+    icon: User,
     config: {
       name: 'User Directory',
       dataSource: 'profiles',
@@ -180,6 +197,7 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
     description: 'Overview of recent system notifications and alerts',
     category: 'System Activity',
     requiredModules: ['neura-core'],
+    icon: Bell,
     config: {
       name: 'Recent System Notifications',
       dataSource: 'notifications',

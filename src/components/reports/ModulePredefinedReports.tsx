@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { getRTLAwareTextAlign } from '@/utils/rtl';
-import { MODULE_REPORTS } from './constants/predefinedReports';
+import { PREDEFINED_REPORTS, PredefinedReport } from './constants/predefinedReports';
 import { PredefinedReportCard } from './PredefinedReportCard';
 import { EmptyReportsState } from './EmptyReportsState';
 import { UnavailableReportsSection } from './UnavailableReportsSection';
@@ -15,11 +15,11 @@ export function ModulePredefinedReports() {
   const isRootUser = canManageModules();
   
   // Filter reports based on active modules
-  const availableReports = MODULE_REPORTS.filter(report =>
+  const availableReports = PREDEFINED_REPORTS.filter(report =>
     isRootUser || report.requiredModules.some(moduleId => activeModules.includes(moduleId))
   );
   
-  const unavailableReports = MODULE_REPORTS.filter(report =>
+  const unavailableReports = PREDEFINED_REPORTS.filter(report =>
     !isRootUser && !report.requiredModules.some(moduleId => activeModules.includes(moduleId))
   );
 
@@ -30,7 +30,7 @@ export function ModulePredefinedReports() {
     }
     acc[report.category].push(report);
     return acc;
-  }, {} as Record<string, typeof MODULE_REPORTS>);
+  }, {} as Record<string, PredefinedReport[]>);
 
   const generateReport = (reportId: string) => {
     console.log('Generating predefined report:', reportId);
