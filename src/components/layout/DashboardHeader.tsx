@@ -24,8 +24,8 @@ export function DashboardHeader({ isMainDashboard, isRTL }: DashboardHeaderProps
               className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isRTL ? 'flex-row-reverse' : ''}`}
             >
               <img 
-                src="/lovable-uploads/ad638155-e549-4473-9b1c-09e58275fae6.png" 
-                alt="NeuraCore Logo" 
+                src="/lovable-uploads/89265bda-97be-4333-b30d-5e5f3fd6aa89.png" 
+                alt="Neuracore 360" 
                 className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
               />
             </a>
