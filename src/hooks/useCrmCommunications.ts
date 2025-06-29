@@ -19,7 +19,7 @@ export function useCrmCommunications(entityId?: string, entityType?: 'contact' |
       if (!profile?.workspace_id && !isRootUser) return [];
       
       let query = supabase
-        .from('crm_communications')
+        .from('crm_communications' as any)
         .select(`
           *,
           crm_contacts:contact_id (
@@ -57,7 +57,7 @@ export function useCrmCommunications(entityId?: string, entityType?: 'contact' |
       const { data, error } = await query;
       if (error) throw error;
       
-      return (data || []).map(comm => ({
+      return (data || []).map((comm: any) => ({
         id: comm.id,
         workspace_id: comm.workspace_id,
         contact_id: comm.contact_id,
@@ -83,7 +83,7 @@ export function useCrmCommunications(entityId?: string, entityType?: 'contact' |
   const createCommunication = useMutation({
     mutationFn: async (data: Omit<CrmCommunication, 'id' | 'created_at' | 'updated_at'>) => {
       const { data: result, error } = await supabase
-        .from('crm_communications')
+        .from('crm_communications' as any)
         .insert([data])
         .select()
         .single();
@@ -112,7 +112,7 @@ export function useCrmCommunications(entityId?: string, entityType?: 'contact' |
   const updateCommunication = useMutation({
     mutationFn: async ({ id, ...data }: Partial<CrmCommunication> & { id: string }) => {
       const { data: result, error } = await supabase
-        .from('crm_communications')
+        .from('crm_communications' as any)
         .update(data)
         .eq('id', id)
         .select()
@@ -142,7 +142,7 @@ export function useCrmCommunications(entityId?: string, entityType?: 'contact' |
   const deleteCommunication = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('crm_communications')
+        .from('crm_communications' as any)
         .delete()
         .eq('id', id);
       
