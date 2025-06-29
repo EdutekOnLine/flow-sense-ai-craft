@@ -1,3 +1,4 @@
+
 import React from 'react';
 import DashboardContent from '@/components/dashboard/DashboardContent';
 import { WorkflowInbox } from '@/components/workflow/WorkflowInbox';
@@ -16,7 +17,6 @@ import { CrmPipelinePage } from '@/components/crm/pages/CrmPipelinePage';
 import { CrmAnalyticsPage } from '@/components/crm/pages/CrmAnalyticsPage';
 import { WorkflowDashboard } from '@/components/workflow/WorkflowDashboard';
 import { WorkflowAnalyticsPage } from '@/components/workflow/pages/WorkflowAnalyticsPage';
-import { CrmCommunicationsPage } from '@/components/crm/pages/CrmCommunicationsPage';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { TeamManagement } from '@/components/admin/TeamManagement';
 
@@ -66,9 +66,6 @@ export function DashboardContentRenderer({ activeTab, onOpenWorkflow, currentPat
       case 'crm-analytics':
         if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
         return <CrmAnalyticsPage />;
-      case 'crm-communications':
-        if (!canAccessModule('neura-crm')) return <div>Access denied</div>;
-        return <CrmCommunicationsPage />;
       case 'forms':
         if (!canAccessModule('neura-forms')) return <div>Access denied</div>;
         return <div>Forms module coming soon...</div>;

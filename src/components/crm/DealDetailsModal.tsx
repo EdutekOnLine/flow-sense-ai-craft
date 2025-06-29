@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -7,12 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, DollarSign, User, Building2, Clock, Target, MessageSquare } from 'lucide-react';
+import { Calendar, DollarSign, User, Building2, Clock, Target } from 'lucide-react';
 import type { CrmDeal, CrmDealActivity } from '@/modules/neura-crm';
 import { format } from 'date-fns';
-import { CommunicationLogDialog } from './CommunicationLogDialog';
-import { CommunicationTimeline } from './CommunicationTimeline';
-import { Button } from '@/components/ui/button';
 
 interface DealDetailsModalProps {
   deal: CrmDeal & {
@@ -49,25 +47,12 @@ export function DealDetailsModal({ deal, activities, isOpen, onClose }: DealDeta
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-3">
-              {deal.title}
-              <Badge className={getStageColor(deal.stage)}>
-                {deal.stage.charAt(0).toUpperCase() + deal.stage.slice(1)}
-              </Badge>
-            </DialogTitle>
-            <CommunicationLogDialog 
-              contactId={deal.contact_id || ''}
-              companyId={deal.company_id || undefined}
-              dealId={deal.id}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Log Communication
-                </Button>
-              }
-            />
-          </div>
+          <DialogTitle className="flex items-center gap-3">
+            {deal.title}
+            <Badge className={getStageColor(deal.stage)}>
+              {deal.stage.charAt(0).toUpperCase() + deal.stage.slice(1)}
+            </Badge>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -161,24 +146,6 @@ export function DealDetailsModal({ deal, activities, isOpen, onClose }: DealDeta
               <p className="text-sm text-muted-foreground">{deal.notes}</p>
             </div>
           )}
-
-          <Separator />
-
-          {/* Communications Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="h-5 w-5" />
-              <h4 className="font-medium">Communications</h4>
-            </div>
-            
-            <div className="max-h-64 overflow-y-auto">
-              <CommunicationTimeline 
-                entityId={deal.id} 
-                entityType="deal" 
-                showFilters={false}
-              />
-            </div>
-          </div>
 
           <Separator />
 

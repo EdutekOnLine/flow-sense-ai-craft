@@ -1,3 +1,4 @@
+
 import { ReportConfig } from '../types';
 import { BarChart3, Users, TrendingUp, Calendar, Target, Building, Activity, User, Bell, PieChart, Clock, CheckCircle, MessageSquare } from 'lucide-react';
 

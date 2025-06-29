@@ -1,257 +1,239 @@
-
-import { Home, Kanban, ListChecks, Users, Settings, BarChart3, Building2, TrendingUp, CheckSquare, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { 
+  LayoutDashboard,
+  Users,
+  Settings,
+  FileText,
+  BarChart3,
+  Workflow,
+  Inbox,
+  Building2,
+  FormInput,
+  GraduationCap,
+  Package,
+  Building,
+  UserPlus,
+  Briefcase,
+  CheckSquare,
+  TrendingUp,
+  PieChart,
+  UserCheck,
+  Layers,
+  Users2,
+  Activity
+} from 'lucide-react';
 
 export interface NavigationItem {
   id: string;
   label: string;
   icon: any;
-  href?: string;
-  children?: NavigationItem[];
-  collapsible?: boolean;
   roles: string[];
   module: string;
   group: string;
 }
 
-export const getGroupTitle = (groupKey: string): string => {
-  const groupTitles: Record<string, string> = {
-    'core': 'Core',
-    'modules': 'Modules',
-    'admin': 'Administration'
-  };
-  return groupTitles[groupKey] || groupKey;
-};
-
 export const navigationItems: NavigationItem[] = [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'navigation.dashboard',
     icon: LayoutDashboard,
-    href: '/',
-    roles: ['user', 'admin', 'root'],
+    roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-core',
-    group: 'core',
+    group: 'core'
   },
-  // Workflow Module
   {
-    id: 'workflow',
-    label: 'Workflow',
-    icon: Kanban,
-    collapsible: true,
-    roles: ['user', 'admin', 'root'],
+    id: 'workflow-dashboard',
+    label: 'Workflow Dashboard',
+    icon: LayoutDashboard,
+    roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-flow',
-    group: 'modules',
-    children: [
-      {
-        id: 'workflow-dashboard',
-        label: 'Workflow Dashboard',
-        icon: LayoutDashboard,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-flow',
-        group: 'modules',
-      },
-      {
-        id: 'workflow-inbox',
-        label: 'Workflow Inbox',
-        icon: ListChecks,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-flow',
-        group: 'modules',
-      },
-      {
-        id: 'workflow-builder',
-        label: 'Workflow Builder',
-        icon: Home,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-flow',
-        group: 'modules',
-      },
-      {
-        id: 'templates',
-        label: 'Templates',
-        icon: Home,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-flow',
-        group: 'modules',
-      },
-      {
-        id: 'workflow-analytics',
-        label: 'Analytics',
-        icon: BarChart3,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-flow',
-        group: 'modules',
-      },
-    ],
+    group: 'modules'
   },
-  // CRM Module
   {
-    id: 'crm',
-    label: 'CRM',
-    icon: Building2,
-    collapsible: true,
-    roles: ['user', 'admin', 'root'],
-    module: 'neura-crm',
-    group: 'modules',
-    children: [
-      {
-        id: 'crm-dashboard',
-        label: 'CRM Dashboard',
-        icon: LayoutDashboard,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-contacts',
-        label: 'Contacts',
-        icon: Users,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-companies',
-        label: 'Companies',
-        icon: Building2,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-pipeline',
-        label: 'Sales Pipeline',
-        icon: TrendingUp,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-tasks',
-        label: 'Tasks',
-        icon: CheckSquare,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-communications',
-        label: 'Communications',
-        icon: MessageSquare,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-      {
-        id: 'crm-analytics',
-        label: 'Analytics',
-        icon: BarChart3,
-        roles: ['user', 'admin', 'root'],
-        module: 'neura-crm',
-        group: 'modules',
-      },
-    ],
+    id: 'workflow-inbox',
+    label: 'navigation.myTasks',
+    icon: Inbox,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
   },
-  // Forms Module
+  {
+    id: 'workflow-builder',
+    label: 'navigation.workflowBuilder',
+    icon: Workflow,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
+  },
+  {
+    id: 'templates',
+    label: 'navigation.templates',
+    icon: FileText,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
+  },
+  {
+    id: 'workflow-analytics',
+    label: 'Workflow Analytics',
+    icon: PieChart,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-flow',
+    group: 'modules'
+  },
+  {
+    id: 'crm-dashboard',
+    label: 'CRM Dashboard',
+    icon: LayoutDashboard,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-contacts',
+    label: 'Contacts',
+    icon: UserPlus,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-companies',
+    label: 'Companies',
+    icon: Building2,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-tasks',
+    label: 'CRM Tasks',
+    icon: CheckSquare,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-pipeline',
+    label: 'Pipeline',
+    icon: TrendingUp,
+    roles: ['admin', 'manager', 'employee', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
+  {
+    id: 'crm-analytics',
+    label: 'CRM Analytics',
+    icon: PieChart,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-crm',
+    group: 'modules'
+  },
   {
     id: 'forms',
     label: 'Forms',
-    icon: ListChecks,
-    collapsible: false,
-    roles: ['user', 'admin', 'root'],
+    icon: FormInput,
+    roles: ['admin', 'manager', 'root'],
     module: 'neura-forms',
-    group: 'modules',
+    group: 'modules'
   },
-  // Education Module
   {
     id: 'education',
     label: 'Education',
-    icon: Users,
-    collapsible: false,
-    roles: ['user', 'admin', 'root'],
+    icon: GraduationCap,
+    roles: ['admin', 'manager', 'employee', 'root'],
     module: 'neura-edu',
-    group: 'modules',
+    group: 'modules'
   },
-  // Admin section
   {
-    id: 'admin',
-    label: 'Admin',
-    icon: Settings,
-    collapsible: true,
+    id: 'users',
+    label: 'navigation.users',
+    icon: Users,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'teams',
+    label: 'Team Management',
+    icon: Users2,
     roles: ['admin', 'root'],
     module: 'neura-core',
-    group: 'admin',
-    children: [
-      {
-        id: 'users',
-        label: 'Users',
-        icon: Users,
-        href: '/admin/users',
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-      {
-        id: 'teams',
-        label: 'Teams',
-        icon: Users,
-        href: '/admin/teams',
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-      {
-        id: 'workspace-management',
-        label: 'Workspaces',
-        icon: Building2,
-        href: '/admin/workspaces',
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-      {
-        id: 'reports',
-        label: 'Reports',
-        icon: BarChart3,
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-      {
-        id: 'module-management',
-        label: 'Modules',
-        icon: Home,
-        href: '/admin/modules',
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-      {
-        id: 'settings',
-        label: 'Settings',
-        icon: Settings,
-        roles: ['admin', 'root'],
-        module: 'neura-core',
-        group: 'admin',
-      },
-    ],
+    group: 'admin'
+  },
+  {
+    id: 'workspace-management',
+    label: 'Workspace Management',
+    icon: Building,
+    roles: ['root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'reports',
+    label: 'navigation.reports',
+    icon: BarChart3,
+    roles: ['admin', 'manager', 'root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'module-management',
+    label: 'Module Management',
+    icon: Package,
+    roles: ['root'],
+    module: 'neura-core',
+    group: 'admin'
+  },
+  {
+    id: 'settings',
+    label: 'navigation.settings',
+    icon: Settings,
+    roles: ['admin', 'root'],
+    module: 'neura-core',
+    group: 'admin'
   },
 ];
 
-export const getNavigationItems = (canAccessModule: (moduleId: string) => boolean): NavigationItem[] => {
-  return navigationItems.filter(item => {
-    // Filter based on module access
-    const hasModuleAccess = canAccessModule(item.module);
-    
-    if (!hasModuleAccess) {
-      return false;
-    }
-    
-    // If item has children, filter them too
-    if (item.children) {
-      item.children = item.children.filter(child => canAccessModule(child.module));
-    }
-    
-    return true;
-  });
+export const adminNavigation = [
+  {
+    title: 'User Management',
+    icon: UserCheck,
+    href: '/admin/users',
+    description: 'Manage users, invitations, and permissions',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
+  },
+  {
+    title: 'Team Management',
+    icon: Users2,
+    href: '/admin/teams',
+    description: 'Organize users into teams and assign managers',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
+  },
+  {
+    title: 'Workspace Management',
+    icon: Building2,
+    href: '/admin/workspaces',
+    description: 'Configure workspace settings and structure',
+    requiresAuth: true,
+    roles: ['root'],
+  },
+  {
+    title: 'Module Management',
+    icon: Layers,
+    href: '/admin/modules',
+    description: 'Enable and configure workspace modules',
+    requiresAuth: true,
+    roles: ['admin', 'root'],
+  },
+];
+
+export const getGroupTitle = (groupKey: string): string => {
+  const titles: Record<string, string> = {
+    core: 'Core',
+    modules: 'Modules',
+    admin: 'Administration'
+  };
+  return titles[groupKey] || groupKey;
 };

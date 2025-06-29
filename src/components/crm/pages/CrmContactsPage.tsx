@@ -14,9 +14,7 @@ import {
   Phone,
   Building2,
   User,
-  Calendar,
-  MessageSquare,
-  Eye
+  Calendar
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -31,15 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ContactDetailView } from '../ContactDetailView';
-import { CommunicationLogDialog } from '../CommunicationLogDialog';
-import type { CrmContact } from '@/modules/neura-crm';
 
 export function CrmContactsPage() {
   const { contacts, isLoading } = useCrmData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedContact, setSelectedContact] = useState<CrmContact | null>(null);
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = searchTerm === '' || 
@@ -135,12 +129,9 @@ export function CrmContactsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSelectedContact(contact)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </DropdownMenuItem>
                     <DropdownMenuItem>Edit Contact</DropdownMenuItem>
                     <DropdownMenuItem>Create Task</DropdownMenuItem>
+                    <DropdownMenuItem>View History</DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -188,20 +179,6 @@ export function CrmContactsPage() {
                   <span>Last contact: {new Date(contact.last_contact_date).toLocaleDateString()}</span>
                 </div>
               )}
-
-              {/* Communication Actions */}
-              <div className="pt-2 border-t">
-                <CommunicationLogDialog 
-                  contactId={contact.id}
-                  companyId={contact.company_id || undefined}
-                  trigger={
-                    <Button variant="outline" size="sm" className="w-full">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Log Communication
-                    </Button>
-                  }
-                />
-              </div>
             </CardContent>
           </Card>
         ))}
@@ -224,13 +201,6 @@ export function CrmContactsPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Contact Detail Modal */}
-      <ContactDetailView
-        contact={selectedContact}
-        isOpen={!!selectedContact}
-        onClose={() => setSelectedContact(null)}
-      />
     </div>
   );
 }
