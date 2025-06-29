@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,9 @@ import {
   Mail,
   MapPin,
   Users,
-  DollarSign
+  DollarSign,
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,10 +25,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { CompanyDetailView } from '../CompanyDetailView';
+import { CommunicationLogDialog } from '../CommunicationLogDialog';
+import type { Company } from '@/modules/neura-crm';
 
 export function CrmCompaniesPage() {
   const { companies, contacts, isLoading } = useCrmData();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const filteredCompanies = companies.filter(company => 
     searchTerm === '' || 
@@ -108,6 +113,10 @@ export function CrmCompaniesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSelectedCompany(company)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Edit Company</DropdownMenuItem>
                     <DropdownMenuItem>Add Contact</DropdownMenuItem>
                     <DropdownMenuItem>View Contacts</DropdownMenuItem>
@@ -173,6 +182,20 @@ export function CrmCompaniesPage() {
                   {company.employee_count} employees
                 </div>
               )}
+
+              {/* Communication Actions */}
+              <div className="pt-2 border-t">
+                <CommunicationLogDialog 
+                  contactId=""
+                  companyId={company.id}
+                  trigger={
+                    <Button variant="outline" size="sm" className="w-full">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Log Communication
+                    </Button>
+                  }
+                />
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -195,6 +218,13 @@ export function CrmCompaniesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Company Detail Modal */}
+      <CompanyDetailView
+        company={selectedCompany}
+        isOpen={!!selectedCompany}
+        onClose={() => setSelectedCompany(null)}
+      />
     </div>
   );
 }
