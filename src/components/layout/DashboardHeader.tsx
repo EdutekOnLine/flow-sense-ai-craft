@@ -19,7 +19,7 @@ export function DashboardHeader({ isMainDashboard, isRTL }: DashboardHeaderProps
             {isMainDashboard && <SidebarTrigger className="mr-4" />}
             <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
               <img 
-                src="/lovable-uploads/89265bda-97be-4333-b30d-5e5f3fd6aa89.png" 
+                src="/lovable-uploads/1296f80e-407f-41a9-837c-3a1f9cca1c8a.png" 
                 alt="Neuracore 360" 
                 className={`h-8 w-auto ${isRTL ? 'ml-2' : 'mr-2'}`}
               />
