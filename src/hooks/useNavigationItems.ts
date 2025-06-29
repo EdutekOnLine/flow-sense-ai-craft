@@ -13,19 +13,19 @@ export function useNavigationItems() {
       // Show core items that are available to all authenticated users
       return navigationItems.filter(item => 
         item.group === 'core' || 
-        (item.group === 'modules' && item.roles.includes('user'))
+        (item.group === 'modules' && item.roles && item.roles.includes('user'))
       );
     }
 
     // Once profile is loaded, filter by actual user role
     return navigationItems.filter(item => 
-      item.roles.includes(profile.role)
+      item.roles && item.roles.includes(profile.role)
     );
   };
 
   const groupItems = (items: NavigationItem[]) => {
     const groups = items.reduce((acc, item) => {
-      const group = item.group;
+      const group = item.group || 'core';
       if (!acc[group]) acc[group] = [];
       acc[group].push(item);
       return acc;
@@ -36,7 +36,7 @@ export function useNavigationItems() {
 
   const groupItemsByModule = (items: NavigationItem[]) => {
     const moduleGroups = items.reduce((acc, item) => {
-      const module = item.module;
+      const module = item.module || 'neura-core';
       if (!acc[module]) acc[module] = [];
       acc[module].push(item);
       return acc;

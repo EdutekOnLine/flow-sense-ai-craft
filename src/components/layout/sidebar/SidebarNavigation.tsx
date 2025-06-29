@@ -11,7 +11,7 @@ interface SidebarNavigationProps {
 }
 
 export function SidebarNavigation({ activeTab, onTabChange }: SidebarNavigationProps) {
-  const { getVisibleItems, groupItems, groupItemsByModule, getModuleDisplayName, isLoading } = useNavigationItems();
+  const { getVisibleItems, groupItems, groupItemsByModule, getModuleDisplayName } = useNavigationItems();
   
   // Always show navigation items - either optimistically during loading or filtered by role
   const visibleItems = getVisibleItems();
