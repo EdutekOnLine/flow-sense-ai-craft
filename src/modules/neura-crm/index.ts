@@ -111,6 +111,26 @@ export interface CrmDealActivity {
   created_at: string;
 }
 
+export interface CrmCommunication {
+  id: string;
+  workspace_id: string;
+  contact_id: string;
+  company_id?: string;
+  deal_id?: string;
+  type: 'call' | 'email' | 'meeting' | 'note';
+  summary?: string;
+  outcome?: string;
+  communication_date: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  // Relations
+  contact?: Pick<CrmContact, 'first_name' | 'last_name'>;
+  company?: Pick<Company, 'name'>;
+  deal?: Pick<CrmDeal, 'title'>;
+  creator?: Pick<CrmContact, 'first_name' | 'last_name'>;
+}
+
 export interface CrmMetrics {
   totalLeads: number;
   activeDeals: number;

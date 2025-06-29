@@ -1,6 +1,6 @@
 
 import { ReportConfig } from '../types';
-import { BarChart3, Users, TrendingUp, Calendar, Target, Building, Activity, User, Bell, PieChart, Clock, CheckCircle } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Calendar, Target, Building, Activity, User, Bell, PieChart, Clock, CheckCircle, MessageSquare } from 'lucide-react';
 
 export interface PredefinedReport {
   id: string;
@@ -157,6 +157,20 @@ export const PREDEFINED_REPORTS: PredefinedReport[] = [
       name: 'Deal Activity Timeline',
       dataSource: 'crm_deal_activities',
       selectedColumns: ['deal_id', 'activity_type', 'old_value', 'new_value', 'description', 'created_by', 'created_at'],
+      filters: []
+    }
+  },
+  {
+    id: 'crm-communication-logs',
+    name: 'Communication Activity Report',
+    description: 'Complete log of all communications including calls, emails, meetings, and notes',
+    category: 'Communication Tracking',
+    requiredModules: ['neura-crm'],
+    icon: MessageSquare,
+    config: {
+      name: 'Communication Activity Report',
+      dataSource: 'crm_communications',
+      selectedColumns: ['type', 'summary', 'outcome', 'communication_date', 'contact_id', 'company_id', 'deal_id', 'created_by', 'created_at'],
       filters: []
     }
   },

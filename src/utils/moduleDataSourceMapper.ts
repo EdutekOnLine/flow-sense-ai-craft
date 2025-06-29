@@ -1,4 +1,3 @@
-
 export interface ModuleDataSourceConfig {
   moduleId: string;
   dataSources: string[];
@@ -30,7 +29,7 @@ export const MODULE_DATA_SOURCES: ModuleDataSourceConfig[] = [
   },
   {
     moduleId: 'neura-crm',
-    dataSources: ['crm_contacts', 'crm_companies', 'crm_tasks', 'crm_deals', 'crm_deal_activities', 'crm_deal_pipeline_analytics', 'crm_contact_performance_view', 'crm_sales_performance_analytics', 'companies', 'profiles', 'department_analytics'],
+    dataSources: ['crm_contacts', 'crm_companies', 'crm_tasks', 'crm_deals', 'crm_deal_activities', 'crm_communications', 'crm_deal_pipeline_analytics', 'crm_contact_performance_view', 'crm_sales_performance_analytics', 'companies', 'profiles', 'department_analytics'],
     displayName: 'NeuraCRM',
     description: 'Customer relationship and sales data'
   },
@@ -145,6 +144,12 @@ export const DATA_SOURCE_INFO: Record<string, DataSourceInfo> = {
     id: 'crm_deal_activities',
     name: 'Deal Activities',
     description: 'Deal history and activity tracking',
+    requiredModules: ['neura-crm']
+  },
+  'crm_communications': {
+    id: 'crm_communications',
+    name: 'CRM Communications',
+    description: 'Communication logs including calls, emails, meetings, and notes',
     requiredModules: ['neura-crm']
   },
   'crm_deal_pipeline_analytics': {
