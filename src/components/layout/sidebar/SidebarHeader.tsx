@@ -7,7 +7,7 @@ export function DynamicSidebarHeader() {
     <SidebarHeader className="p-4">
       <div className="flex items-center justify-center">
         <img 
-          src="/lovable-uploads/1296f80e-407f-41a9-837c-3a1f9cca1c8a.png" 
+          src="/lovable-uploads/27d218d0-0e7d-4d1f-9f0d-20e489109cdc.png" 
           alt="Neuracore 360" 
           className="h-8 w-auto"
         />
