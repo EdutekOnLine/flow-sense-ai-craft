@@ -4,6 +4,7 @@ import { ModuleQuickActions } from './ModuleQuickActions';
 import { ModuleIntegrationOverview } from './ModuleIntegrationOverview';
 import { PersonalWelcomeSection } from './personalized/PersonalWelcomeSection';
 import { MyRecentActivityTimeline } from './personalized/MyRecentActivityTimeline';
+import { UserPresenceDashboard } from '@/components/admin/UserPresenceDashboard';
 import { useModulePermissions } from '@/hooks/useModulePermissions';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
   const accessibleModules = getAccessibleModules();
   const hasWorkflowAccess = canAccessModule('neura-flow');
   const hasMultipleModules = accessibleModules.length > 1;
+  const isRootUser = profile?.role === 'root';
 
   return (
     <div className="space-y-8">
@@ -36,8 +38,12 @@ export default function DashboardContent({ onOpenWorkflow }: DashboardContentPro
           <ModuleIntegrationOverview />
         </div>
         
-        {/* Right column - Recent Activity */}
+        {/* Right column - Recent Activity and User Presence */}
         <div className="space-y-8">
+          {/* User Presence Dashboard - Only visible for root users */}
+          {isRootUser && <UserPresenceDashboard />}
+          
+          {/* Recent Activity Timeline */}
           <MyRecentActivityTimeline />
         </div>
       </div>
